@@ -605,39 +605,124 @@ def overview_preview_kwargs(family: str) -> dict[str, Any]:
 # Layout builders
 # ---------------------------------------------------------------------------
 
+def build_site_footer() -> html.Footer:
+    """dash-upset-style branding footer (overview + detail)."""
+    return html.Footer(
+        [
+            html.Div(
+                [
+                    html.Span("Made with ❤️ by "),
+                    html.A(
+                        "PhylaTech",
+                        href="https://github.com/PhylaTech",
+                        target="_blank",
+                        rel="noopener noreferrer",
+                    ),
+                    html.Span(" · Powered by "),
+                    html.A(
+                        "Plotly",
+                        href="https://plotly.com",
+                        target="_blank",
+                        rel="noopener noreferrer",
+                    ),
+                    html.Span(" · "),
+                    html.A(
+                        "Source on GitHub",
+                        href="https://github.com/PhylaTech/dash-loading-components",
+                        target="_blank",
+                        rel="noopener noreferrer",
+                    ),
+                ],
+                className="dlc-site-footer-brand",
+            ),
+            html.P(
+                "svg_spinners gated (React ^18.2 peer). Local MVP — not published.",
+                className="dlc-footer-note",
+            ),
+        ],
+        className="dlc-site-footer",
+    )
+
+
 def build_sidenav(active_family: Optional[str] = None, active_name: Optional[str] = None,
                   overview: bool = True) -> html.Aside:
-    blocks = [
-        html.H1("dlc gallery"),
-        html.P("dash-loading-components", className="sub"),
-        dcc.Link("← Overview", href="/", className="dlc-nav-item",
-                 style={"fontWeight": 600, "marginBottom": 8}),
+    nav_items: list = [
+        html.A(
+            [
+                html.Span("dlc", className="dlc-brand-mark"),
+                html.Span("dash-loading-components", className="sub"),
+            ],
+            href="/",
+            className="dlc-brand",
+        ),
+        dcc.Link("Overview", href="/", className="dlc-nav-item dlc-nav-home"),
+        dcc.Input(
+            id="nav-search",
+            type="search",
+            placeholder="Search…",
+            debounce=False,
+            className="dlc-nav-search",
+            n_submit=0,
+        ),
     ]
     for key, label, items in FAMILIES:
-        blocks.append(html.Div(f"{key} · {label}", className="dlc-nav-family"))
+        nav_items.append(
+            html.Div(
+                f"{key} · {label}",
+                className="dlc-nav-family",
+                id={"type": "nav-family", "family": key},
+            )
+        )
         for name, _comp in items:
             if overview:
                 href = f"#{card_anchor(key, name)}"
             else:
                 href = detail_path(key, name)
-            style = {}
+            cls = "dlc-nav-item dlc-nav-comp"
             if key == active_family and name == active_name:
-                style = {"background": "#fff7ed", "color": ACCENT, "fontWeight": 600}
-            blocks.append(
-                html.A(name, href=href, className="dlc-nav-item", style=style)
-                if overview
-                else dcc.Link(name, href=href, className="dlc-nav-item", style=style)
-            )
-    return html.Aside(blocks, className="dlc-sidenav")
+                cls += " dlc-nav-active"
+            link_id = {"type": "nav-comp", "family": key, "name": name}
+            if overview:
+                nav_items.append(
+                    html.A(
+                        name,
+                        href=href,
+                        className=cls,
+                        id=link_id,
+                        **{"data-family": key, "data-name": name},
+                    )
+                )
+            else:
+                nav_items.append(
+                    dcc.Link(name, href=href, className=cls, id=link_id)
+                )
+
+    footer = html.Div(
+        html.A(
+            "GitHub",
+            href="https://github.com/PhylaTech/dash-loading-components",
+            target="_blank",
+            rel="noopener noreferrer",
+            className="dlc-nav-github",
+        ),
+        className="dlc-nav-footer",
+    )
+    return html.Aside(
+        [
+            html.Div(nav_items, className="dlc-nav-body"),
+            footer,
+        ],
+        className="dlc-sidenav",
+    )
 
 
-def make_overview_card(family: str, name: str, component: Callable) -> html.A:
+def make_overview_card(family: str, name: str, component: Callable) -> html.Div:
     kwargs = overview_preview_kwargs(family)
     try:
         node = component(**kwargs)
     except Exception as exc:
-        node = html.Div(f"err", title=str(exc), style={"color": "crimson", "fontSize": 11})
-    return html.A(
+        node = html.Div("err", title=str(exc), style={"color": "crimson", "fontSize": 11})
+    card = html.A(
         [
             html.Div(name, className="name"),
             html.Div(node, className="preview"),
@@ -645,6 +730,13 @@ def make_overview_card(family: str, name: str, component: Callable) -> html.A:
         href=detail_path(family, name),
         id=card_anchor(family, name),
         className="dlc-card",
+        **{"data-family": family, "data-name": name},
+    )
+    return html.Div(
+        card,
+        id={"type": "card-wrap", "family": family, "name": name},
+        className="dlc-card-wrap",
+        **{"data-family": family, "data-name": name},
     )
 
 
@@ -670,19 +762,20 @@ def build_overview() -> html.Div:
         [
             html.Div(
                 [
-                    html.H1("Loading components"),
+                    html.H1("Loading, made beautiful for Dash."),
                     html.P(
-                        "Browse every Dash wrapper in one place. Use the side nav to jump to a "
-                        "card, then open a component for live controls and a Python snippet."
+                        "Dash wrappers for modern React loading libraries — loading-dev, ldrs, "
+                        "react-spinners, and more. Requires Dash ≥4.5 / React 19."
+                    ),
+                    html.Pre(
+                        "import dash_loading_components as dlc",
+                        className="dlc-hero-teaser",
                     ),
                 ],
                 className="dlc-hero",
             ),
             *sections,
-            html.P(
-                "svg_spinners gated (React ^18.2 peer). Local MVP — not published.",
-                className="dlc-footer",
-            ),
+            build_site_footer(),
         ],
         className="dlc-main",
     )
@@ -809,7 +902,7 @@ def build_detail(family: str, name: str) -> html.Div:
         [
             dcc.Store(id="detail-meta", data={"family": family, "name": name, "props": props}),
             dcc.Store(id="detail-values", data=values),
-            dcc.Link("← Back to overview", href="/", className="dlc-back"),
+            dcc.Link("← Overview", href="/", className="dlc-back"),
             html.H1(name, className="dlc-detail-title"),
             html.P(desc, className="dlc-detail-desc"),
             html.Div(
@@ -836,6 +929,7 @@ def build_detail(family: str, name: str) -> html.Div:
                 ],
                 className="dlc-detail-layout",
             ),
+            build_site_footer(),
         ],
         className="dlc-main",
     )
@@ -846,7 +940,8 @@ def build_404() -> html.Div:
         [
             html.H1("Not found"),
             html.P("Unknown route. Try the overview."),
-            dcc.Link("← Overview", href="/", className="dlc-back"),
+            dcc.Link("Overview", href="/", className="dlc-back"),
+            build_site_footer(),
         ],
         className="dlc-main dlc-404",
     )
@@ -912,6 +1007,47 @@ def _coerce_control_value(prop: str, raw: Any, family: str) -> Any:
     if spec and spec["kind"] == "text":
         return "" if raw is None else str(raw)
     return raw
+
+
+@callback(
+    Output({"type": "nav-comp", "family": ALL, "name": ALL}, "style"),
+    Output({"type": "nav-family", "family": ALL}, "style"),
+    Output({"type": "card-wrap", "family": ALL, "name": ALL}, "style"),
+    Input("nav-search", "value"),
+    State({"type": "nav-comp", "family": ALL, "name": ALL}, "id"),
+    State({"type": "nav-family", "family": ALL}, "id"),
+    State({"type": "card-wrap", "family": ALL, "name": ALL}, "id"),
+)
+def filter_nav_search(query, nav_ids, family_ids, card_ids):
+    q = (query or "").strip().lower()
+    nav_styles = []
+    visible_by_family: dict[str, bool] = {}
+    for id_dict in nav_ids or []:
+        family = id_dict.get("family", "")
+        name = id_dict.get("name", "")
+        hay = f"{family} {name}".lower()
+        match = (not q) or (q in hay) or (q in name.lower()) or (q in family.lower())
+        visible_by_family[family] = visible_by_family.get(family, False) or match
+        nav_styles.append({} if match else {"display": "none"})
+
+    family_styles = []
+    for id_dict in family_ids or []:
+        family = id_dict.get("family", "")
+        show = (not q) or visible_by_family.get(family, False)
+        family_styles.append({} if show else {"display": "none"})
+
+    card_styles = []
+    for id_dict in card_ids or []:
+        family = id_dict.get("family", "")
+        name = id_dict.get("name", "")
+        hay = f"{family} {name}".lower()
+        match = (not q) or (q in hay) or (q in name.lower()) or (q in family.lower())
+        if match:
+            card_styles.append({})
+        else:
+            card_styles.append({"opacity": "0.22", "pointerEvents": "none", "filter": "grayscale(0.35)"})
+
+    return nav_styles, family_styles, card_styles
 
 
 @callback(
