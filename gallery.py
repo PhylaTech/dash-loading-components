@@ -2,7 +2,8 @@
 
 loading.dev-style UX:
   /                      overview — left sticky nav + component cards
-  /c/<family>/<Name>     component detail — live preview, controls, snippet
+  /c/<family>/<Name>     component detail — split workbench, dual snippets,
+                         right TOC, per-prop docs
 
 Run:
   source /workspace/dash-loading/.venv/bin/activate
@@ -39,6 +40,97 @@ except Exception as exc:  # pragma: no cover
 DEFAULT_COLOR = "#f97316"
 DEFAULT_SIZE = 48
 ACCENT = "#f97316"
+
+# Size presets for workbench (px) — loading.dev-style Small / Medium / Large
+SIZE_PRESETS = [("Small", 24), ("Medium", 48), ("Large", 96)]
+SIZE_PRESET_VALUES = {v for _, v in SIZE_PRESETS}
+SIZE_PRESET_DEFAULT = 48
+
+# Props shown as compact workbench controls (order preference within available)
+WORKBENCH_PROP_PRIORITY = [
+    "size", "height", "width", "color", "speed",
+    "easing", "cap", "thickness", "stroke", "strokeWidth",
+    "secondaryColor", "margin", "playState", "paused",
+    "loading", "enabled", "visible", "variant", "contained",
+    "containerColor", "sizeRatio", "radius", "text", "textColor",
+    "ariaLabel", "className",
+]
+
+PROP_SECTION_TITLES = {
+    "size": "Size",
+    "height": "Height",
+    "width": "Width",
+    "color": "Color",
+    "speed": "Speed",
+    "duration": "Duration",
+    "easing": "Easing",
+    "cap": "Cap",
+    "playState": "State",
+    "thickness": "Thickness",
+    "stroke": "Stroke",
+    "strokeWidth": "Stroke width",
+    "secondaryColor": "Secondary color",
+    "margin": "Margin",
+    "loading": "Loading",
+    "enabled": "Enabled",
+    "visible": "Visible",
+    "paused": "Paused",
+    "variant": "Variant",
+    "contained": "Contained",
+    "containerColor": "Container color",
+    "sizeRatio": "Size ratio",
+    "radius": "Radius",
+    "text": "Text",
+    "textColor": "Text color",
+    "ariaLabel": "aria-label",
+    "className": "Custom classes",
+    "speedMultiplier": "Speed multiplier",
+    "speedPlus": "Speed plus",
+    "animationDuration": "Animation duration",
+}
+
+PROP_SECTION_COPY = {
+    "size": (
+        "Sets the spinner’s dimensions in pixels. "
+        "Workbench presets map to Small (24), Medium (48), and Large (96)."
+    ),
+    "height": "Height in pixels for loaders that expose height separately from width.",
+    "width": "Width in pixels for loaders that expose width separately from height.",
+    "color": "Any valid CSS color. The gallery default accent is #f97316.",
+    "speed": (
+        "Relative rate for the Common API: 1.0 = this family’s normal tempo. "
+        "The Namespaced snippet shows the translated native unit "
+        "(duration ms, speedMultiplier, percent, etc.)."
+    ),
+    "duration": "Animation cycle length in milliseconds. Higher values are slower.",
+    "easing": "Rotation easing: linear, ease-in-out, or stacked (loading-dev).",
+    "cap": "Stroke end style: round or flat (loading-dev).",
+    "playState": "Whether the animation is running or paused.",
+    "thickness": "Stroke thickness (spinners-react).",
+    "stroke": "Stroke width for line-based loaders.",
+    "strokeWidth": "Stroke width in pixels.",
+    "secondaryColor": "Secondary / track color when the spinner uses two tones.",
+    "margin": "Spacing between spinner elements.",
+    "loading": "Whether the spinner is shown (react-spinners).",
+    "enabled": "Whether the spinner is enabled (spinners-react).",
+    "visible": "Visibility toggle.",
+    "paused": "Pause the Material loading indicator.",
+    "variant": "Visual variant when the upstream component supports it.",
+    "contained": "Show the Material container track.",
+    "containerColor": "Color of the Material container track.",
+    "sizeRatio": "Inner size relative to the container.",
+    "radius": "Corner or arc radius.",
+    "text": "Optional label text beside the indicator.",
+    "textColor": "Label text color.",
+    "ariaLabel": "Accessible name announced to assistive tech.",
+    "className": (
+        "Optional CSS class on the outer wrapper when you need a tweak "
+        "the library doesn’t provide."
+    ),
+    "speedMultiplier": "Speed multiplier (react-spinners).",
+    "speedPlus": "Speed adjustment in [-5, 5] (react-loading-indicators).",
+    "animationDuration": "Animation duration in milliseconds (epic-spinners).",
+}
 
 # ---------------------------------------------------------------------------
 # Catalog — shared with dlc.Loading (dash_loading_components.registry)
@@ -762,104 +854,212 @@ def build_overview() -> html.Div:
     )
 
 
-def control_for_prop(prop: str, value: Any, family: str) -> html.Div:
-    """Build a single control widget for a prop."""
-    # indicators size is special (string tokens)
+def uses_size_presets(family: str, props: list[str]) -> bool:
+    """Prefer Small/Medium/Large presets when size is a numeric px prop."""
+    if "size" not in props:
+        return False
+    if family in ("indicators", "loader_spinner"):
+        return False
+    return True
+
+
+def section_title(prop: str) -> str:
+    return PROP_SECTION_TITLES.get(prop, prop)
+
+
+def section_copy(family: str, prop: str) -> str:
+    if family == "indicators" and prop == "size":
+        return "Size token: small, medium, or large (upstream string tokens)."
+    if prop in PROP_SECTION_COPY:
+        return PROP_SECTION_COPY[prop]
+    spec = prop_spec(family, prop)
+    if spec and spec.get("doc"):
+        return spec["doc"]
+    return f"Configurable `{prop}` for this wrapper."
+
+
+def build_prop_example_snippet(family: str, name: str, prop: str) -> str:
+    """Short namespaced examples for the prop docs section (not live-synced)."""
+    lines = ["import dash_loading_components as dlc", ""]
+    if prop == "size" and family != "indicators":
+        for label, px in SIZE_PRESETS:
+            lines.append(f"dlc.{family}.{name}(size={px})  # {label}")
+    elif family == "indicators" and prop == "size":
+        for tok in ("small", "medium", "large"):
+            lines.append(f'dlc.{family}.{name}(size="{tok}")')
+    elif prop == "color":
+        lines.append(f'dlc.{family}.{name}(color="#f97316", size={DEFAULT_SIZE})')
+    elif prop == "speed" and supports_relative_speed(family):
+        lines.append(
+            f'dlc.Loading(library="{family}", spinner="{name}", '
+            f"size={DEFAULT_SIZE}, speed=1.5)"
+        )
+        native = translate_relative_speed(family, 1.5)
+        kw = ", ".join(f"{k}={format_py_value(v)}" for k, v in native.items())
+        lines.append(f"# namespaced ≈ dlc.{family}.{name}({kw})")
+    elif prop == "easing":
+        lines.append(f'dlc.{family}.{name}(easing="ease-in-out", size={DEFAULT_SIZE})')
+    elif prop == "cap":
+        lines.append(f'dlc.{family}.{name}(cap="flat", size={DEFAULT_SIZE})')
+    elif prop == "playState":
+        lines.append(f'dlc.{family}.{name}(playState="paused", size={DEFAULT_SIZE})')
+    elif prop == "className":
+        lines.append(f'dlc.{family}.{name}(className="opacity-40", size={DEFAULT_SIZE})')
+    else:
+        spec = prop_spec(family, prop)
+        demo = spec["default"] if spec else None
+        if demo is None:
+            lines.append(f"dlc.{family}.{name}(...)  # set {prop}=...")
+        else:
+            lines.append(
+                f"dlc.{family}.{name}({prop}={format_py_value(demo)}, size={DEFAULT_SIZE})"
+            )
+    return format_python_snippet("\n".join(lines) + "\n")
+
+
+def workbench_control(prop: str, value: Any, family: str, props: list[str]) -> html.Div:
+    """Compact control row for the workbench panel (beside preview)."""
+    label = section_title(prop)
+    ctrl_id = {"type": "prop-ctrl", "prop": prop}
+
+    # indicators size tokens
     if family == "indicators" and prop == "size":
         return html.Div(
             [
-                html.H3(prop),
-                html.P("Size token (small / medium / large) or number.", className="doc"),
-                dcc.Dropdown(
-                    id={"type": "prop-ctrl", "prop": prop},
+                html.Label(label, className="dlc-ctrl-label"),
+                dcc.RadioItems(
+                    id=ctrl_id,
                     options=[
-                        {"label": "small", "value": "small"},
-                        {"label": "medium", "value": "medium"},
-                        {"label": "large", "value": "large"},
+                        {"label": "Small", "value": "small"},
+                        {"label": "Medium", "value": "medium"},
+                        {"label": "Large", "value": "large"},
                     ],
                     value=value if value in ("small", "medium", "large") else "medium",
-                    clearable=False,
+                    inline=True,
+                    className="dlc-size-presets",
                 ),
             ],
-            className="dlc-prop",
+            className="dlc-ctrl-row",
+        )
+
+    # numeric size → presets
+    if prop == "size" and uses_size_presets(family, props):
+        preset_val = value if value in SIZE_PRESET_VALUES else SIZE_PRESET_DEFAULT
+        return html.Div(
+            [
+                html.Label(label, className="dlc-ctrl-label"),
+                dcc.RadioItems(
+                    id=ctrl_id,
+                    options=[{"label": lab, "value": px} for lab, px in SIZE_PRESETS],
+                    value=preset_val,
+                    inline=True,
+                    className="dlc-size-presets",
+                ),
+            ],
+            className="dlc-ctrl-row",
         )
 
     spec = prop_spec(family, prop)
+    kids: list = [html.Label(label, className="dlc-ctrl-label")]
+
     if spec is None:
-        # fallback text
-        return html.Div(
-            [
-                html.H3(prop),
-                html.P("Custom value.", className="doc"),
-                dcc.Input(
-                    id={"type": "prop-ctrl", "prop": prop},
-                    type="text",
-                    value="" if value is None else str(value),
-                    style={"width": "100%"},
-                ),
-            ],
-            className="dlc-prop",
+        kids.append(
+            dcc.Input(
+                id=ctrl_id,
+                type="text",
+                value="" if value is None else str(value),
+                className="dlc-ctrl-input",
+            )
         )
+        return html.Div(kids, className="dlc-ctrl-row")
 
     kind = spec["kind"]
-    doc = spec.get("doc", "")
-    kids = [html.H3(prop), html.P(doc, className="doc")]
-
     if kind == "slider":
         kids.append(
             dcc.Slider(
-                id={"type": "prop-ctrl", "prop": prop},
+                id=ctrl_id,
                 min=spec["min"],
                 max=spec["max"],
                 step=spec["step"],
                 value=value if value is not None else spec["default"],
                 marks=None,
                 tooltip={"placement": "bottom", "always_visible": True},
+                className="dlc-ctrl-slider",
             )
         )
     elif kind == "color":
         kids.append(
             dcc.Input(
-                id={"type": "prop-ctrl", "prop": prop},
+                id=ctrl_id,
                 type="color",
                 value=value or spec["default"],
-                style={"width": 56, "height": 36, "padding": 2, "border": "1px solid #e2e8f0",
-                       "borderRadius": 8, "background": "#fff"},
+                className="dlc-ctrl-color",
             )
         )
     elif kind == "dropdown":
         kids.append(
             dcc.Dropdown(
-                id={"type": "prop-ctrl", "prop": prop},
+                id=ctrl_id,
                 options=[{"label": o, "value": o} for o in spec["options"]],
                 value=value if value in spec["options"] else spec["default"],
                 clearable=False,
+                className="dlc-ctrl-dropdown",
             )
         )
     elif kind == "bool":
         kids.append(
             dcc.Checklist(
-                id={"type": "prop-ctrl", "prop": prop},
-                options=[{"label": " enabled", "value": "on"}],
+                id=ctrl_id,
+                options=[{"label": f" {label}", "value": "on"}],
                 value=["on"] if (True if value is None else bool(value)) else [],
-                style={"fontSize": 13},
+                className="dlc-ctrl-check",
             )
         )
     elif kind == "text":
         kids.append(
             dcc.Input(
-                id={"type": "prop-ctrl", "prop": prop},
+                id=ctrl_id,
                 type="text",
                 value="" if value is None else str(value),
                 placeholder=prop,
-                style={"width": "100%", "padding": "8px 10px", "borderRadius": 8,
-                       "border": "1px solid #e2e8f0"},
+                className="dlc-ctrl-input",
             )
         )
     else:
         kids.append(html.Div(f"unsupported kind {kind}"))
 
-    return html.Div(kids, className="dlc-prop")
+    return html.Div(kids, className="dlc-ctrl-row")
+
+
+def build_prop_doc_section(family: str, name: str, prop: str) -> html.Section:
+    title = section_title(prop)
+    return html.Section(
+        [
+            html.H2(title),
+            html.P(section_copy(family, prop), className="dlc-prop-doc-copy"),
+            html.Pre(
+                build_prop_example_snippet(family, name, prop),
+                className="dlc-snippet dlc-snippet-doc",
+            ),
+        ],
+        id=f"section-{prop}",
+        className="dlc-prop-doc",
+    )
+
+
+def build_detail_toc(props: list[str]) -> html.Aside:
+    links = [html.A("Preview", href="#section-preview", className="dlc-toc-link")]
+    for p in props:
+        if p == "className":
+            # still document, keep in TOC
+            pass
+        links.append(
+            html.A(section_title(p), href=f"#section-{p}", className="dlc-toc-link")
+        )
+    return html.Aside(
+        [html.Div("On this page", className="dlc-toc-heading"), *links],
+        className="dlc-toc",
+    )
 
 
 def build_detail(family: str, name: str) -> html.Div:
@@ -867,10 +1067,17 @@ def build_detail(family: str, name: str) -> html.Div:
     component = COMPONENT_LOOKUP[(family, name)]
     props = configurable_props(family, name, component)
     values = default_values(family, name, props)
+    # Snap default size to Medium preset when using presets
+    if uses_size_presets(family, props) and "size" in values:
+        values["size"] = SIZE_PRESET_DEFAULT
     desc = description_for(family, name, upstream)
 
-    controls = [control_for_prop(p, values.get(p), family) for p in props]
-    # Hidden sentinel so ALL pattern always has at least one Input when props empty
+    # Workbench control order
+    wb_order = [p for p in WORKBENCH_PROP_PRIORITY if p in props]
+    wb_rest = [p for p in props if p not in wb_order]
+    wb_props = wb_order + wb_rest
+
+    controls = [workbench_control(p, values.get(p), family, props) for p in wb_props]
     if not controls:
         controls = [
             html.Div(
@@ -879,61 +1086,96 @@ def build_detail(family: str, name: str) -> html.Div:
             )
         ]
 
-    return html.Div(
+    control_panel = html.Div(
+        [
+            html.Div("Controls", className="dlc-workbench-controls-title"),
+            html.Div(controls, id="detail-controls", className="dlc-workbench-controls-body"),
+            html.Button(
+                "Reset to defaults",
+                id="detail-reset",
+                n_clicks=0,
+                type="button",
+                className="dlc-reset-btn",
+            ),
+        ],
+        className="dlc-workbench-controls",
+    )
+
+    workbench = html.Section(
+        [
+            html.Div(
+                instantiate(family, name, values),
+                id="detail-preview",
+                className="dlc-preview-panel",
+            ),
+            control_panel,
+        ],
+        id="section-preview",
+        className="dlc-workbench",
+    )
+
+    snippets = html.Div(
+        [
+            html.Div(
+                [
+                    html.Div("Common API", className="dlc-snippet-label"),
+                    html.Pre(
+                        build_common_snippet(family, name, values),
+                        id="detail-snippet-common",
+                        className="dlc-snippet",
+                    ),
+                ],
+                className="dlc-snippet-block",
+            ),
+            html.Div(
+                [
+                    html.Div("Namespaced", className="dlc-snippet-label"),
+                    html.Pre(
+                        build_snippet(
+                            family,
+                            name,
+                            build_namespaced_values(family, values),
+                        ),
+                        id="detail-snippet-namespaced",
+                        className="dlc-snippet",
+                    ),
+                ],
+                className="dlc-snippet-block",
+            ),
+        ],
+        className="dlc-snippets-row",
+    )
+
+    prop_docs = [build_prop_doc_section(family, name, p) for p in props]
+
+    content = html.Div(
         [
             dcc.Store(id="detail-meta", data={"family": family, "name": name, "props": props}),
             dcc.Store(id="detail-values", data=values),
-            dcc.Link("← Overview", href="/", className="dlc-back"),
-            html.H1(name, className="dlc-detail-title"),
-            html.P(desc, className="dlc-detail-desc"),
             html.Div(
                 [
-                    html.Div(
-                        [
-                            html.Div(
-                                instantiate(family, name, values),
-                                id="detail-preview",
-                                className="dlc-preview-panel",
-                            ),
-                        ]
-                    ),
-                    html.Div(
-                        [
-                            html.Div(
-                                [
-                                    html.Div("Common API", className="dlc-snippet-label"),
-                                    html.Pre(
-                                        build_common_snippet(family, name, values),
-                                        id="detail-snippet-common",
-                                        className="dlc-snippet",
-                                    ),
-                                ],
-                                className="dlc-snippet-block",
-                            ),
-                            html.Div(
-                                [
-                                    html.Div("Namespaced", className="dlc-snippet-label"),
-                                    html.Pre(
-                                        build_snippet(
-                                            family,
-                                            name,
-                                            build_namespaced_values(family, values),
-                                        ),
-                                        id="detail-snippet-namespaced",
-                                        className="dlc-snippet",
-                                    ),
-                                ],
-                                className="dlc-snippet-block",
-                            ),
-                            html.Div(controls, id="detail-controls"),
-                        ]
-                    ),
+                    html.Span("Component", className="dlc-detail-kicker"),
+                    html.Span(" / ", className="dlc-detail-sep"),
+                    html.Span(name, className="dlc-detail-name"),
                 ],
-                className="dlc-detail-layout",
+                className="dlc-detail-breadcrumb",
             ),
+            html.H1(name, className="dlc-detail-title"),
+            html.P(desc, className="dlc-detail-desc"),
+            workbench,
+            snippets,
+            *prop_docs,
             build_site_footer(),
         ],
-        className="dlc-main",
+        className="dlc-detail-content",
+    )
+
+    return html.Div(
+        [
+            content,
+            build_detail_toc(props),
+        ],
+        className="dlc-main dlc-detail-page",
     )
 
 
@@ -987,6 +1229,9 @@ def _coerce_control_value(prop: str, raw: Any, family: str) -> Any:
     spec = prop_spec(family, prop)
     if family == "indicators" and prop == "size":
         return raw
+    # Size presets (RadioItems) — keep concrete px ints
+    if prop == "size" and family != "indicators" and isinstance(raw, (int, float)):
+        return int(raw)
     if spec and spec["kind"] == "bool":
         # Checklist returns list
         if isinstance(raw, list):
@@ -1050,6 +1295,46 @@ def filter_nav_search(query, nav_ids, family_ids, card_ids):
             card_styles.append({"opacity": "0.22", "pointerEvents": "none", "filter": "grayscale(0.35)"})
 
     return nav_styles, family_styles, card_styles
+
+
+
+@callback(
+    Output({"type": "prop-ctrl", "prop": ALL}, "value"),
+    Input("detail-reset", "n_clicks"),
+    State({"type": "prop-ctrl", "prop": ALL}, "id"),
+    State("detail-meta", "data"),
+    prevent_initial_call=True,
+)
+def reset_detail_controls(n_clicks, ids, meta):
+    """Restore workbench controls to gallery defaults."""
+    if not n_clicks or not meta:
+        return no_update
+    family = meta["family"]
+    props = meta.get("props") or []
+    defaults = default_values(family, meta["name"], props)
+    if uses_size_presets(family, props):
+        defaults["size"] = SIZE_PRESET_DEFAULT
+    out = []
+    for id_dict in ids or []:
+        prop = id_dict.get("prop")
+        if not prop or prop == "_none":
+            out.append("")
+            continue
+        if prop in defaults:
+            v = defaults[prop]
+        elif prop in ("className", "text", "ariaLabel"):
+            v = ""
+        else:
+            spec = prop_spec(family, prop)
+            v = spec["default"] if spec else None
+        spec = prop_spec(family, prop)
+        if family == "indicators" and prop == "size":
+            out.append(v if v in ("small", "medium", "large") else "medium")
+        elif spec and spec["kind"] == "bool":
+            out.append(["on"] if v else [])
+        else:
+            out.append(v)
+    return out
 
 
 @callback(
