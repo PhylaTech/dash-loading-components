@@ -129,11 +129,16 @@ a:hover { color: var(--accent); }
   min-height: 280px; display: flex; align-items: center; justify-content: center;
   padding: 40px;
 }
+.dlc-snippet-block { margin: 0 0 16px; }
+.dlc-snippet-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted); margin: 0 0 6px;
+}
 .dlc-snippet {
   background: #0f172a; color: #e2e8f0; border-radius: 12px; padding: 16px 18px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 12.5px; line-height: 1.55; white-space: pre-wrap; overflow-x: auto;
-  margin: 0 0 20px;
+  margin: 0;
 }
 .dlc-prop {
   background: var(--panel); border: 1px solid var(--border); border-radius: 12px;

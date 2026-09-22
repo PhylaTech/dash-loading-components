@@ -90,6 +90,10 @@ for _component in __all__:
 # Family namespaces (short names): dlc.loading_dev.Arc, dlc.spinners.ClipLoader, …
 from . import loading_dev, ldrs, spinners, spinners_react, loader_spinner, premium, indicators, m3, epic
 
+# Common factory: dlc.Loading(library=..., spinner=..., speed=...)
+from .loading import Loading
+from .registry import list_libraries, list_spinners
+
 __all__ = list(__all__) + [
     "loading_dev",
     "ldrs",
@@ -100,4 +104,7 @@ __all__ = list(__all__) + [
     "indicators",
     "m3",
     "epic",
+    "Loading",
+    "list_libraries",
+    "list_spinners",
 ]

@@ -5,8 +5,11 @@ Dash loading-indicators **umbrella** for Plotly Dash. Namespaced families of Rea
 ```python
 import dash_loading_components as dlc
 
-# Planned API (families land in follow-up PRs after this scaffold)
-dlc.loading_dev.Arc(size=24, color="#f97316")
+# Common factory (relative speed=1.0 = that family's normal)
+dlc.Loading(library="loading_dev", spinner="Dual", size=48, color="#f97316", speed=1.0)
+
+# Namespaced power path (native prop names / units)
+dlc.loading_dev.Dual(size=48, color="#f97316", duration=1000)
 dlc.spinners.ClipLoader(size=24, color="#f97316")
 dlc.ldrs.Ring()
 ```
@@ -75,11 +78,12 @@ REACT_VERSION=19.2.4 python gallery.py
 # http://127.0.0.1:8050/
 ```
 
-Import:
+Both APIs work in the local gallery (detail pages show dual live snippets):
 
 ```python
 import dash_loading_components as dlc
-dlc.loading_dev.Arc(size=48, color="#f97316")
+dlc.Loading(library="loading_dev", spinner="Arc", size=48, color="#f97316", speed=1.0)
+dlc.loading_dev.Arc(size=48, color="#f97316")  # namespaced
 # or prefixed: dlc.LoadingDevArc(...)
 ```
 

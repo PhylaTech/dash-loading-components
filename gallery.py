@@ -33,177 +33,21 @@ DEFAULT_SIZE = 48
 ACCENT = "#f97316"
 
 # ---------------------------------------------------------------------------
-# Catalog (preserve prior FAMILIES component lists)
+# Catalog — shared with dlc.Loading (dash_loading_components.registry)
 # ---------------------------------------------------------------------------
 
-FAMILIES = [
-    (
-        "loading_dev",
-        "loading-dev",
-        [
-            ("Arc", dlc.loading_dev.Arc),
-            ("Atom", dlc.loading_dev.Atom),
-            ("Orbit", dlc.loading_dev.Orbit),
-            ("Wave", dlc.loading_dev.Wave),
-            ("Ring", dlc.loading_dev.Ring),
-            ("Pulse", dlc.loading_dev.Pulse),
-            ("Cascade", dlc.loading_dev.Cascade),
-            ("Comet", dlc.loading_dev.Comet),
-            ("Morph", dlc.loading_dev.Morph),
-            ("Loading", dlc.loading_dev.Loading),
-            ("Blocks", dlc.loading_dev.Blocks),
-            ("Clock", dlc.loading_dev.Clock),
-            ("Dual", dlc.loading_dev.Dual),
-            ("Eclipse", dlc.loading_dev.Eclipse),
-            ("Radar", dlc.loading_dev.Radar),
-            ("Ripple", dlc.loading_dev.Ripple),
-            ("Snake", dlc.loading_dev.Snake),
-            ("Swirl", dlc.loading_dev.Swirl),
-            ("Trace", dlc.loading_dev.Trace),
-            ("Flip", dlc.loading_dev.Flip),
-            ("Gather", dlc.loading_dev.Gather),
-            ("Leap", dlc.loading_dev.Leap),
-            ("Slide", dlc.loading_dev.Slide),
-            ("Classic", dlc.loading_dev.Classic),
-            ("ClassicV2", dlc.loading_dev.ClassicV2),
-            ("Compass", dlc.loading_dev.Compass),
-            ("BouncingDots", dlc.loading_dev.BouncingDots),
-            ("CircularDots", dlc.loading_dev.CircularDots),
-            ("LinearDots", dlc.loading_dev.LinearDots),
-        ],
-    ),
-    (
-        "ldrs",
-        "ldrs",
-        [
-            ("Ring", dlc.ldrs.Ring),
-            ("Helix", dlc.ldrs.Helix),
-            ("DotPulse", dlc.ldrs.DotPulse),
-            ("LineSpinner", dlc.ldrs.LineSpinner),
-            ("Orbit", dlc.ldrs.Orbit),
-            ("Quantum", dlc.ldrs.Quantum),
-            ("Jelly", dlc.ldrs.Jelly),
-            ("Infinity", dlc.ldrs.Infinity),
-            ("Hourglass", dlc.ldrs.Hourglass),
-            ("DotWave", dlc.ldrs.DotWave),
-            ("Mirage", dlc.ldrs.Mirage),
-            ("Ping", dlc.ldrs.Ping),
-        ],
-    ),
-    (
-        "spinners",
-        "react-spinners",
-        [
-            ("ClipLoader", dlc.spinners.ClipLoader),
-            ("BeatLoader", dlc.spinners.BeatLoader),
-            ("HashLoader", dlc.spinners.HashLoader),
-            ("SyncLoader", dlc.spinners.SyncLoader),
-            ("PropagateLoader", dlc.spinners.PropagateLoader),
-            ("PulseLoader", dlc.spinners.PulseLoader),
-            ("ScaleLoader", dlc.spinners.ScaleLoader),
-            ("MoonLoader", dlc.spinners.MoonLoader),
-            ("BarLoader", dlc.spinners.BarLoader),
-            ("RingLoader", dlc.spinners.RingLoader),
-            ("BounceLoader", dlc.spinners.BounceLoader),
-            ("GridLoader", dlc.spinners.GridLoader),
-        ],
-    ),
-    (
-        "spinners_react",
-        "spinners-react",
-        [
-            ("SpinnerCircular", dlc.spinners_react.SpinnerCircular),
-            ("SpinnerCircularFixed", dlc.spinners_react.SpinnerCircularFixed),
-            ("SpinnerCircularSplit", dlc.spinners_react.SpinnerCircularSplit),
-            ("SpinnerInfinity", dlc.spinners_react.SpinnerInfinity),
-            ("SpinnerDotted", dlc.spinners_react.SpinnerDotted),
-            ("SpinnerRound", dlc.spinners_react.SpinnerRound),
-            ("SpinnerRoundOutlined", dlc.spinners_react.SpinnerRoundOutlined),
-            ("SpinnerRoundFilled", dlc.spinners_react.SpinnerRoundFilled),
-            ("SpinnerDiamond", dlc.spinners_react.SpinnerDiamond),
-        ],
-    ),
-    (
-        "loader_spinner",
-        "react-loader-spinner",
-        [
-            ("TailSpin", dlc.loader_spinner.TailSpin),
-            ("Oval", dlc.loader_spinner.Oval),
-            ("ThreeDots", dlc.loader_spinner.ThreeDots),
-            ("Rings", dlc.loader_spinner.Rings),
-            ("BallTriangle", dlc.loader_spinner.BallTriangle),
-            ("Grid", dlc.loader_spinner.Grid),
-            ("DNA", dlc.loader_spinner.DNA),
-            ("InfinitySpin", dlc.loader_spinner.InfinitySpin),
-            ("Circles", dlc.loader_spinner.Circles),
-            ("Hourglass", dlc.loader_spinner.Hourglass),
-        ],
-    ),
-    (
-        "premium",
-        "premium-react-loaders",
-        [
-            ("SpinnerCircle", dlc.premium.SpinnerCircle),
-            ("SpinnerRing", dlc.premium.SpinnerRing),
-            ("SpinnerDots", dlc.premium.SpinnerDots),
-            ("SpinnerBars", dlc.premium.SpinnerBars),
-            ("OrbitDots", dlc.premium.OrbitDots),
-            ("OrbitRings", dlc.premium.OrbitRings),
-            ("AtomLoader", dlc.premium.AtomLoader),
-            ("PulseDots", dlc.premium.PulseDots),
-            ("PulseWave", dlc.premium.PulseWave),
-            ("BouncingDots", dlc.premium.BouncingDots),
-            ("InfinityLoader", dlc.premium.InfinityLoader),
-            ("MobiusLoader", dlc.premium.MobiusLoader),
-            ("ShimmerBox", dlc.premium.ShimmerBox),
-            ("ButtonSpinner", dlc.premium.ButtonSpinner),
-            ("SuccessCheckmark", dlc.premium.SuccessCheckmark),
-        ],
-    ),
-    (
-        "indicators",
-        "react-loading-indicators",
-        [
-            ("Atom", dlc.indicators.Atom),
-            ("BlinkBlur", dlc.indicators.BlinkBlur),
-            ("Commet", dlc.indicators.Commet),
-            ("FourSquare", dlc.indicators.FourSquare),
-            ("LifeLine", dlc.indicators.LifeLine),
-            ("Mosaic", dlc.indicators.Mosaic),
-            ("OrbitProgress", dlc.indicators.OrbitProgress),
-            ("Riple", dlc.indicators.Riple),
-            ("Slab", dlc.indicators.Slab),
-            ("ThreeDot", dlc.indicators.ThreeDot),
-            ("TrophySpin", dlc.indicators.TrophySpin),
-        ],
-    ),
-    (
-        "m3",
-        "@alerix/m3-loading-indicator",
-        [("LoadingIndicator", dlc.m3.LoadingIndicator)],
-    ),
-    (
-        "epic",
-        "react-epic-spinners",
-        [
-            ("AtomSpinner", dlc.epic.AtomSpinner),
-            ("OrbitSpinner", dlc.epic.OrbitSpinner),
-            ("FlowerSpinner", dlc.epic.FlowerSpinner),
-            ("TrinityRingsSpinner", dlc.epic.TrinityRingsSpinner),
-            ("HollowDotsSpinner", dlc.epic.HollowDotsSpinner),
-            ("SpringSpinner", dlc.epic.SpringSpinner),
-            ("SemipolarSpinner", dlc.epic.SemipolarSpinner),
-            ("RadarSpinner", dlc.epic.RadarSpinner),
-        ],
-    ),
-]
+from dash_loading_components.registry import (
+    FAMILIES,
+    FAMILY_LOOKUP,
+    COMPONENT_LOOKUP,
+    supports_relative_speed,
+    translate_relative_speed,
+)
 
-FAMILY_LOOKUP = {key: (label, items) for key, label, items in FAMILIES}
-COMPONENT_LOOKUP = {
-    (key, name): component
-    for key, _label, items in FAMILIES
-    for name, component in items
-}
+# Native tempo props replaced by relative ``speed`` on detail controls
+TEMPO_NATIVE_PROPS = frozenset(
+    {"duration", "speed", "speedMultiplier", "speedPlus", "animationDuration"}
+)
 
 # loading.dev short blurbs (from loading.dev spinner pages)
 LOADING_DEV_BLURBS = {
@@ -444,22 +288,26 @@ PROP_SPECS: dict[str, dict[str, Any]] = {
     },
 }
 
-# spinners-react: speed/thickness are percentages of upstream defaults (100 = 100%).
-# Shared PROP_SPECS["speed"] is a multiplier for ldrs/premium/m3 — override via prop_spec().
-SPINNERS_REACT_SPEED_SPEC: dict[str, Any] = {
+# Relative speed for the common Loading path (1.0 = family normal).
+# Native units appear only in the Namespaced snippet after translation.
+RELATIVE_SPEED_SPEC: dict[str, Any] = {
     "kind": "slider",
-    "min": 25,
-    "max": 300,
-    "step": 5,
-    "default": 100,
-    "doc": "Animation speed as percent of default (spinners-react).",
+    "min": 0.5,
+    "max": 3.0,
+    "step": 0.1,
+    "default": 1.0,
+    "doc": (
+        "Relative rate: 1.0 = this family's normal tempo. "
+        "Translated to native units in the Namespaced snippet "
+        "(fixes the old shared-unit footgun)."
+    ),
 }
 
 
 def prop_spec(family: str, prop: str) -> dict[str, Any] | None:
-    """Resolve control/default metadata; apply family-specific overrides."""
-    if family == "spinners_react" and prop == "speed":
-        return SPINNERS_REACT_SPEED_SPEC
+    """Resolve control/default metadata; relative speed for Loading path."""
+    if prop == "speed" and supports_relative_speed(family):
+        return RELATIVE_SPEED_SPEC
     return PROP_SPECS.get(prop)
 
 
@@ -522,7 +370,11 @@ def parse_pathname(pathname: Optional[str]) -> tuple[str, Optional[str], Optiona
 
 
 def configurable_props(family: str, name: str, component: Callable) -> list[str]:
-    """Return Dash-exposed props that make sense as controls."""
+    """Return Dash-exposed props that make sense as controls.
+
+    For families with speed translation, native tempo props are replaced by
+    a single relative ``speed`` control (common Loading path).
+    """
     try:
         available = list(component().available_properties)
     except Exception:
@@ -537,8 +389,23 @@ def configurable_props(family: str, name: str, component: Callable) -> list[str]
         if "cap" in props and name not in LOADING_DEV_CAP:
             props = [p for p in props if p != "cap"]
 
+    if supports_relative_speed(family):
+        props = [p for p in props if p not in TEMPO_NATIVE_PROPS]
+        if "speed" not in props:
+            props.append("speed")
+
     order = FAMILY_PROP_ORDER.get(family, [])
-    ordered = [p for p in order if p in props]
+    # Prefer relative speed where FAMILY_PROP_ORDER listed a native tempo name
+    order_norm = []
+    seen_speed = False
+    for p in order:
+        if p in TEMPO_NATIVE_PROPS and supports_relative_speed(family):
+            if not seen_speed:
+                order_norm.append("speed")
+                seen_speed = True
+            continue
+        order_norm.append(p)
+    ordered = [p for p in order_norm if p in props]
     rest = [p for p in props if p not in ordered]
     return ordered + rest
 
@@ -571,34 +438,118 @@ def format_py_value(v: Any) -> str:
         return "True" if v else "False"
     if isinstance(v, str):
         return f'"{v}"'
-    if isinstance(v, float) and v == int(v):
-        return str(int(v))
+    if isinstance(v, float):
+        # Keep relative speed readable as 1.0 (not 1)
+        if v == int(v):
+            return f"{v:.1f}"
+        return repr(v)
     return repr(v)
 
 
-def build_snippet(family: str, name: str, values: dict[str, Any]) -> str:
-    parts = []
+def _omit_empty_strings(values: dict[str, Any]) -> dict[str, Any]:
+    out = {}
     for k, v in values.items():
         if v is None:
             continue
         if isinstance(v, str) and v == "" and k in ("className", "text", "ariaLabel"):
             continue
+        out[k] = v
+    return out
+
+
+def build_namespaced_values(family: str, values: dict[str, Any]) -> dict[str, Any]:
+    """Control values → native prop dict (relative speed translated)."""
+    native = dict(values)
+    if supports_relative_speed(family) and "speed" in native:
+        rel = native.pop("speed")
+        native.update(translate_relative_speed(family, rel))
+    return _omit_empty_strings(native)
+
+
+def build_snippet(family: str, name: str, values: dict[str, Any]) -> str:
+    """Namespaced snippet with native prop names/units."""
+    parts = []
+    for k, v in values.items():
         parts.append(f"{k}={format_py_value(v)}")
     call = f"dlc.{family}.{name}({', '.join(parts)})"
     return f"import dash_loading_components as dlc\n\n{call}\n"
 
 
+def _derive_playing(family: str, values: dict[str, Any]) -> bool:
+    if "playState" in values:
+        return values["playState"] != "paused"
+    if "paused" in values:
+        return not bool(values["paused"])
+    if "loading" in values:
+        return bool(values["loading"])
+    if "enabled" in values:
+        return bool(values["enabled"])
+    if "visible" in values:
+        return bool(values["visible"])
+    return True
+
+
+# Props Loading maps itself — strip from common extras
+_LOADING_MANAGED = frozenset(
+    {
+        "speed",
+        "duration",
+        "speedMultiplier",
+        "speedPlus",
+        "animationDuration",
+        "playState",
+        "paused",
+        "loading",
+        "enabled",
+        "visible",
+        "size",
+        "color",
+        "className",
+    }
+)
+
+
+def build_common_snippet(family: str, name: str, values: dict[str, Any]) -> str:
+    """Common API snippet: dlc.Loading(..., speed=relative, ...)."""
+    parts = [f'library="{family}"', f'spinner="{name}"']
+    cleaned = _omit_empty_strings(values)
+    # Ordered common surface first
+    for key in ("size", "color", "speed", "className"):
+        if key == "speed" and not supports_relative_speed(family):
+            continue
+        if key in cleaned:
+            parts.append(f"{key}={format_py_value(cleaned[key])}")
+        elif key == "speed" and supports_relative_speed(family):
+            parts.append("speed=1.0")
+    playing = _derive_playing(family, cleaned)
+    if not playing:
+        parts.append("playing=False")
+    # Exotic passthrough (easing, cap, thickness, …)
+    for k, v in cleaned.items():
+        if k in _LOADING_MANAGED:
+            continue
+        parts.append(f"{k}={format_py_value(v)}")
+    call = f"dlc.Loading({', '.join(parts)})"
+    return f"import dash_loading_components as dlc\n\n{call}\n"
+
+
 def instantiate(family: str, name: str, values: dict[str, Any]):
-    component = COMPONENT_LOOKUP[(family, name)]
-    kwargs = {k: v for k, v in values.items() if v is not None}
-    # Drop empty optional strings
-    for k in list(kwargs):
-        if isinstance(kwargs[k], str) and kwargs[k] == "" and k in (
-            "className", "text", "ariaLabel"
-        ):
-            del kwargs[k]
+    """Live preview via dlc.Loading (relative speed translated inside)."""
+    cleaned = _omit_empty_strings(values)
+    extras = {k: v for k, v in cleaned.items() if k not in _LOADING_MANAGED}
+    kwargs: dict[str, Any] = {}
+    if "size" in cleaned:
+        kwargs["size"] = cleaned["size"]
+    if "color" in cleaned:
+        kwargs["color"] = cleaned["color"]
+    if "className" in cleaned:
+        kwargs["className"] = cleaned["className"]
+    if supports_relative_speed(family):
+        kwargs["speed"] = cleaned.get("speed", 1.0)
+    kwargs["playing"] = _derive_playing(family, cleaned)
+    kwargs.update(extras)
     try:
-        return component(**kwargs)
+        return dlc.Loading(library=family, spinner=name, **kwargs)
     except Exception as exc:
         return html.Div(f"error: {exc}", style={"color": "crimson", "fontSize": 13})
 
@@ -773,7 +724,10 @@ def build_overview() -> html.Div:
                         "react-spinners, and more. Requires Dash ≥4.5 / React 19."
                     ),
                     html.Pre(
-                        "import dash_loading_components as dlc",
+                        "import dash_loading_components as dlc\n\n"
+                        'dlc.Loading(library="loading_dev", spinner="Dual", '
+                        'size=48, color="#f97316", speed=1.0)\n'
+                        "# or namespaced: dlc.loading_dev.Dual(...)",
                         className="dlc-hero-teaser",
                     ),
                 ],
@@ -923,10 +877,31 @@ def build_detail(family: str, name: str) -> html.Div:
                     ),
                     html.Div(
                         [
-                            html.Pre(
-                                build_snippet(family, name, values),
-                                id="detail-snippet",
-                                className="dlc-snippet",
+                            html.Div(
+                                [
+                                    html.Div("Common API", className="dlc-snippet-label"),
+                                    html.Pre(
+                                        build_common_snippet(family, name, values),
+                                        id="detail-snippet-common",
+                                        className="dlc-snippet",
+                                    ),
+                                ],
+                                className="dlc-snippet-block",
+                            ),
+                            html.Div(
+                                [
+                                    html.Div("Namespaced", className="dlc-snippet-label"),
+                                    html.Pre(
+                                        build_snippet(
+                                            family,
+                                            name,
+                                            build_namespaced_values(family, values),
+                                        ),
+                                        id="detail-snippet-namespaced",
+                                        className="dlc-snippet",
+                                    ),
+                                ],
+                                className="dlc-snippet-block",
                             ),
                             html.Div(controls, id="detail-controls"),
                         ]
@@ -1057,7 +1032,8 @@ def filter_nav_search(query, nav_ids, family_ids, card_ids):
 
 @callback(
     Output("detail-preview", "children"),
-    Output("detail-snippet", "children"),
+    Output("detail-snippet-common", "children"),
+    Output("detail-snippet-namespaced", "children"),
     Output("detail-values", "data"),
     Input({"type": "prop-ctrl", "prop": ALL}, "value"),
     State({"type": "prop-ctrl", "prop": ALL}, "id"),
@@ -1066,7 +1042,7 @@ def filter_nav_search(query, nav_ids, family_ids, card_ids):
 )
 def update_detail(values, ids, meta):
     if not meta:
-        return no_update, no_update, no_update
+        return no_update, no_update, no_update, no_update
     family = meta["family"]
     name = meta["name"]
     props_order = meta.get("props") or []
@@ -1082,8 +1058,11 @@ def update_detail(values, ids, meta):
         if p not in ordered:
             ordered[p] = v
     preview = instantiate(family, name, ordered)
-    snippet = build_snippet(family, name, ordered)
-    return preview, snippet, ordered
+    common = build_common_snippet(family, name, ordered)
+    namespaced = build_snippet(
+        family, name, build_namespaced_values(family, ordered)
+    )
+    return preview, common, namespaced, ordered
 
 
 if __name__ == "__main__":
