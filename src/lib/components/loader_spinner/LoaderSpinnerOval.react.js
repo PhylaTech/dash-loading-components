@@ -6,10 +6,10 @@ import { Oval as Upstream } from 'react-loader-spinner';
  * LoaderSpinnerOval — Dash wrapper for upstream spinner.
  */
 const LoaderSpinnerOval = (props) => {
-    const {id, className, style, setProps, height, width, color, secondaryColor, radius, ariaLabel, visible, strokeWidth} = props;
+    const {id, className, style, setProps, height, width, color, secondaryColor, radius, ariaLabel, visible, strokeWidth, strokeWidthSecondary, animationDuration} = props;
     return (
         <div id={id} className={className} style={style}>
-            <Upstream height={height} width={width} color={color} secondaryColor={secondaryColor} radius={radius} ariaLabel={ariaLabel} visible={visible} strokeWidth={strokeWidth} />
+            <Upstream height={height} width={width} color={color} secondaryColor={secondaryColor} ariaLabel={ariaLabel} visible={visible} strokeWidth={strokeWidth} strokeWidthSecondary={strokeWidthSecondary} animationDuration={animationDuration} />
         </div>
     );
 };
@@ -65,6 +65,14 @@ LoaderSpinnerOval.propTypes = {
      * Stroke width.
      */
     strokeWidth: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    /**
+     * Stroke width of the background circle.
+     */
+    strokeWidthSecondary: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    /**
+     * Rotation duration in seconds.
+     */
+    animationDuration: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 };
 
 export default LoaderSpinnerOval;

@@ -6,10 +6,10 @@ import { OrbitProgress as Upstream } from 'react-loading-indicators';
  * IndicatorsOrbitProgress — Dash wrapper for upstream spinner.
  */
 const IndicatorsOrbitProgress = (props) => {
-    const {id, className, style, setProps, size, color, text, textColor, speedPlus, variant} = props;
+    const {id, className, style, setProps, size, color, text, textColor, speedPlus, variant, easing, dense} = props;
     return (
         <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} text={text} textColor={textColor} speedPlus={speedPlus} variant={variant} />
+            <Upstream size={size} color={color} text={text} textColor={textColor} speedPlus={speedPlus} variant={variant} easing={easing} dense={dense} />
         </div>
     );
 };
@@ -57,6 +57,14 @@ IndicatorsOrbitProgress.propTypes = {
      * Variant where supported (OrbitProgress, ThreeDot).
      */
     variant: PropTypes.string,
+    /**
+     * CSS animation easing function (e.g. linear, ease-in, ease-out).
+     */
+    easing: PropTypes.string,
+    /**
+     * Make the OrbitProgress animation more bold/compact.
+     */
+    dense: PropTypes.bool,
 };
 
 export default IndicatorsOrbitProgress;

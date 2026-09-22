@@ -35,6 +35,12 @@ Keyword arguments:
 - color (string | list of strings; optional):
     Color or color array.
 
+- dense (boolean; optional):
+    Make the OrbitProgress animation more bold/compact.
+
+- easing (string; optional):
+    CSS animation easing function (e.g. linear, ease-in, ease-out).
+
 - size (string | number; optional):
     Size (small/medium/large or number).
 
@@ -66,11 +72,13 @@ Keyword arguments:
         textColor: typing.Optional[str] = None,
         speedPlus: typing.Optional[NumberType] = None,
         variant: typing.Optional[str] = None,
+        easing: typing.Optional[str] = None,
+        dense: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'size', 'speedPlus', 'style', 'text', 'textColor', 'variant']
+        self._prop_names = ['id', 'className', 'color', 'dense', 'easing', 'size', 'speedPlus', 'style', 'text', 'textColor', 'variant']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'size', 'speedPlus', 'style', 'text', 'textColor', 'variant']
+        self.available_properties = ['id', 'className', 'color', 'dense', 'easing', 'size', 'speedPlus', 'style', 'text', 'textColor', 'variant']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

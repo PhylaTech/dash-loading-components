@@ -7,10 +7,10 @@ import 'ldrs/react/Infinity.css';
  * LdrsInfinity — Dash wrapper for upstream spinner.
  */
 const LdrsInfinity = (props) => {
-    const {id, className, style, setProps, size, color, speed, stroke} = props;
+    const {id, className, style, setProps, size, color, speed, stroke, bgOpacity, strokeLength} = props;
     return (
         <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} speed={speed} stroke={stroke} />
+            <Upstream size={size} color={color} speed={speed} stroke={stroke} bgOpacity={bgOpacity} strokeLength={strokeLength} />
         </div>
     );
 };
@@ -50,6 +50,14 @@ LdrsInfinity.propTypes = {
      * Stroke width where applicable.
      */
     stroke: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    /**
+     * Background opacity (0–1).
+     */
+    bgOpacity: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    /**
+     * Fraction of the path that is stroked (0–1).
+     */
+    strokeLength: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 };
 
 export default LdrsInfinity;

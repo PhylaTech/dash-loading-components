@@ -6,10 +6,10 @@ import { SpinnerRoundFilled as Upstream } from 'spinners-react';
  * SpinnersReactSpinnerRoundFilled — Dash wrapper for upstream spinner.
  */
 const SpinnersReactSpinnerRoundFilled = (props) => {
-    const {id, className, style, setProps, size, color, secondaryColor, thickness, speed, enabled} = props;
+    const {id, className, style, setProps, size, color, secondaryColor, thickness, speed, enabled, still} = props;
     return (
         <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} secondaryColor={secondaryColor} thickness={thickness} speed={speed} enabled={enabled} />
+            <Upstream size={size} color={color} secondaryColor={secondaryColor} thickness={thickness} speed={speed} enabled={enabled} still={still} />
         </div>
     );
 };
@@ -57,6 +57,10 @@ SpinnersReactSpinnerRoundFilled.propTypes = {
      * Whether enabled.
      */
     enabled: PropTypes.bool,
+    /**
+     * Disable animation while keeping the spinner visible.
+     */
+    still: PropTypes.bool,
 };
 
 export default SpinnersReactSpinnerRoundFilled;

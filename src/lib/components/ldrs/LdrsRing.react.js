@@ -7,10 +7,10 @@ import 'ldrs/react/Ring.css';
  * LdrsRing — Dash wrapper for upstream spinner.
  */
 const LdrsRing = (props) => {
-    const {id, className, style, setProps, size, color, speed, stroke} = props;
+    const {id, className, style, setProps, size, color, speed, stroke, bgOpacity} = props;
     return (
         <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} speed={speed} stroke={stroke} />
+            <Upstream size={size} color={color} speed={speed} stroke={stroke} bgOpacity={bgOpacity} />
         </div>
     );
 };
@@ -50,6 +50,10 @@ LdrsRing.propTypes = {
      * Stroke width where applicable.
      */
     stroke: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    /**
+     * Background opacity for the ring track (0–1).
+     */
+    bgOpacity: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 };
 
 export default LdrsRing;

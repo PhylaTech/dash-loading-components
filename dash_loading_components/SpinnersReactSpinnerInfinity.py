@@ -47,6 +47,9 @@ Keyword arguments:
 - speed (number; optional):
     Speed.
 
+- still (boolean; optional):
+    Disable animation while keeping the spinner visible.
+
 - thickness (number; optional):
     Thickness."""
     _children_props: typing.List[str] = []
@@ -66,11 +69,12 @@ Keyword arguments:
         thickness: typing.Optional[NumberType] = None,
         speed: typing.Optional[NumberType] = None,
         enabled: typing.Optional[bool] = None,
+        still: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'enabled', 'secondaryColor', 'size', 'speed', 'style', 'thickness']
+        self._prop_names = ['id', 'className', 'color', 'enabled', 'secondaryColor', 'size', 'speed', 'still', 'style', 'thickness']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'enabled', 'secondaryColor', 'size', 'speed', 'style', 'thickness']
+        self.available_properties = ['id', 'className', 'color', 'enabled', 'secondaryColor', 'size', 'speed', 'still', 'style', 'thickness']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

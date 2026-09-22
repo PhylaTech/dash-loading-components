@@ -29,6 +29,9 @@ Keyword arguments:
 - id (string; optional):
     The ID used to identify this component in Dash callbacks.
 
+- animationDuration (number | string; optional):
+    Rotation duration in seconds.
+
 - ariaLabel (string; optional):
     Aria label.
 
@@ -49,6 +52,9 @@ Keyword arguments:
 
 - strokeWidth (number | string; optional):
     Stroke width.
+
+- strokeWidthSecondary (number | string; optional):
+    Stroke width of the background circle.
 
 - visible (boolean; optional):
     Visibility.
@@ -74,11 +80,13 @@ Keyword arguments:
         ariaLabel: typing.Optional[str] = None,
         visible: typing.Optional[bool] = None,
         strokeWidth: typing.Optional[typing.Union[NumberType, str]] = None,
+        strokeWidthSecondary: typing.Optional[typing.Union[NumberType, str]] = None,
+        animationDuration: typing.Optional[typing.Union[NumberType, str]] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'ariaLabel', 'className', 'color', 'height', 'radius', 'secondaryColor', 'strokeWidth', 'style', 'visible', 'width']
+        self._prop_names = ['id', 'animationDuration', 'ariaLabel', 'className', 'color', 'height', 'radius', 'secondaryColor', 'strokeWidth', 'strokeWidthSecondary', 'style', 'visible', 'width']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'ariaLabel', 'className', 'color', 'height', 'radius', 'secondaryColor', 'strokeWidth', 'style', 'visible', 'width']
+        self.available_properties = ['id', 'animationDuration', 'ariaLabel', 'className', 'color', 'height', 'radius', 'secondaryColor', 'strokeWidth', 'strokeWidthSecondary', 'style', 'visible', 'width']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

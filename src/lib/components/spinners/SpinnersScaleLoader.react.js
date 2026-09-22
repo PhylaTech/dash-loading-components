@@ -6,10 +6,10 @@ import Upstream from 'react-spinners/ScaleLoader';
  * SpinnersScaleLoader — Dash wrapper for upstream spinner.
  */
 const SpinnersScaleLoader = (props) => {
-    const {id, className, style, setProps, size, color, loading, speedMultiplier, height, width, margin} = props;
+    const {id, className, style, setProps, size, color, loading, speedMultiplier, height, width, margin, radius, barCount} = props;
     return (
         <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} loading={loading} speedMultiplier={speedMultiplier} height={height} width={width} margin={margin} />
+            <Upstream color={color} loading={loading} speedMultiplier={speedMultiplier} height={height} width={width} margin={margin} radius={radius} barCount={barCount} />
         </div>
     );
 };
@@ -61,6 +61,14 @@ SpinnersScaleLoader.propTypes = {
      * Margin between elements.
      */
     margin: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    /**
+     * Bar corner radius.
+     */
+    radius: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    /**
+     * Number of bars.
+     */
+    barCount: PropTypes.number,
 };
 
 export default SpinnersScaleLoader;

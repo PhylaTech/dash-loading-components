@@ -6,10 +6,10 @@ import { LifeLine as Upstream } from 'react-loading-indicators';
  * IndicatorsLifeLine — Dash wrapper for upstream spinner.
  */
 const IndicatorsLifeLine = (props) => {
-    const {id, className, style, setProps, size, color, text, textColor, speedPlus, variant} = props;
+    const {id, className, style, setProps, size, color, text, textColor, speedPlus, variant, easing} = props;
     return (
         <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} text={text} textColor={textColor} speedPlus={speedPlus} variant={variant} />
+            <Upstream size={size} color={color} text={text} textColor={textColor} speedPlus={speedPlus} variant={variant} easing={easing} />
         </div>
     );
 };
@@ -57,6 +57,10 @@ IndicatorsLifeLine.propTypes = {
      * Variant where supported (OrbitProgress, ThreeDot).
      */
     variant: PropTypes.string,
+    /**
+     * CSS animation easing function (e.g. linear, ease-in, ease-out).
+     */
+    easing: PropTypes.string,
 };
 
 export default IndicatorsLifeLine;

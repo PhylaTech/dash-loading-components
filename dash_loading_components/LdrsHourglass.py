@@ -29,6 +29,9 @@ Keyword arguments:
 - id (string; optional):
     The ID used to identify this component in Dash callbacks.
 
+- bgOpacity (number | string; optional):
+    Background opacity (0–1).
+
 - className (string; optional):
     CSS class applied to the outer wrapper.
 
@@ -58,11 +61,12 @@ Keyword arguments:
         color: typing.Optional[str] = None,
         speed: typing.Optional[typing.Union[NumberType, str]] = None,
         stroke: typing.Optional[typing.Union[NumberType, str]] = None,
+        bgOpacity: typing.Optional[typing.Union[NumberType, str]] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'size', 'speed', 'stroke', 'style']
+        self._prop_names = ['id', 'bgOpacity', 'className', 'color', 'size', 'speed', 'stroke', 'style']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'size', 'speed', 'stroke', 'style']
+        self.available_properties = ['id', 'bgOpacity', 'className', 'color', 'size', 'speed', 'stroke', 'style']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

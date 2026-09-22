@@ -6,10 +6,10 @@ import { OrbitRings as Upstream } from 'premium-react-loaders';
  * PremiumOrbitRings — Dash wrapper for upstream spinner.
  */
 const PremiumOrbitRings = (props) => {
-    const {id, className, style, setProps, size, color, speed} = props;
+    const {id, className, style, setProps, size, color, speed, reverse, secondaryColor, visible} = props;
     return (
-        <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} speed={speed} />
+        <div id={id} style={style}>
+            <Upstream size={size} color={color} speed={speed} reverse={reverse} secondaryColor={secondaryColor} visible={visible} className={className} />
         </div>
     );
 };
@@ -44,7 +44,19 @@ PremiumOrbitRings.propTypes = {
     /**
      * Speed (slow/normal/fast).
      */
-    speed: PropTypes.string,
+    speed: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    /**
+     * Reverse animation direction.
+     */
+    reverse: PropTypes.bool,
+    /**
+     * Secondary color for multi-color loaders.
+     */
+    secondaryColor: PropTypes.string,
+    /**
+     * Whether the loader is visible.
+     */
+    visible: PropTypes.bool,
 };
 
 export default PremiumOrbitRings;

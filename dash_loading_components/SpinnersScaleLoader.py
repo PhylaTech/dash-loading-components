@@ -29,6 +29,9 @@ Keyword arguments:
 - id (string; optional):
     The ID used to identify this component in Dash callbacks.
 
+- barCount (number; optional):
+    Number of bars.
+
 - className (string; optional):
     CSS class applied to the outer wrapper.
 
@@ -43,6 +46,9 @@ Keyword arguments:
 
 - margin (number | string; optional):
     Margin between elements.
+
+- radius (number | string; optional):
+    Bar corner radius.
 
 - size (number; optional):
     Size in pixels.
@@ -70,11 +76,13 @@ Keyword arguments:
         height: typing.Optional[typing.Union[NumberType, str]] = None,
         width: typing.Optional[typing.Union[NumberType, str]] = None,
         margin: typing.Optional[typing.Union[NumberType, str]] = None,
+        radius: typing.Optional[typing.Union[NumberType, str]] = None,
+        barCount: typing.Optional[NumberType] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'height', 'loading', 'margin', 'size', 'speedMultiplier', 'style', 'width']
+        self._prop_names = ['id', 'barCount', 'className', 'color', 'height', 'loading', 'margin', 'radius', 'size', 'speedMultiplier', 'style', 'width']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'height', 'loading', 'margin', 'size', 'speedMultiplier', 'style', 'width']
+        self.available_properties = ['id', 'barCount', 'className', 'color', 'height', 'loading', 'margin', 'radius', 'size', 'speedMultiplier', 'style', 'width']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

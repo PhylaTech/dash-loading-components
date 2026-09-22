@@ -29,17 +29,29 @@ Keyword arguments:
 - id (string; optional):
     The ID used to identify this component in Dash callbacks.
 
+- barCount (number; optional):
+    Number of bars.
+
 - className (string; optional):
     CSS class applied to the outer wrapper.
 
 - color (string; optional):
     Color.
 
+- reverse (boolean; optional):
+    Reverse animation direction.
+
+- secondaryColor (string; optional):
+    Secondary color for multi-color loaders.
+
 - size (string | number; optional):
     Size (sm/md/lg or number).
 
-- speed (string; optional):
-    Speed (slow/normal/fast)."""
+- speed (string | number; optional):
+    Speed (slow/normal/fast).
+
+- visible (boolean; optional):
+    Whether the loader is visible."""
     _children_props: typing.List[str] = []
     _base_nodes = ['children']
     _namespace = 'dash_loading_components'
@@ -53,12 +65,16 @@ Keyword arguments:
         style: typing.Optional[typing.Any] = None,
         size: typing.Optional[typing.Union[str, NumberType]] = None,
         color: typing.Optional[str] = None,
-        speed: typing.Optional[str] = None,
+        speed: typing.Optional[typing.Union[str, NumberType]] = None,
+        reverse: typing.Optional[bool] = None,
+        secondaryColor: typing.Optional[str] = None,
+        visible: typing.Optional[bool] = None,
+        barCount: typing.Optional[NumberType] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'size', 'speed', 'style']
+        self._prop_names = ['id', 'barCount', 'className', 'color', 'reverse', 'secondaryColor', 'size', 'speed', 'style', 'visible']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'size', 'speed', 'style']
+        self.available_properties = ['id', 'barCount', 'className', 'color', 'reverse', 'secondaryColor', 'size', 'speed', 'style', 'visible']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

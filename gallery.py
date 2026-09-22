@@ -50,11 +50,12 @@ SIZE_PRESET_DEFAULT = 48
 WORKBENCH_PROP_PRIORITY = [
     "size", "height", "width", "color", "speed",
     "easing", "cap", "sweep", "direction", "origin",
-    "thickness", "stroke", "strokeWidth",
-    "secondaryColor", "margin", "playState", "paused",
-    "loading", "enabled", "visible", "variant", "contained",
-    "containerColor", "sizeRatio", "radius", "text", "textColor",
-    "ariaLabel", "className",
+    "thickness", "stroke", "strokeWidth", "strokeWidthSecondary",
+    "strokeLength", "bgOpacity", "secondaryColor", "margin",
+    "playState", "paused", "loading", "enabled", "visible", "still",
+    "reverse", "dense", "variant", "contained",
+    "containerColor", "sizeRatio", "radius", "barCount", "dotCount",
+    "dotSize", "text", "textColor", "ariaLabel", "className",
 ]
 
 PROP_SECTION_TITLES = {
@@ -91,6 +92,15 @@ PROP_SECTION_TITLES = {
     "speedMultiplier": "Speed multiplier",
     "speedPlus": "Speed plus",
     "animationDuration": "Animation duration",
+    "still": "Still",
+    "reverse": "Reverse",
+    "dense": "Dense",
+    "bgOpacity": "Background opacity",
+    "strokeLength": "Stroke length",
+    "strokeWidthSecondary": "Secondary stroke",
+    "barCount": "Bar count",
+    "dotCount": "Dot count",
+    "dotSize": "Dot size",
 }
 
 PROP_SECTION_COPY = {
@@ -150,6 +160,15 @@ PROP_SECTION_COPY = {
     "speedMultiplier": "Speed multiplier (react-spinners).",
     "speedPlus": "Speed adjustment in [-5, 5] (react-loading-indicators).",
     "animationDuration": "Animation duration in milliseconds (epic-spinners).",
+    "still": "Disable animation while keeping the spinner visible (spinners-react).",
+    "reverse": "Reverse animation direction (premium-react-loaders).",
+    "dense": "Make OrbitProgress more bold/compact (react-loading-indicators).",
+    "bgOpacity": "Background / track opacity for ldrs loaders that expose it (0–1).",
+    "strokeLength": "Fraction of the path that is stroked for ldrs Infinity (0–1).",
+    "strokeWidthSecondary": "Stroke width of the Oval background circle.",
+    "barCount": "Number of bars (ScaleLoader / Premium SpinnerBars).",
+    "dotCount": "Number of dots (Premium SpinnerDots).",
+    "dotSize": "Size of each dot (Premium SpinnerDots).",
 }
 
 # ---------------------------------------------------------------------------
@@ -427,6 +446,69 @@ PROP_SPECS: dict[str, dict[str, Any]] = {
         "default": 1000,
         "doc": "Animation duration in milliseconds.",
     },
+    "still": {
+        "kind": "bool",
+        "default": False,
+        "doc": "Freeze animation while keeping the spinner visible.",
+    },
+    "reverse": {
+        "kind": "bool",
+        "default": False,
+        "doc": "Reverse animation direction.",
+    },
+    "dense": {
+        "kind": "bool",
+        "default": False,
+        "doc": "Bolder/compact OrbitProgress animation.",
+    },
+    "bgOpacity": {
+        "kind": "slider",
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.05,
+        "default": 0.1,
+        "doc": "Background opacity (0–1).",
+    },
+    "strokeLength": {
+        "kind": "slider",
+        "min": 0.05,
+        "max": 1.0,
+        "step": 0.05,
+        "default": 0.15,
+        "doc": "Fraction of path that is stroked (0–1).",
+    },
+    "strokeWidthSecondary": {
+        "kind": "slider",
+        "min": 1,
+        "max": 12,
+        "step": 1,
+        "default": 2,
+        "doc": "Secondary stroke width (Oval background).",
+    },
+    "barCount": {
+        "kind": "slider",
+        "min": 2,
+        "max": 12,
+        "step": 1,
+        "default": 5,
+        "doc": "Number of bars.",
+    },
+    "dotCount": {
+        "kind": "slider",
+        "min": 2,
+        "max": 8,
+        "step": 1,
+        "default": 3,
+        "doc": "Number of dots.",
+    },
+    "dotSize": {
+        "kind": "slider",
+        "min": 2,
+        "max": 24,
+        "step": 1,
+        "default": 8,
+        "doc": "Dot diameter in pixels.",
+    },
 }
 
 # Relative speed for the common Loading path (1.0 = family normal).
@@ -445,10 +527,48 @@ RELATIVE_SPEED_SPEC: dict[str, Any] = {
 }
 
 
-def prop_spec(family: str, prop: str) -> dict[str, Any] | None:
+INDICATORS_EASING_SPEC: dict[str, Any] = {
+    "kind": "dropdown",
+    "options": ["linear", "ease-in", "ease-out", "ease-in-out"],
+    "default": "ease-in-out",
+    "doc": "CSS animation easing (react-loading-indicators).",
+}
+
+INDICATORS_VARIANT = {
+    "OrbitProgress": {
+        "kind": "dropdown",
+        "options": ["disc", "dotted", "spokes", "split-disc", "track-disc"],
+        "default": "disc",
+        "doc": "OrbitProgress variant.",
+    },
+    "ThreeDot": {
+        "kind": "dropdown",
+        "options": ["pulsate", "bob", "brick-stack", "bounce"],
+        "default": "pulsate",
+        "doc": "ThreeDot variant.",
+    },
+}
+
+LOADER_SPINNER_ANIM_DURATION_SPEC: dict[str, Any] = {
+    "kind": "slider",
+    "min": 0.2,
+    "max": 3.0,
+    "step": 0.1,
+    "default": 1.0,
+    "doc": "Oval rotation duration in seconds (react-loader-spinner).",
+}
+
+
+def prop_spec(family: str, prop: str, name: str | None = None) -> dict[str, Any] | None:
     """Resolve control/default metadata; relative speed for Loading path."""
     if prop == "speed" and supports_relative_speed(family):
         return RELATIVE_SPEED_SPEC
+    if prop == "easing" and family == "indicators":
+        return INDICATORS_EASING_SPEC
+    if prop == "variant" and family == "indicators" and name in INDICATORS_VARIANT:
+        return INDICATORS_VARIANT[name]
+    if prop == "animationDuration" and family == "loader_spinner":
+        return LOADER_SPINNER_ANIM_DURATION_SPEC
     return PROP_SPECS.get(prop)
 
 
@@ -458,20 +578,20 @@ FAMILY_PROP_ORDER = {
         "size", "color", "duration", "playState", "easing", "cap",
         "sweep", "direction", "origin", "className",
     ],
-    "ldrs": ["size", "color", "speed", "stroke", "className"],
+    "ldrs": ["size", "color", "speed", "stroke", "strokeLength", "bgOpacity", "className"],
     "spinners": [
-        "size", "color", "speedMultiplier", "margin", "loading", "height", "width", "className"
+        "size", "color", "speedMultiplier", "margin", "loading", "height", "width", "radius", "barCount", "className"
     ],
     "spinners_react": [
-        "size", "color", "speed", "thickness", "secondaryColor", "enabled", "className"
+        "size", "color", "speed", "thickness", "secondaryColor", "enabled", "still", "className"
     ],
     "loader_spinner": [
-        "height", "width", "color", "secondaryColor", "strokeWidth", "radius",
-        "visible", "ariaLabel", "className",
+        "height", "width", "color", "secondaryColor", "strokeWidth", "strokeWidthSecondary",
+        "animationDuration", "radius", "visible", "ariaLabel", "className",
     ],
-    "premium": ["size", "color", "speed", "className"],
+    "premium": ["size", "color", "speed", "secondaryColor", "thickness", "reverse", "visible", "dotCount", "dotSize", "barCount", "className"],
     "indicators": [
-        "size", "color", "speedPlus", "text", "textColor", "variant", "className"
+        "size", "color", "speedPlus", "easing", "text", "textColor", "variant", "dense", "className"
     ],
     "m3": [
         "size", "color", "speed", "paused", "contained", "containerColor", "sizeRatio", "className"
@@ -565,7 +685,7 @@ def default_values(family: str, name: str, props: list[str]) -> dict[str, Any]:
             continue
         if p == "ariaLabel":
             continue
-        spec = prop_spec(family, p)
+        spec = prop_spec(family, p, name)
         if spec is not None:
             values[p] = spec["default"]
         elif p == "size":
@@ -909,12 +1029,14 @@ def section_title(prop: str) -> str:
     return PROP_SECTION_TITLES.get(prop, prop)
 
 
-def section_copy(family: str, prop: str) -> str:
+def section_copy(family: str, prop: str, name: str | None = None) -> str:
     if family == "indicators" and prop == "size":
         return "Size token: small, medium, or large (upstream string tokens)."
-    if prop in PROP_SECTION_COPY:
+    if family == "indicators" and prop == "easing":
+        return "CSS animation easing function (react-loading-indicators)."
+    if prop in PROP_SECTION_COPY and not (family == "indicators" and prop == "easing"):
         return PROP_SECTION_COPY[prop]
-    spec = prop_spec(family, prop)
+    spec = prop_spec(family, prop, name)
     if spec and spec.get("doc"):
         return spec["doc"]
     return f"Configurable `{prop}` for this wrapper."
@@ -963,7 +1085,7 @@ def build_prop_example_snippet(family: str, name: str, prop: str) -> str:
     elif prop == "className":
         lines.append(f'dlc.{family}.{name}(className="opacity-40", size={DEFAULT_SIZE})')
     else:
-        spec = prop_spec(family, prop)
+        spec = prop_spec(family, prop, name)
         demo = spec["default"] if spec else None
         if demo is None:
             lines.append(f"dlc.{family}.{name}(...)  # set {prop}=...")
@@ -974,7 +1096,7 @@ def build_prop_example_snippet(family: str, name: str, prop: str) -> str:
     return format_python_snippet("\n".join(lines) + "\n")
 
 
-def workbench_control(prop: str, value: Any, family: str, props: list[str]) -> html.Div:
+def workbench_control(prop: str, value: Any, family: str, props: list[str], name: str | None = None) -> html.Div:
     """Compact control row for the workbench panel (beside preview)."""
     label = section_title(prop)
     ctrl_id = {"type": "prop-ctrl", "prop": prop}
@@ -1016,7 +1138,7 @@ def workbench_control(prop: str, value: Any, family: str, props: list[str]) -> h
             className="dlc-ctrl-row",
         )
 
-    spec = prop_spec(family, prop)
+    spec = prop_spec(family, prop, name)
     kids: list = [html.Label(label, className="dlc-ctrl-label")]
 
     if spec is None:
@@ -1105,7 +1227,7 @@ def build_prop_doc_section(family: str, name: str, prop: str) -> html.Section:
     return html.Section(
         [
             html.H2(title),
-            html.P(section_copy(family, prop), className="dlc-prop-doc-copy"),
+            html.P(section_copy(family, prop, name), className="dlc-prop-doc-copy"),
             html.Pre(
                 build_prop_example_snippet(family, name, prop),
                 className="dlc-snippet dlc-snippet-doc",
@@ -1146,7 +1268,7 @@ def build_detail(family: str, name: str) -> html.Div:
     wb_rest = [p for p in props if p not in wb_order]
     wb_props = wb_order + wb_rest
 
-    controls = [workbench_control(p, values.get(p), family, props) for p in wb_props]
+    controls = [workbench_control(p, values.get(p), family, props, name) for p in wb_props]
     if not controls:
         controls = [
             html.Div(
@@ -1292,10 +1414,10 @@ def render_page(pathname):
     return page_shell(build_sidenav(), build_404())
 
 
-def _coerce_control_value(prop: str, raw: Any, family: str) -> Any:
+def _coerce_control_value(prop: str, raw: Any, family: str, name: str | None = None) -> Any:
     if prop == "_none":
         return None
-    spec = prop_spec(family, prop)
+    spec = prop_spec(family, prop, name)
     if family == "indicators" and prop == "size":
         return raw
     # Size presets (RadioItems) — keep concrete px ints
@@ -1379,8 +1501,9 @@ def reset_detail_controls(n_clicks, ids, meta):
     if not n_clicks or not meta:
         return no_update
     family = meta["family"]
+    name = meta["name"]
     props = meta.get("props") or []
-    defaults = default_values(family, meta["name"], props)
+    defaults = default_values(family, name, props)
     if uses_size_presets(family, props):
         defaults["size"] = SIZE_PRESET_DEFAULT
     out = []
@@ -1394,9 +1517,9 @@ def reset_detail_controls(n_clicks, ids, meta):
         elif prop in ("className", "text", "ariaLabel"):
             v = ""
         else:
-            spec = prop_spec(family, prop)
+            spec = prop_spec(family, prop, name)
             v = spec["default"] if spec else None
-        spec = prop_spec(family, prop)
+        spec = prop_spec(family, prop, name)
         if family == "indicators" and prop == "size":
             out.append(v if v in ("small", "medium", "large") else "medium")
         elif spec and spec["kind"] == "bool":
@@ -1427,7 +1550,7 @@ def update_detail(values, ids, meta):
         prop = id_dict.get("prop")
         if not prop or prop == "_none":
             continue
-        collected[prop] = _coerce_control_value(prop, raw, family)
+        collected[prop] = _coerce_control_value(prop, raw, family, name)
     # Preserve order from props_order for snippet stability
     ordered = {p: collected[p] for p in props_order if p in collected}
     for p, v in collected.items():
