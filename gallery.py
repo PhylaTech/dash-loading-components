@@ -444,6 +444,25 @@ PROP_SPECS: dict[str, dict[str, Any]] = {
     },
 }
 
+# spinners-react: speed/thickness are percentages of upstream defaults (100 = 100%).
+# Shared PROP_SPECS["speed"] is a multiplier for ldrs/premium/m3 — override via prop_spec().
+SPINNERS_REACT_SPEED_SPEC: dict[str, Any] = {
+    "kind": "slider",
+    "min": 25,
+    "max": 300,
+    "step": 5,
+    "default": 100,
+    "doc": "Animation speed as percent of default (spinners-react).",
+}
+
+
+def prop_spec(family: str, prop: str) -> dict[str, Any] | None:
+    """Resolve control/default metadata; apply family-specific overrides."""
+    if family == "spinners_react" and prop == "speed":
+        return SPINNERS_REACT_SPEED_SPEC
+    return PROP_SPECS.get(prop)
+
+
 # Preferred control order per family (props not listed still appear after)
 FAMILY_PROP_ORDER = {
     "loading_dev": [
@@ -537,7 +556,7 @@ def default_values(family: str, name: str, props: list[str]) -> dict[str, Any]:
             continue
         if p == "ariaLabel":
             continue
-        spec = PROP_SPECS.get(p)
+        spec = prop_spec(family, p)
         if spec is not None:
             values[p] = spec["default"]
         elif p == "size":
@@ -789,7 +808,7 @@ def control_for_prop(prop: str, value: Any, family: str) -> html.Div:
             className="dlc-prop",
         )
 
-    spec = PROP_SPECS.get(prop)
+    spec = prop_spec(family, prop)
     if spec is None:
         # fallback text
         return html.Div(
@@ -968,7 +987,7 @@ def render_page(pathname):
 def _coerce_control_value(prop: str, raw: Any, family: str) -> Any:
     if prop == "_none":
         return None
-    spec = PROP_SPECS.get(prop)
+    spec = prop_spec(family, prop)
     if family == "indicators" and prop == "size":
         return raw
     if spec and spec["kind"] == "bool":
