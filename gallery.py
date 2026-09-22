@@ -644,8 +644,7 @@ def build_site_footer() -> html.Footer:
     )
 
 
-def build_sidenav(active_family: Optional[str] = None, active_name: Optional[str] = None,
-                  overview: bool = True) -> html.Aside:
+def build_sidenav(active_family: Optional[str] = None, active_name: Optional[str] = None) -> html.Aside:
     nav_items: list = [
         html.A(
             [
@@ -674,28 +673,15 @@ def build_sidenav(active_family: Optional[str] = None, active_name: Optional[str
             )
         )
         for name, _comp in items:
-            if overview:
-                href = f"#{card_anchor(key, name)}"
-            else:
-                href = detail_path(key, name)
+            # Always link to detail pages (same as overview cards), never hash anchors.
+            href = detail_path(key, name)
             cls = "dlc-nav-item dlc-nav-comp"
             if key == active_family and name == active_name:
                 cls += " dlc-nav-active"
             link_id = {"type": "nav-comp", "family": key, "name": name}
-            if overview:
-                nav_items.append(
-                    html.A(
-                        name,
-                        href=href,
-                        className=cls,
-                        id=link_id,
-                        **{"data-family": key, "data-name": name},
-                    )
-                )
-            else:
-                nav_items.append(
-                    dcc.Link(name, href=href, className=cls, id=link_id)
-                )
+            nav_items.append(
+                dcc.Link(name, href=href, className=cls, id=link_id)
+            )
 
     footer = html.Div(
         html.A(
@@ -970,13 +956,13 @@ app.layout = html.Div(
 def render_page(pathname):
     mode, family, name = parse_pathname(pathname)
     if mode == "overview":
-        return page_shell(build_sidenav(overview=True), build_overview())
+        return page_shell(build_sidenav(), build_overview())
     if mode == "detail":
         return page_shell(
-            build_sidenav(active_family=family, active_name=name, overview=False),
+            build_sidenav(active_family=family, active_name=name),
             build_detail(family, name),
         )
-    return page_shell(build_sidenav(overview=True), build_404())
+    return page_shell(build_sidenav(), build_404())
 
 
 def _coerce_control_value(prop: str, raw: Any, family: str) -> Any:
