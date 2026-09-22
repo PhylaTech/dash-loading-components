@@ -11,6 +11,7 @@ Run:
 """
 from __future__ import annotations
 
+import logging
 import os
 import re
 from typing import Any, Callable, Optional
@@ -22,6 +23,13 @@ import dash
 from dash import Dash, html, dcc, Input, Output, State, ALL, callback, ctx, no_update
 
 import dash_loading_components as dlc
+
+try:
+    import black
+except ImportError:  # pragma: no cover - deployment installs Black in the venv
+    black = None
+
+logger = logging.getLogger(__name__)
 
 try:
     dash._dash_renderer._set_react_version("19.2.4")
@@ -466,13 +474,25 @@ def build_namespaced_values(family: str, values: dict[str, Any]) -> dict[str, An
     return _omit_empty_strings(native)
 
 
+def format_python_snippet(source: str) -> str:
+    """Format displayed Python with Black without making the gallery fragile."""
+    if black is None:
+        logger.warning("Black is unavailable; displaying an unformatted snippet")
+        return source
+    try:
+        return black.format_str(source, mode=black.Mode(line_length=88))
+    except Exception:
+        logger.warning("Black failed to format gallery snippet; using raw source", exc_info=True)
+        return source
+
+
 def build_snippet(family: str, name: str, values: dict[str, Any]) -> str:
     """Namespaced snippet with native prop names/units."""
     parts = []
     for k, v in values.items():
         parts.append(f"{k}={format_py_value(v)}")
     call = f"dlc.{family}.{name}({', '.join(parts)})"
-    return f"import dash_loading_components as dlc\n\n{call}\n"
+    return format_python_snippet(f"import dash_loading_components as dlc\n\n{call}\n")
 
 
 def _derive_playing(family: str, values: dict[str, Any]) -> bool:
@@ -530,7 +550,7 @@ def build_common_snippet(family: str, name: str, values: dict[str, Any]) -> str:
             continue
         parts.append(f"{k}={format_py_value(v)}")
     call = f"dlc.Loading({', '.join(parts)})"
-    return f"import dash_loading_components as dlc\n\n{call}\n"
+    return format_python_snippet(f"import dash_loading_components as dlc\n\n{call}\n")
 
 
 def instantiate(family: str, name: str, values: dict[str, Any]):
@@ -724,10 +744,12 @@ def build_overview() -> html.Div:
                         "react-spinners, and more. Requires Dash ≥4.5 / React 19."
                     ),
                     html.Pre(
-                        "import dash_loading_components as dlc\n\n"
-                        'dlc.Loading(library="loading_dev", spinner="Dual", '
-                        'size=48, color="#f97316", speed=1.0)\n'
-                        "# or namespaced: dlc.loading_dev.Dual(...)",
+                        format_python_snippet(
+                            "import dash_loading_components as dlc\n\n"
+                            'dlc.Loading(library="loading_dev", spinner="Dual", '
+                            'size=48, color="#f97316", speed=1.0)\n'
+                            "# or namespaced: dlc.loading_dev.Dual(...)"
+                        ),
                         className="dlc-hero-teaser",
                     ),
                 ],
