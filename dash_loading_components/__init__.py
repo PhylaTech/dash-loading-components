@@ -85,3 +85,19 @@ _css_dist = []
 for _component in __all__:
     setattr(locals()[_component], '_js_dist', _js_dist)
     setattr(locals()[_component], '_css_dist', _css_dist)
+
+
+# Family namespaces (short names): dlc.loading_dev.Arc, dlc.spinners.ClipLoader, …
+from . import loading_dev, ldrs, spinners, spinners_react, loader_spinner, premium, indicators, m3, epic
+
+__all__ = list(__all__) + [
+    "loading_dev",
+    "ldrs",
+    "spinners",
+    "spinners_react",
+    "loader_spinner",
+    "premium",
+    "indicators",
+    "m3",
+    "epic",
+]

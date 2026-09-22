@@ -63,8 +63,11 @@ module.exports = (env, argv) => {
         module: {
             rules: [
                 {
-                    test: /\.jsx?$/,
-                    exclude: /node_modules/,
+                    test: /\.m?jsx?$/,
+                    exclude: /node_modules\/(?!(loading-dev|ldrs|spinners-react|react-loader-spinner|premium-react-loaders|react-loading-indicators|react-epic-spinners|@alerix\/m3-loading-indicator|react-spinners)\/)/,
+                    resolve: {
+                        fullySpecified: false,
+                    },
                     use: {
                         loader: 'babel-loader',
                     },
@@ -81,6 +84,10 @@ module.exports = (env, argv) => {
                     ],
                 },
             ],
+        },
+        resolve: {
+            extensions: ['.js', '.jsx', '.json', '.mjs'],
+            fullySpecified: false,
         },
         optimization: {
             splitChunks: {
@@ -104,10 +111,6 @@ module.exports = (env, argv) => {
         },
         plugins: [
             new WebpackDashDynamicImport(),
-            new webpack.SourceMapDevToolPlugin({
-                filename: '[file].map',
-                exclude: ['async-plotlyjs']
-            })
         ]
     }
 };

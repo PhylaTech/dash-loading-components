@@ -64,3 +64,23 @@ python usage.py
 ```
 
 `install_dependencies` was left false at cookiecutter time so the scaffold commit stays lean.
+
+
+## Local gallery (MVP)
+
+```bash
+source /workspace/dash-loading/.venv/bin/activate
+cd /workspace/dash-loading/dash-loading-components
+REACT_VERSION=19.2.4 python gallery.py
+# http://127.0.0.1:8050/
+```
+
+Import:
+
+```python
+import dash_loading_components as dlc
+dlc.loading_dev.Arc(size=48, color="#f97316")
+# or prefixed: dlc.LoadingDevArc(...)
+```
+
+See `/workspace/dash-loading/GALLERY-MVP-STATUS.md` and `docs/UPSTREAM-INVENTORY.md`.
