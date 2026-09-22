@@ -30,13 +30,16 @@ Keyword arguments:
     The ID used to identify this component in Dash callbacks.
 
 - className (string; optional):
-    CSS class applied to the outer wrapper.
+    Extra class names merged onto the spinner root (loading.dev).
 
 - color (string; optional):
     Any CSS color.
 
 - duration (number; optional):
     Animation cycle length in milliseconds.
+
+- origin (a value equal to: "bottom", "center"; optional):
+    Growth origin: center (default) or bottom (fixed baseline).
 
 - playState (a value equal to: "paused", "running"; optional):
     Whether the animation runs.
@@ -58,11 +61,12 @@ Keyword arguments:
         color: typing.Optional[str] = None,
         duration: typing.Optional[NumberType] = None,
         playState: typing.Optional[Literal["paused", "running"]] = None,
+        origin: typing.Optional[Literal["bottom", "center"]] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'duration', 'playState', 'size', 'style']
+        self._prop_names = ['id', 'className', 'color', 'duration', 'origin', 'playState', 'size', 'style']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'duration', 'playState', 'size', 'style']
+        self.available_properties = ['id', 'className', 'color', 'duration', 'origin', 'playState', 'size', 'style']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

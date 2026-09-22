@@ -30,7 +30,7 @@ Keyword arguments:
     The ID used to identify this component in Dash callbacks.
 
 - className (string; optional):
-    CSS class applied to the outer wrapper.
+    Extra class names merged onto the spinner root (loading.dev).
 
 - color (string; optional):
     Any CSS color.

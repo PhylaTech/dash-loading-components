@@ -6,10 +6,10 @@ import { Wave as Upstream } from 'loading-dev';
  * LoadingDevWave — Dash wrapper for upstream spinner.
  */
 const LoadingDevWave = (props) => {
-    const {id, className, style, setProps, size, color, duration, playState} = props;
+    const {id, className, style, setProps, size, color, duration, playState, origin} = props;
     return (
-        <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} duration={duration} playState={playState} />
+        <div id={id} style={style}>
+            <Upstream size={size} color={color} duration={duration} playState={playState} origin={origin} className={className} />
         </div>
     );
 };
@@ -22,7 +22,7 @@ LoadingDevWave.propTypes = {
      */
     id: PropTypes.string,
     /**
-     * CSS class applied to the outer wrapper.
+     * Extra class names merged onto the spinner root (loading.dev).
      */
     className: PropTypes.string,
     /**
@@ -49,6 +49,10 @@ LoadingDevWave.propTypes = {
      * Whether the animation runs.
      */
     playState: PropTypes.oneOf(["paused", "running"]),
+    /**
+     * Growth origin: center (default) or bottom (fixed baseline).
+     */
+    origin: PropTypes.oneOf(["bottom", "center"]),
 };
 
 export default LoadingDevWave;

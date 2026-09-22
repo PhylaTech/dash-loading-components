@@ -6,10 +6,10 @@ import { Blocks as Upstream } from 'loading-dev';
  * LoadingDevBlocks — Dash wrapper for upstream spinner.
  */
 const LoadingDevBlocks = (props) => {
-    const {id, className, style, setProps, size, color, duration, playState} = props;
+    const {id, className, style, setProps, size, color, duration, playState, sweep} = props;
     return (
-        <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} duration={duration} playState={playState} />
+        <div id={id} style={style}>
+            <Upstream size={size} color={color} duration={duration} playState={playState} sweep={sweep} className={className} />
         </div>
     );
 };
@@ -22,7 +22,7 @@ LoadingDevBlocks.propTypes = {
      */
     id: PropTypes.string,
     /**
-     * CSS class applied to the outer wrapper.
+     * Extra class names merged onto the spinner root (loading.dev).
      */
     className: PropTypes.string,
     /**
@@ -49,6 +49,10 @@ LoadingDevBlocks.propTypes = {
      * Whether the animation runs.
      */
     playState: PropTypes.oneOf(["paused", "running"]),
+    /**
+     * Sweep direction across the grid: diagonal (default), rows, or columns.
+     */
+    sweep: PropTypes.oneOf(["columns", "diagonal", "rows"]),
 };
 
 export default LoadingDevBlocks;

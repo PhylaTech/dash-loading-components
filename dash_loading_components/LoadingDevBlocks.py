@@ -30,7 +30,7 @@ Keyword arguments:
     The ID used to identify this component in Dash callbacks.
 
 - className (string; optional):
-    CSS class applied to the outer wrapper.
+    Extra class names merged onto the spinner root (loading.dev).
 
 - color (string; optional):
     Any CSS color.
@@ -42,7 +42,11 @@ Keyword arguments:
     Whether the animation runs.
 
 - size (number; optional):
-    Width/height in pixels. Defaults to 20."""
+    Width/height in pixels. Defaults to 20.
+
+- sweep (a value equal to: "columns", "diagonal", "rows"; optional):
+    Sweep direction across the grid: diagonal (default), rows, or
+    columns."""
     _children_props: typing.List[str] = []
     _base_nodes = ['children']
     _namespace = 'dash_loading_components'
@@ -58,11 +62,12 @@ Keyword arguments:
         color: typing.Optional[str] = None,
         duration: typing.Optional[NumberType] = None,
         playState: typing.Optional[Literal["paused", "running"]] = None,
+        sweep: typing.Optional[Literal["columns", "diagonal", "rows"]] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'duration', 'playState', 'size', 'style']
+        self._prop_names = ['id', 'className', 'color', 'duration', 'playState', 'size', 'style', 'sweep']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'duration', 'playState', 'size', 'style']
+        self.available_properties = ['id', 'className', 'color', 'duration', 'playState', 'size', 'style', 'sweep']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

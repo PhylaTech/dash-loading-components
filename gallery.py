@@ -49,7 +49,8 @@ SIZE_PRESET_DEFAULT = 48
 # Props shown as compact workbench controls (order preference within available)
 WORKBENCH_PROP_PRIORITY = [
     "size", "height", "width", "color", "speed",
-    "easing", "cap", "thickness", "stroke", "strokeWidth",
+    "easing", "cap", "sweep", "direction", "origin",
+    "thickness", "stroke", "strokeWidth",
     "secondaryColor", "margin", "playState", "paused",
     "loading", "enabled", "visible", "variant", "contained",
     "containerColor", "sizeRatio", "radius", "text", "textColor",
@@ -83,7 +84,10 @@ PROP_SECTION_TITLES = {
     "text": "Text",
     "textColor": "Text color",
     "ariaLabel": "aria-label",
-    "className": "Custom classes",
+    "className": "Custom Classes",
+    "sweep": "Sweep",
+    "direction": "Direction",
+    "origin": "Origin",
     "speedMultiplier": "Speed multiplier",
     "speedPlus": "Speed plus",
     "animationDuration": "Animation duration",
@@ -124,8 +128,24 @@ PROP_SECTION_COPY = {
     "textColor": "Label text color.",
     "ariaLabel": "Accessible name announced to assistive tech.",
     "className": (
-        "Optional CSS class on the outer wrapper when you need a tweak "
-        "the library doesn’t provide."
+        "You can use a custom className in case you need to tweak the spinner "
+        "in a specific way that the library doesn’t provide. "
+        "On loading_dev wrappers it is merged onto the spinner root "
+        "(same as loading.dev)."
+    ),
+    "sweep": (
+        "Controls which way the sweep runs. diagonal goes from the top left "
+        "corner to the bottom right, rows from top to bottom, columns from "
+        "left to right. The default sweep is diagonal."
+    ),
+    "direction": (
+        "Controls which way the motion travels. out spreads it from the "
+        "center, in draws it into the center. The default direction is out."
+    ),
+    "origin": (
+        "Controls where the spinner grows from. center scales it from the "
+        "middle, bottom keeps its base fixed so it rises from the baseline. "
+        "The default origin is center."
     ),
     "speedMultiplier": "Speed multiplier (react-spinners).",
     "speedPlus": "Speed adjustment in [-5, 5] (react-loading-indicators).",
@@ -248,7 +268,28 @@ PROP_SPECS: dict[str, dict[str, Any]] = {
     "className": {
         "kind": "text",
         "default": "",
-        "doc": "Optional CSS class on the outer wrapper.",
+        "doc": "Extra class names merged onto the spinner root (loading.dev).",
+    },
+    "sweep": {
+        "kind": "enum",
+        "options": ["diagonal", "rows", "columns"],
+        "labels": {"diagonal": "Diagonal", "rows": "Rows", "columns": "Columns"},
+        "default": "diagonal",
+        "doc": "Sweep path: diagonal (default), rows, or columns.",
+    },
+    "direction": {
+        "kind": "enum",
+        "options": ["out", "in"],
+        "labels": {"out": "Out", "in": "In"},
+        "default": "out",
+        "doc": "Ripple direction: out (default) or in.",
+    },
+    "origin": {
+        "kind": "enum",
+        "options": ["center", "bottom"],
+        "labels": {"center": "Center", "bottom": "Bottom"},
+        "default": "center",
+        "doc": "Wave growth origin: center (default) or bottom.",
     },
     "speedMultiplier": {
         "kind": "slider",
@@ -414,7 +455,8 @@ def prop_spec(family: str, prop: str) -> dict[str, Any] | None:
 # Preferred control order per family (props not listed still appear after)
 FAMILY_PROP_ORDER = {
     "loading_dev": [
-        "size", "color", "duration", "playState", "easing", "cap", "className"
+        "size", "color", "duration", "playState", "easing", "cap",
+        "sweep", "direction", "origin", "className",
     ],
     "ldrs": ["size", "color", "speed", "stroke", "className"],
     "spinners": [
@@ -903,6 +945,21 @@ def build_prop_example_snippet(family: str, name: str, prop: str) -> str:
         lines.append(f'dlc.{family}.{name}(cap="flat", size={DEFAULT_SIZE})')
     elif prop == "playState":
         lines.append(f'dlc.{family}.{name}(playState="paused", size={DEFAULT_SIZE})')
+    elif prop == "sweep":
+        for opt in ("diagonal", "rows", "columns"):
+            lines.append(
+                f'dlc.{family}.{name}(sweep="{opt}", size={DEFAULT_SIZE})'
+            )
+    elif prop == "direction":
+        for opt in ("out", "in"):
+            lines.append(
+                f'dlc.{family}.{name}(direction="{opt}", size={DEFAULT_SIZE})'
+            )
+    elif prop == "origin":
+        for opt in ("center", "bottom"):
+            lines.append(
+                f'dlc.{family}.{name}(origin="{opt}", size={DEFAULT_SIZE})'
+            )
     elif prop == "className":
         lines.append(f'dlc.{family}.{name}(className="opacity-40", size={DEFAULT_SIZE})')
     else:
@@ -994,6 +1051,18 @@ def workbench_control(prop: str, value: Any, family: str, props: list[str]) -> h
                 type="color",
                 value=value or spec["default"],
                 className="dlc-ctrl-color",
+            )
+        )
+    elif kind == "enum":
+        opts = spec["options"]
+        labels = spec.get("labels") or {o: o for o in opts}
+        kids.append(
+            dcc.RadioItems(
+                id=ctrl_id,
+                options=[{"label": labels.get(o, o), "value": o} for o in opts],
+                value=value if value in opts else spec["default"],
+                inline=True,
+                className="dlc-size-presets",
             )
         )
     elif kind == "dropdown":

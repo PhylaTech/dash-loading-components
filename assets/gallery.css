@@ -284,3 +284,8 @@ a:hover { color: var(--accent); }
   .dlc-workbench { grid-template-columns: 1fr; }
   .dlc-snippets-row { grid-template-columns: 1fr; }
 }
+
+/* loading.dev Custom Classes demo (className passthrough) */
+.opacity-40 {
+  opacity: 0.4;
+}

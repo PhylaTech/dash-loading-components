@@ -8,8 +8,8 @@ import { Cascade as Upstream } from 'loading-dev';
 const LoadingDevCascade = (props) => {
     const {id, className, style, setProps, size, color, duration, playState, cap} = props;
     return (
-        <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} duration={duration} playState={playState} cap={cap} />
+        <div id={id} style={style}>
+            <Upstream size={size} color={color} duration={duration} playState={playState} cap={cap} className={className} />
         </div>
     );
 };
@@ -22,7 +22,7 @@ LoadingDevCascade.propTypes = {
      */
     id: PropTypes.string,
     /**
-     * CSS class applied to the outer wrapper.
+     * Extra class names merged onto the spinner root (loading.dev).
      */
     className: PropTypes.string,
     /**
