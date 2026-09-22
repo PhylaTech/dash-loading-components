@@ -6,10 +6,10 @@ import { Dual as Upstream } from 'loading-dev';
  * LoadingDevDual — Dash wrapper for upstream spinner.
  */
 const LoadingDevDual = (props) => {
-    const {id, className, style, setProps, size, color, duration, playState} = props;
+    const {id, className, style, setProps, size, color, duration, playState, easing, cap} = props;
     return (
         <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} duration={duration} playState={playState} />
+            <Upstream size={size} color={color} duration={duration} playState={playState} easing={easing} cap={cap} />
         </div>
     );
 };
@@ -49,6 +49,14 @@ LoadingDevDual.propTypes = {
      * Whether the animation runs.
      */
     playState: PropTypes.oneOf(["paused", "running"]),
+    /**
+     * Animation easing curve.
+     */
+    easing: PropTypes.oneOf(["linear", "ease-in-out", "stacked"]),
+    /**
+     * Stroke line cap style.
+     */
+    cap: PropTypes.oneOf(["round", "flat"]),
 };
 
 export default LoadingDevDual;

@@ -1,16 +1,21 @@
 """Local gallery explorer for dash-loading-components.
 
-Single-page component explorer: all upstream families on one scrollable
-page, click a card to see the import + call snippet.
+loading.dev-style UX:
+  /                      overview — left sticky nav + component cards
+  /c/<family>/<Name>     component detail — live preview, controls, snippet
 
 Run:
   source /workspace/dash-loading/.venv/bin/activate
   cd /workspace/dash-loading/dash-loading-components
   REACT_VERSION=19.2.4 python gallery.py
 """
-import os
+from __future__ import annotations
 
-# React 19 opt-in for Dash 4.5 (must be set before dash imports renderer heavily)
+import os
+import re
+from typing import Any, Callable, Optional
+from urllib.parse import unquote
+
 os.environ.setdefault("REACT_VERSION", "19.2.4")
 
 import dash
@@ -25,6 +30,11 @@ except Exception as exc:  # pragma: no cover
 
 DEFAULT_COLOR = "#f97316"
 DEFAULT_SIZE = 48
+ACCENT = "#f97316"
+
+# ---------------------------------------------------------------------------
+# Catalog (preserve prior FAMILIES component lists)
+# ---------------------------------------------------------------------------
 
 FAMILIES = [
     (
@@ -61,7 +71,6 @@ FAMILIES = [
             ("CircularDots", dlc.loading_dev.CircularDots),
             ("LinearDots", dlc.loading_dev.LinearDots),
         ],
-        "size_color",
     ),
     (
         "ldrs",
@@ -80,7 +89,6 @@ FAMILIES = [
             ("Mirage", dlc.ldrs.Mirage),
             ("Ping", dlc.ldrs.Ping),
         ],
-        "size_color",
     ),
     (
         "spinners",
@@ -99,7 +107,6 @@ FAMILIES = [
             ("BounceLoader", dlc.spinners.BounceLoader),
             ("GridLoader", dlc.spinners.GridLoader),
         ],
-        "size_color",
     ),
     (
         "spinners_react",
@@ -115,7 +122,6 @@ FAMILIES = [
             ("SpinnerRoundFilled", dlc.spinners_react.SpinnerRoundFilled),
             ("SpinnerDiamond", dlc.spinners_react.SpinnerDiamond),
         ],
-        "size_color",
     ),
     (
         "loader_spinner",
@@ -132,7 +138,6 @@ FAMILIES = [
             ("Circles", dlc.loader_spinner.Circles),
             ("Hourglass", dlc.loader_spinner.Hourglass),
         ],
-        "hw_color",
     ),
     (
         "premium",
@@ -154,7 +159,6 @@ FAMILIES = [
             ("ButtonSpinner", dlc.premium.ButtonSpinner),
             ("SuccessCheckmark", dlc.premium.SuccessCheckmark),
         ],
-        "premium",
     ),
     (
         "indicators",
@@ -172,13 +176,11 @@ FAMILIES = [
             ("ThreeDot", dlc.indicators.ThreeDot),
             ("TrophySpin", dlc.indicators.TrophySpin),
         ],
-        "indicators",
     ),
     (
         "m3",
         "@alerix/m3-loading-indicator",
         [("LoadingIndicator", dlc.m3.LoadingIndicator)],
-        "m3",
     ),
     (
         "epic",
@@ -193,564 +195,756 @@ FAMILIES = [
             ("SemipolarSpinner", dlc.epic.SemipolarSpinner),
             ("RadarSpinner", dlc.epic.RadarSpinner),
         ],
-        "size_color",
     ),
 ]
 
-FAMILY_LOOKUP = {key: (label, items, mode) for key, label, items, mode in FAMILIES}
+FAMILY_LOOKUP = {key: (label, items) for key, label, items in FAMILIES}
+COMPONENT_LOOKUP = {
+    (key, name): component
+    for key, _label, items in FAMILIES
+    for name, component in items
+}
 
-DEFAULT_SELECTION = {"family": "loading_dev", "name": "Arc"}
+# loading.dev short blurbs (from loading.dev spinner pages)
+LOADING_DEV_BLURBS = {
+    "Arc": "A single open stroke rotating in a circle.",
+    "Atom": "Three rings tumbling inside a circle.",
+    "Orbit": "A fading half-arc rotating around a dot.",
+    "Wave": "Five bars rising and falling in a wave.",
+    "Ring": "An arc rotating in a faint circle.",
+    "Pulse": "A ring rippling outward from a dot.",
+    "Cascade": "Three nested arcs fanning into a spiral and snapping back in line.",
+    "Comet": "A full ring fading into its tail.",
+    "Morph": "A square rounding into a circle and back as it turns.",
+    "Loading": "The loading.dev mark, its brightest block circling the ring.",
+    "Blocks": "Nine blocks shrinking and growing in a sweep across a grid.",
+    "Clock": "A clock hand sweeping around a faint face.",
+    "Dual": "Two arcs turning in opposite directions.",
+    "Eclipse": "Two dots trading places, one passing behind the other.",
+    "Ripple": "Three rings spreading out from the center.",
+    "Snake": "An arc stretching and shrinking as it circles.",
+    "Swirl": "A bright cell chasing its trail around a square.",
+    "Trace": "A dash tracing the outline of a rounded square.",
+    "Flip": "A square flipping over on one axis, then the other.",
+    "Gather": "Four blocks pulling together, turning, and pushing apart.",
+    "Leap": "Three dots in a row, the last one leaping to the front.",
+    "Slide": "Three dots sliding into the empty corner of a square.",
+    "Classic": "Twelve fading bars arranged in a radial pattern.",
+    "ClassicV2": "Two lit ticks stepping around a ring of eight.",
+    "BouncingDots": "Three staggered dots bouncing up and down.",
+    "CircularDots": "Eight dots in a ring, the brightest hopping around.",
+    "LinearDots": "Three dots lighting up in turn from left to right.",
+}
+
+# From loading-dev d.ts — which wrappers expose easing / cap
+LOADING_DEV_EASING = {
+    "Arc", "Atom", "Clock", "Comet", "Dual", "Orbit", "Radar", "Ring", "Snake", "Trace"
+}
+LOADING_DEV_CAP = {"Arc", "Cascade", "Dual", "Ring", "Snake", "Trace"}
+
+SKIP_UI_PROPS = {"id", "style", "setProps"}
+
+# Prop control definitions (kind, default, docs, optional constraints)
+PROP_SPECS: dict[str, dict[str, Any]] = {
+    "size": {
+        "kind": "slider",
+        "min": 12,
+        "max": 120,
+        "step": 1,
+        "default": DEFAULT_SIZE,
+        "doc": "Width/height in pixels (or size token for some families).",
+    },
+    "color": {
+        "kind": "color",
+        "default": DEFAULT_COLOR,
+        "doc": "Any CSS color.",
+    },
+    "duration": {
+        "kind": "slider",
+        "min": 200,
+        "max": 4000,
+        "step": 50,
+        "default": 1000,
+        "doc": "Animation cycle length in milliseconds.",
+    },
+    "playState": {
+        "kind": "dropdown",
+        "options": ["running", "paused"],
+        "default": "running",
+        "doc": "Whether the animation runs.",
+    },
+    "easing": {
+        "kind": "dropdown",
+        "options": ["linear", "ease-in-out", "stacked"],
+        "default": "linear",
+        "doc": "Rotation easing: linear, ease-in-out, or stacked.",
+    },
+    "cap": {
+        "kind": "dropdown",
+        "options": ["round", "flat"],
+        "default": "round",
+        "doc": "Stroke end style: round or flat.",
+    },
+    "speed": {
+        "kind": "slider",
+        "min": 0.5,
+        "max": 3.0,
+        "step": 0.1,
+        "default": 1.0,
+        "doc": "Animation speed multiplier.",
+    },
+    "stroke": {
+        "kind": "slider",
+        "min": 1,
+        "max": 12,
+        "step": 1,
+        "default": 4,
+        "doc": "Stroke width.",
+    },
+    "className": {
+        "kind": "text",
+        "default": "",
+        "doc": "Optional CSS class on the outer wrapper.",
+    },
+    "speedMultiplier": {
+        "kind": "slider",
+        "min": 0.2,
+        "max": 3.0,
+        "step": 0.1,
+        "default": 1.0,
+        "doc": "Speed multiplier (react-spinners).",
+    },
+    "margin": {
+        "kind": "slider",
+        "min": 0,
+        "max": 16,
+        "step": 1,
+        "default": 2,
+        "doc": "Margin between spinner elements.",
+    },
+    "loading": {
+        "kind": "bool",
+        "default": True,
+        "doc": "Whether the spinner is shown.",
+    },
+    "height": {
+        "kind": "slider",
+        "min": 12,
+        "max": 120,
+        "step": 1,
+        "default": DEFAULT_SIZE,
+        "doc": "Height in pixels.",
+    },
+    "width": {
+        "kind": "slider",
+        "min": 12,
+        "max": 120,
+        "step": 1,
+        "default": DEFAULT_SIZE,
+        "doc": "Width in pixels.",
+    },
+    "thickness": {
+        "kind": "slider",
+        "min": 20,
+        "max": 200,
+        "step": 5,
+        "default": 100,
+        "doc": "Stroke thickness (spinners-react).",
+    },
+    "secondaryColor": {
+        "kind": "color",
+        "default": "#e2e8f0",
+        "doc": "Secondary / track color.",
+    },
+    "enabled": {
+        "kind": "bool",
+        "default": True,
+        "doc": "Whether the spinner is enabled.",
+    },
+    "strokeWidth": {
+        "kind": "slider",
+        "min": 1,
+        "max": 12,
+        "step": 1,
+        "default": 4,
+        "doc": "Stroke width.",
+    },
+    "radius": {
+        "kind": "slider",
+        "min": 0,
+        "max": 20,
+        "step": 1,
+        "default": 0,
+        "doc": "Corner / arc radius.",
+    },
+    "visible": {
+        "kind": "bool",
+        "default": True,
+        "doc": "Visibility toggle.",
+    },
+    "ariaLabel": {
+        "kind": "text",
+        "default": "loading",
+        "doc": "Accessible label.",
+    },
+    "speedPlus": {
+        "kind": "slider",
+        "min": -5,
+        "max": 5,
+        "step": 1,
+        "default": 0,
+        "doc": "Speed adjustment (indicators).",
+    },
+    "text": {
+        "kind": "text",
+        "default": "",
+        "doc": "Optional label text.",
+    },
+    "textColor": {
+        "kind": "color",
+        "default": "#334155",
+        "doc": "Label text color.",
+    },
+    "variant": {
+        "kind": "dropdown",
+        "options": ["default", "dotted", "disc", "spoke", "bars"],
+        "default": "default",
+        "doc": "Visual variant (when supported).",
+    },
+    "paused": {
+        "kind": "bool",
+        "default": False,
+        "doc": "Pause the animation.",
+    },
+    "contained": {
+        "kind": "bool",
+        "default": False,
+        "doc": "Show Material container track.",
+    },
+    "containerColor": {
+        "kind": "color",
+        "default": "#e2e8f0",
+        "doc": "Container track color.",
+    },
+    "sizeRatio": {
+        "kind": "slider",
+        "min": 0.2,
+        "max": 1.0,
+        "step": 0.05,
+        "default": 1.0,
+        "doc": "Inner size relative to container.",
+    },
+    "animationDuration": {
+        "kind": "slider",
+        "min": 400,
+        "max": 4000,
+        "step": 50,
+        "default": 1000,
+        "doc": "Animation duration in milliseconds.",
+    },
+}
+
+# Preferred control order per family (props not listed still appear after)
+FAMILY_PROP_ORDER = {
+    "loading_dev": [
+        "size", "color", "duration", "playState", "easing", "cap", "className"
+    ],
+    "ldrs": ["size", "color", "speed", "stroke", "className"],
+    "spinners": [
+        "size", "color", "speedMultiplier", "margin", "loading", "height", "width", "className"
+    ],
+    "spinners_react": [
+        "size", "color", "speed", "thickness", "secondaryColor", "enabled", "className"
+    ],
+    "loader_spinner": [
+        "height", "width", "color", "secondaryColor", "strokeWidth", "radius",
+        "visible", "ariaLabel", "className",
+    ],
+    "premium": ["size", "color", "speed", "className"],
+    "indicators": [
+        "size", "color", "speedPlus", "text", "textColor", "variant", "className"
+    ],
+    "m3": [
+        "size", "color", "speed", "paused", "contained", "containerColor", "sizeRatio", "className"
+    ],
+    "epic": ["size", "color", "animationDuration", "className"],
+}
 
 
-def component_kwargs(mode, size, color):
-    """Return kwargs matching the family's prop mode."""
-    size = size or DEFAULT_SIZE
-    color = color or DEFAULT_COLOR
-    if mode == "size_color":
-        return {"size": size, "color": color}
-    if mode == "hw_color":
-        return {"height": size, "width": size, "color": color}
-    if mode == "premium":
-        return {"size": size, "color": color}
-    if mode == "indicators":
-        # Upstream prefers size tokens; global slider does not map 1:1
-        return {"size": "medium", "color": color}
-    if mode == "m3":
-        return {"size": size, "color": color}
-    return {}
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def description_for(family: str, name: str, upstream: str) -> str:
+    if family == "loading_dev" and name in LOADING_DEV_BLURBS:
+        return LOADING_DEV_BLURBS[name]
+    return f"Dash wrapper for upstream `{upstream}` `{name}`."
 
 
-def format_snippet(family_key, name, mode, size, color):
-    kwargs = component_kwargs(mode, size, color)
+def card_anchor(family: str, name: str) -> str:
+    return f"card-{family}-{name}"
+
+
+def detail_path(family: str, name: str) -> str:
+    return f"/c/{family}/{name}"
+
+
+def parse_pathname(pathname: Optional[str]) -> tuple[str, Optional[str], Optional[str]]:
+    """Return (mode, family, name). mode is 'overview' | 'detail' | 'unknown'."""
+    if not pathname or pathname == "/":
+        return "overview", None, None
+    pathname = unquote(pathname.rstrip("/") or "/")
+    m = re.match(r"^/c/([a-z0-9_]+)/([A-Za-z0-9_]+)$", pathname)
+    if m:
+        family, name = m.group(1), m.group(2)
+        if (family, name) in COMPONENT_LOOKUP:
+            return "detail", family, name
+    return "unknown", None, None
+
+
+def configurable_props(family: str, name: str, component: Callable) -> list[str]:
+    """Return Dash-exposed props that make sense as controls."""
+    try:
+        available = list(component().available_properties)
+    except Exception:
+        available = []
+    skip = set(SKIP_UI_PROPS)
+    props = [p for p in available if p not in skip]
+
+    # loading_dev: only show easing/cap when the wrapper actually exposes them
+    if family == "loading_dev":
+        if "easing" in props and name not in LOADING_DEV_EASING:
+            props = [p for p in props if p != "easing"]
+        if "cap" in props and name not in LOADING_DEV_CAP:
+            props = [p for p in props if p != "cap"]
+
+    order = FAMILY_PROP_ORDER.get(family, [])
+    ordered = [p for p in order if p in props]
+    rest = [p for p in props if p not in ordered]
+    return ordered + rest
+
+
+def default_values(family: str, name: str, props: list[str]) -> dict[str, Any]:
+    values: dict[str, Any] = {}
+    for p in props:
+        if family == "indicators" and p == "size":
+            values[p] = "medium"
+            continue
+        if p == "className":
+            # omit empty by default — not "set"
+            continue
+        if p == "text":
+            continue
+        if p == "ariaLabel":
+            continue
+        spec = PROP_SPECS.get(p)
+        if spec is not None:
+            values[p] = spec["default"]
+        elif p == "size":
+            values[p] = DEFAULT_SIZE
+        elif p == "color":
+            values[p] = DEFAULT_COLOR
+    return values
+
+
+def format_py_value(v: Any) -> str:
+    if isinstance(v, bool):
+        return "True" if v else "False"
+    if isinstance(v, str):
+        return f'"{v}"'
+    if isinstance(v, float) and v == int(v):
+        return str(int(v))
+    return repr(v)
+
+
+def build_snippet(family: str, name: str, values: dict[str, Any]) -> str:
     parts = []
-    for k, v in kwargs.items():
-        if isinstance(v, str):
-            parts.append(f'{k}="{v}"')
-        else:
-            parts.append(f"{k}={v}")
-    call = f"dlc.{family_key}.{name}({', '.join(parts)})"
-    return (
-        "import dash_loading_components as dlc\n"
-        "\n"
-        f"{call}\n"
-    )
+    for k, v in values.items():
+        if v is None:
+            continue
+        if isinstance(v, str) and v == "" and k in ("className", "text", "ariaLabel"):
+            continue
+        parts.append(f"{k}={format_py_value(v)}")
+    call = f"dlc.{family}.{name}({', '.join(parts)})"
+    return f"import dash_loading_components as dlc\n\n{call}\n"
 
 
-def make_card(family_key, name, component, mode, size, color, selected):
-    kwargs = component_kwargs(mode, size, color)
+def instantiate(family: str, name: str, values: dict[str, Any]):
+    component = COMPONENT_LOOKUP[(family, name)]
+    kwargs = {k: v for k, v in values.items() if v is not None}
+    # Drop empty optional strings
+    for k in list(kwargs):
+        if isinstance(kwargs[k], str) and kwargs[k] == "" and k in (
+            "className", "text", "ariaLabel"
+        ):
+            del kwargs[k]
+    try:
+        return component(**kwargs)
+    except Exception as exc:
+        return html.Div(f"error: {exc}", style={"color": "crimson", "fontSize": 13})
+
+
+def overview_preview_kwargs(family: str) -> dict[str, Any]:
+    if family == "loader_spinner":
+        return {"height": DEFAULT_SIZE, "width": DEFAULT_SIZE, "color": DEFAULT_COLOR}
+    if family == "indicators":
+        return {"size": "medium", "color": DEFAULT_COLOR}
+    if family == "epic":
+        return {"size": DEFAULT_SIZE, "color": DEFAULT_COLOR}
+    return {"size": DEFAULT_SIZE, "color": DEFAULT_COLOR}
+
+
+# ---------------------------------------------------------------------------
+# Styles
+# ---------------------------------------------------------------------------
+
+# Styles live in assets/gallery.css (auto-served by Dash)
+
+
+# ---------------------------------------------------------------------------
+# Layout builders
+# ---------------------------------------------------------------------------
+
+def build_sidenav(active_family: Optional[str] = None, active_name: Optional[str] = None,
+                  overview: bool = True) -> html.Aside:
+    blocks = [
+        html.H1("dlc gallery"),
+        html.P("dash-loading-components", className="sub"),
+        dcc.Link("← Overview", href="/", className="dlc-nav-item",
+                 style={"fontWeight": 600, "marginBottom": 8}),
+    ]
+    for key, label, items in FAMILIES:
+        blocks.append(html.Div(f"{key} · {label}", className="dlc-nav-family"))
+        for name, _comp in items:
+            if overview:
+                href = f"#{card_anchor(key, name)}"
+            else:
+                href = detail_path(key, name)
+            style = {}
+            if key == active_family and name == active_name:
+                style = {"background": "#fff7ed", "color": ACCENT, "fontWeight": 600}
+            blocks.append(
+                html.A(name, href=href, className="dlc-nav-item", style=style)
+                if overview
+                else dcc.Link(name, href=href, className="dlc-nav-item", style=style)
+            )
+    return html.Aside(blocks, className="dlc-sidenav")
+
+
+def make_overview_card(family: str, name: str, component: Callable) -> html.A:
+    kwargs = overview_preview_kwargs(family)
     try:
         node = component(**kwargs)
     except Exception as exc:
-        node = html.Div(f"error: {exc}", style={"color": "crimson", "fontSize": 12})
-
-    is_selected = selected and selected.get("family") == family_key and selected.get("name") == name
-    border = "2px solid #f97316" if is_selected else "1px solid #e5e7eb"
-    shadow = "0 0 0 3px rgba(249, 115, 22, 0.18)" if is_selected else "none"
-
-    return html.Div(
+        node = html.Div(f"err", title=str(exc), style={"color": "crimson", "fontSize": 11})
+    return html.A(
         [
-            html.Div(
-                name,
-                style={
-                    "fontSize": 12,
-                    "fontWeight": 600,
-                    "marginBottom": 8,
-                    "color": "#334155",
-                    "letterSpacing": "0.01em",
-                },
-            ),
-            html.Div(
-                node,
-                style={
-                    "display": "flex",
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                    "minHeight": 72,
-                },
-            ),
+            html.Div(name, className="name"),
+            html.Div(node, className="preview"),
         ],
-        id={"type": "dlc-card", "family": family_key, "name": name},
-        n_clicks=0,
-        role="button",
-        tabIndex=0,
-        title=f"Show snippet for dlc.{family_key}.{name}",
-        style={
-            "border": border,
-            "boxShadow": shadow,
-            "borderRadius": 10,
-            "padding": 12,
-            "background": "#fff",
-            "minWidth": 140,
-            "cursor": "pointer",
-            "transition": "border-color 0.12s ease, box-shadow 0.12s ease",
-            "userSelect": "none",
-        },
-        className="dlc-gallery-card" + (" is-selected" if is_selected else ""),
+        href=detail_path(family, name),
+        id=card_anchor(family, name),
+        className="dlc-card",
     )
 
 
-def family_section(key, label, items, mode, size, color, selected):
-    return html.Section(
-        [
-            html.Div(
+def build_overview() -> html.Div:
+    sections = []
+    for key, label, items in FAMILIES:
+        sections.append(
+            html.Section(
                 [
-                    html.H2(
-                        [
-                            html.Code(f"dlc.{key}", style={"fontSize": "1.05em"}),
-                            html.Span(
-                                f"  ·  {label}",
-                                style={"fontWeight": 500, "opacity": 0.7, "fontSize": "0.85em"},
-                            ),
-                        ],
-                        style={"margin": "0 0 2px", "fontSize": 20, "color": "#0f172a"},
+                    html.H2([html.Code(f"dlc.{key}"), html.Span(f"  ·  {label}",
+                              style={"fontWeight": 500, "opacity": 0.7, "fontSize": "0.85em"})]),
+                    html.P(f"{len(items)} components", className="meta"),
+                    html.Div(
+                        [make_overview_card(key, n, c) for n, c in items],
+                        className="dlc-grid",
                     ),
-                    html.P(
-                        f"{len(items)} component{'s' if len(items) != 1 else ''}",
-                        style={"margin": "0 0 14px", "fontSize": 13, "color": "#64748b"},
-                    ),
-                ]
-            ),
-            html.Div(
-                [make_card(key, n, c, mode, size, color, selected) for n, c in items],
-                style={
-                    "display": "grid",
-                    "gridTemplateColumns": "repeat(auto-fill, minmax(148px, 1fr))",
-                    "gap": 12,
-                },
-            ),
-        ],
-        id=f"family-{key}",
-        style={
-            "padding": "20px 0 28px",
-            "borderBottom": "1px solid #e2e8f0",
-            "scrollMarginTop": "88px",
-        },
-        className=f"dlc-family dlc-family-{key}",
-    )
-
-
-def build_gallery(size, color, selected):
-    size = size or DEFAULT_SIZE
-    color = color or DEFAULT_COLOR
-    return [
-        family_section(key, label, items, mode, size, color, selected)
-        for key, label, items, mode in FAMILIES
-    ]
-
-
-def build_code_panel(selected, size, color):
-    size = size or DEFAULT_SIZE
-    color = color or DEFAULT_COLOR
-    if not selected:
-        selected = DEFAULT_SELECTION
-    family = selected.get("family")
-    name = selected.get("name")
-    meta = FAMILY_LOOKUP.get(family)
-    if not meta:
-        return html.Div("Select a component card.", className="dlc-code-empty")
-    label, _items, mode = meta
-    snippet = format_snippet(family, name, mode, size, color)
-    mode_note = {
-        "size_color": "props: size, color",
-        "hw_color": "props: height, width, color",
-        "premium": "props: size, color",
-        "indicators": 'props: size="medium", color (token size)',
-        "m3": "props: size, color",
-    }.get(mode, mode)
-
-    return html.Div(
-        [
-            html.Div(
-                [
-                    html.Span("Snippet", className="dlc-code-label"),
-                    html.Span(f"dlc.{family}.{name}", className="dlc-code-target"),
                 ],
-                className="dlc-code-header",
-            ),
-            html.Pre(snippet, className="dlc-code-pre", id="code-snippet-text"),
-            html.Div(
-                [
-                    html.Span(f"Upstream: {label}", className="dlc-code-meta"),
-                    html.Span(mode_note, className="dlc-code-meta"),
-                ],
-                className="dlc-code-footer",
-            ),
-            html.P(
-                "Click any card to update. Size & Color controls refresh the snippet when those props apply.",
-                className="dlc-code-hint",
-            ),
-        ],
-        className="dlc-code-panel-inner",
-    )
-
-
-def toc_links():
-    links = []
-    for key, label, items, _mode in FAMILIES:
-        links.append(
-            html.A(
-                [
-                    html.Span(key, className="dlc-toc-key"),
-                    html.Span(str(len(items)), className="dlc-toc-count"),
-                ],
-                href=f"#family-{key}",
-                className="dlc-toc-link",
-                title=f"{label} ({len(items)})",
+                id=f"family-{key}",
+                className="dlc-family",
             )
         )
-    return html.Nav(links, className="dlc-toc", **{"aria-label": "Family jump links"})
+    return html.Div(
+        [
+            html.Div(
+                [
+                    html.H1("Loading components"),
+                    html.P(
+                        "Browse every Dash wrapper in one place. Use the side nav to jump to a "
+                        "card, then open a component for live controls and a Python snippet."
+                    ),
+                ],
+                className="dlc-hero",
+            ),
+            *sections,
+            html.P(
+                "svg_spinners gated (React ^18.2 peer). Local MVP — not published.",
+                className="dlc-footer",
+            ),
+        ],
+        className="dlc-main",
+    )
 
 
-app = Dash(__name__, title="dlc gallery explorer")
-server = app.server
+def control_for_prop(prop: str, value: Any, family: str) -> html.Div:
+    """Build a single control widget for a prop."""
+    # indicators size is special (string tokens)
+    if family == "indicators" and prop == "size":
+        return html.Div(
+            [
+                html.H3(prop),
+                html.P("Size token (small / medium / large) or number.", className="doc"),
+                dcc.Dropdown(
+                    id={"type": "prop-ctrl", "prop": prop},
+                    options=[
+                        {"label": "small", "value": "small"},
+                        {"label": "medium", "value": "medium"},
+                        {"label": "large", "value": "large"},
+                    ],
+                    value=value if value in ("small", "medium", "large") else "medium",
+                    clearable=False,
+                ),
+            ],
+            className="dlc-prop",
+        )
 
-app.index_string = """<!DOCTYPE html>
-<html>
-    <head>
-        {%metas%}
-        <title>{%title%}</title>
-        {%favicon%}
-        {%css%}
-        <style>
-            :root {
-                --dlc-bg: #f1f5f9;
-                --dlc-surface: #ffffff;
-                --dlc-ink: #0f172a;
-                --dlc-muted: #64748b;
-                --dlc-border: #e2e8f0;
-                --dlc-accent: #f97316;
-                --dlc-accent-soft: rgba(249, 115, 22, 0.14);
-                --dlc-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-            }
-            html { scroll-behavior: smooth; }
-            body {
-                margin: 0;
-                background: var(--dlc-bg);
-                color: var(--dlc-ink);
-                font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-            }
-            .dlc-page {
-                max-width: 1280px;
-                margin: 0 auto;
-                padding: 20px 20px 48px;
-            }
-            .dlc-hero {
-                margin-bottom: 16px;
-            }
-            .dlc-hero h1 {
-                margin: 0 0 6px;
-                font-size: 1.55rem;
-                letter-spacing: -0.02em;
-            }
-            .dlc-hero p {
-                margin: 0;
-                color: var(--dlc-muted);
-                font-size: 0.95rem;
-                line-height: 1.45;
-                max-width: 62ch;
-            }
-            .dlc-hero code {
-                font-family: var(--dlc-mono);
-                font-size: 0.88em;
-                background: #e2e8f0;
-                padding: 1px 5px;
-                border-radius: 4px;
-            }
-            .dlc-controls-bar {
-                position: sticky;
-                top: 0;
-                z-index: 40;
-                background: rgba(241, 245, 249, 0.92);
-                backdrop-filter: blur(8px);
-                border: 1px solid var(--dlc-border);
-                border-radius: 12px;
-                padding: 12px 14px 10px;
-                margin-bottom: 18px;
-                box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
-            }
-            .dlc-controls-row {
-                display: grid;
-                grid-template-columns: 1fr 180px;
-                gap: 16px;
-                align-items: end;
-                max-width: 560px;
-            }
-            .dlc-field label {
-                display: block;
-                font-size: 0.72rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                color: var(--dlc-muted);
-                margin-bottom: 4px;
-            }
-            .dlc-field input[type="text"] {
-                width: 100%;
-                box-sizing: border-box;
-                padding: 8px 10px;
-                border: 1px solid var(--dlc-border);
-                border-radius: 8px;
-                font-family: var(--dlc-mono);
-                font-size: 0.9rem;
-                background: var(--dlc-surface);
-            }
-            .dlc-toc {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 6px;
-                margin-top: 12px;
-                padding-top: 10px;
-                border-top: 1px solid var(--dlc-border);
-            }
-            .dlc-toc-link {
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                text-decoration: none;
-                color: var(--dlc-ink);
-                background: var(--dlc-surface);
-                border: 1px solid var(--dlc-border);
-                border-radius: 999px;
-                padding: 4px 10px 4px 10px;
-                font-size: 0.78rem;
-                transition: border-color 0.12s, background 0.12s;
-            }
-            .dlc-toc-link:hover {
-                border-color: var(--dlc-accent);
-                background: var(--dlc-accent-soft);
-            }
-            .dlc-toc-key {
-                font-family: var(--dlc-mono);
-                font-weight: 600;
-            }
-            .dlc-toc-count {
-                color: var(--dlc-muted);
-                font-variant-numeric: tabular-nums;
-                font-size: 0.72rem;
-            }
-            .dlc-layout {
-                display: grid;
-                grid-template-columns: minmax(0, 1fr) 340px;
-                gap: 20px;
-                align-items: start;
-            }
-            .dlc-main {
-                min-width: 0;
-            }
-            .dlc-code-rail {
-                position: sticky;
-                top: 108px;
-                align-self: start;
-            }
-            .dlc-code-panel {
-                background: #0f172a;
-                color: #e2e8f0;
-                border-radius: 12px;
-                padding: 14px;
-                box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
-                border: 1px solid #1e293b;
-            }
-            .dlc-code-header {
-                display: flex;
-                flex-direction: column;
-                gap: 2px;
-                margin-bottom: 10px;
-            }
-            .dlc-code-label {
-                font-size: 0.68rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.06em;
-                color: #94a3b8;
-            }
-            .dlc-code-target {
-                font-family: var(--dlc-mono);
-                font-size: 0.85rem;
-                color: #fdba74;
-                word-break: break-all;
-            }
-            .dlc-code-pre {
-                margin: 0;
-                padding: 12px;
-                background: #020617;
-                border-radius: 8px;
-                overflow-x: auto;
-                font-family: var(--dlc-mono);
-                font-size: 0.8rem;
-                line-height: 1.55;
-                color: #f8fafc;
-                white-space: pre;
-            }
-            .dlc-code-footer {
-                display: flex;
-                flex-direction: column;
-                gap: 2px;
-                margin-top: 10px;
-            }
-            .dlc-code-meta {
-                font-size: 0.72rem;
-                color: #94a3b8;
-            }
-            .dlc-code-hint {
-                margin: 10px 0 0;
-                font-size: 0.72rem;
-                color: #64748b;
-                line-height: 1.4;
-            }
-            .dlc-code-empty {
-                color: #94a3b8;
-                font-size: 0.9rem;
-            }
-            .dlc-page-footer {
-                margin-top: 28px;
-                padding-top: 16px;
-                border-top: 1px solid var(--dlc-border);
-                font-size: 12px;
-                color: var(--dlc-muted);
-            }
-            .dlc-gallery-card:hover {
-                border-color: #fdba74 !important;
-            }
-            .dlc-gallery-card.is-selected:hover {
-                border-color: #f97316 !important;
-            }
-            @media (max-width: 960px) {
-                .dlc-layout {
-                    grid-template-columns: 1fr;
-                }
-                .dlc-code-rail {
-                    position: sticky;
-                    top: 0;
-                    z-index: 30;
-                    order: -1;
-                }
-                .dlc-code-panel {
-                    border-radius: 10px;
-                }
-                .dlc-controls-row {
-                    grid-template-columns: 1fr;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        {%app_entry%}
-        <footer>
-            {%config%}
-            {%scripts%}
-            {%renderer%}
-        </footer>
-    </body>
-</html>"""
+    spec = PROP_SPECS.get(prop)
+    if spec is None:
+        # fallback text
+        return html.Div(
+            [
+                html.H3(prop),
+                html.P("Custom value.", className="doc"),
+                dcc.Input(
+                    id={"type": "prop-ctrl", "prop": prop},
+                    type="text",
+                    value="" if value is None else str(value),
+                    style={"width": "100%"},
+                ),
+            ],
+            className="dlc-prop",
+        )
+
+    kind = spec["kind"]
+    doc = spec.get("doc", "")
+    kids = [html.H3(prop), html.P(doc, className="doc")]
+
+    if kind == "slider":
+        kids.append(
+            dcc.Slider(
+                id={"type": "prop-ctrl", "prop": prop},
+                min=spec["min"],
+                max=spec["max"],
+                step=spec["step"],
+                value=value if value is not None else spec["default"],
+                marks=None,
+                tooltip={"placement": "bottom", "always_visible": True},
+            )
+        )
+    elif kind == "color":
+        kids.append(
+            dcc.Input(
+                id={"type": "prop-ctrl", "prop": prop},
+                type="color",
+                value=value or spec["default"],
+                style={"width": 56, "height": 36, "padding": 2, "border": "1px solid #e2e8f0",
+                       "borderRadius": 8, "background": "#fff"},
+            )
+        )
+    elif kind == "dropdown":
+        kids.append(
+            dcc.Dropdown(
+                id={"type": "prop-ctrl", "prop": prop},
+                options=[{"label": o, "value": o} for o in spec["options"]],
+                value=value if value in spec["options"] else spec["default"],
+                clearable=False,
+            )
+        )
+    elif kind == "bool":
+        kids.append(
+            dcc.Checklist(
+                id={"type": "prop-ctrl", "prop": prop},
+                options=[{"label": " enabled", "value": "on"}],
+                value=["on"] if (True if value is None else bool(value)) else [],
+                style={"fontSize": 13},
+            )
+        )
+    elif kind == "text":
+        kids.append(
+            dcc.Input(
+                id={"type": "prop-ctrl", "prop": prop},
+                type="text",
+                value="" if value is None else str(value),
+                placeholder=prop,
+                style={"width": "100%", "padding": "8px 10px", "borderRadius": 8,
+                       "border": "1px solid #e2e8f0"},
+            )
+        )
+    else:
+        kids.append(html.Div(f"unsupported kind {kind}"))
+
+    return html.Div(kids, className="dlc-prop")
+
+
+def build_detail(family: str, name: str) -> html.Div:
+    upstream = FAMILY_LOOKUP[family][0]
+    component = COMPONENT_LOOKUP[(family, name)]
+    props = configurable_props(family, name, component)
+    values = default_values(family, name, props)
+    desc = description_for(family, name, upstream)
+
+    controls = [control_for_prop(p, values.get(p), family) for p in props]
+    # Hidden sentinel so ALL pattern always has at least one Input when props empty
+    if not controls:
+        controls = [
+            html.Div(
+                dcc.Input(id={"type": "prop-ctrl", "prop": "_none"}, type="hidden", value=""),
+                style={"display": "none"},
+            )
+        ]
+
+    return html.Div(
+        [
+            dcc.Store(id="detail-meta", data={"family": family, "name": name, "props": props}),
+            dcc.Store(id="detail-values", data=values),
+            dcc.Link("← Back to overview", href="/", className="dlc-back"),
+            html.H1(name, className="dlc-detail-title"),
+            html.P(desc, className="dlc-detail-desc"),
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            html.Div(
+                                instantiate(family, name, values),
+                                id="detail-preview",
+                                className="dlc-preview-panel",
+                            ),
+                        ]
+                    ),
+                    html.Div(
+                        [
+                            html.Pre(
+                                build_snippet(family, name, values),
+                                id="detail-snippet",
+                                className="dlc-snippet",
+                            ),
+                            html.Div(controls, id="detail-controls"),
+                        ]
+                    ),
+                ],
+                className="dlc-detail-layout",
+            ),
+        ],
+        className="dlc-main",
+    )
+
+
+def build_404() -> html.Div:
+    return html.Div(
+        [
+            html.H1("Not found"),
+            html.P("Unknown route. Try the overview."),
+            dcc.Link("← Overview", href="/", className="dlc-back"),
+        ],
+        className="dlc-main dlc-404",
+    )
+
+
+def page_shell(sidenav, main) -> html.Div:
+    return html.Div([sidenav, main], className="dlc-shell")
+
+
+# ---------------------------------------------------------------------------
+# App
+# ---------------------------------------------------------------------------
+
+app = Dash(__name__, suppress_callback_exceptions=True)
+app.title = "dlc gallery"
 
 app.layout = html.Div(
     [
-        html.Div(
-            [
-                html.H1("dash-loading-components"),
-                html.P(
-                    [
-                        "Local explorer — compare how loaders render across each upstream library. ",
-                        "Click a card for the Python snippet. Import style: ",
-                        html.Code("import dash_loading_components as dlc"),
-                        " → ",
-                        html.Code("dlc.loading_dev.Arc(...)"),
-                        ".",
-                    ]
-                ),
-            ],
-            className="dlc-hero",
-        ),
-        html.Div(
-            [
-                html.Div(
-                    [
-                        html.Div(
-                            [
-                                html.Label("Size"),
-                                dcc.Slider(
-                                    id="size",
-                                    min=16,
-                                    max=96,
-                                    step=4,
-                                    value=DEFAULT_SIZE,
-                                    marks={16: "16", 48: "48", 96: "96"},
-                                    tooltip={"placement": "bottom", "always_visible": False},
-                                ),
-                            ],
-                            className="dlc-field",
-                        ),
-                        html.Div(
-                            [
-                                html.Label("Color"),
-                                dcc.Input(
-                                    id="color",
-                                    type="text",
-                                    value=DEFAULT_COLOR,
-                                    debounce=True,
-                                    spellCheck=False,
-                                ),
-                            ],
-                            className="dlc-field",
-                        ),
-                    ],
-                    className="dlc-controls-row",
-                ),
-                toc_links(),
-            ],
-            className="dlc-controls-bar",
-        ),
-        html.Div(
-            [
-                html.Div(id="gallery-body", className="dlc-main"),
-                html.Aside(
-                    html.Div(id="code-panel", className="dlc-code-panel"),
-                    className="dlc-code-rail",
-                ),
-            ],
-            className="dlc-layout",
-        ),
-        html.P(
-            "svg_spinners gated (React 19 peer). Local MVP — no push/PR from this gallery.",
-            className="dlc-page-footer",
-        ),
-        dcc.Store(id="selection", data=DEFAULT_SELECTION),
-    ],
-    className="dlc-page",
+        dcc.Location(id="url", refresh=False),
+        html.Div(id="page"),
+    ]
 )
 
 
+@callback(Output("page", "children"), Input("url", "pathname"))
+def render_page(pathname):
+    mode, family, name = parse_pathname(pathname)
+    if mode == "overview":
+        return page_shell(build_sidenav(overview=True), build_overview())
+    if mode == "detail":
+        return page_shell(
+            build_sidenav(active_family=family, active_name=name, overview=False),
+            build_detail(family, name),
+        )
+    return page_shell(build_sidenav(overview=True), build_404())
+
+
+def _coerce_control_value(prop: str, raw: Any, family: str) -> Any:
+    if prop == "_none":
+        return None
+    spec = PROP_SPECS.get(prop)
+    if family == "indicators" and prop == "size":
+        return raw
+    if spec and spec["kind"] == "bool":
+        # Checklist returns list
+        if isinstance(raw, list):
+            return "on" in raw
+        return bool(raw)
+    if spec and spec["kind"] == "slider":
+        if raw is None:
+            return spec["default"]
+        # keep int when step is int-like
+        step = spec.get("step", 1)
+        if isinstance(step, int) or (isinstance(step, float) and step == int(step) and step >= 1):
+            try:
+                return int(raw)
+            except (TypeError, ValueError):
+                return spec["default"]
+        try:
+            return float(raw)
+        except (TypeError, ValueError):
+            return spec["default"]
+    if spec and spec["kind"] == "text":
+        return "" if raw is None else str(raw)
+    return raw
+
+
 @callback(
-    Output("selection", "data"),
-    Input({"type": "dlc-card", "family": ALL, "name": ALL}, "n_clicks"),
-    State("selection", "data"),
+    Output("detail-preview", "children"),
+    Output("detail-snippet", "children"),
+    Output("detail-values", "data"),
+    Input({"type": "prop-ctrl", "prop": ALL}, "value"),
+    State({"type": "prop-ctrl", "prop": ALL}, "id"),
+    State("detail-meta", "data"),
     prevent_initial_call=True,
 )
-def on_card_click(n_clicks, selection):
-    if not ctx.triggered_id:
-        return no_update
-    # Ignore spurious zeros from rebuilds
-    if not n_clicks or not any(n_clicks):
-        return no_update
-    tid = ctx.triggered_id
-    if not isinstance(tid, dict) or tid.get("type") != "dlc-card":
-        return no_update
-    return {"family": tid["family"], "name": tid["name"]}
-
-
-@callback(
-    Output("gallery-body", "children"),
-    Output("code-panel", "children"),
-    Input("size", "value"),
-    Input("color", "value"),
-    Input("selection", "data"),
-)
-def render_explorer(size, color, selection):
-    selection = selection or DEFAULT_SELECTION
-    return build_gallery(size, color, selection), build_code_panel(selection, size, color)
+def update_detail(values, ids, meta):
+    if not meta:
+        return no_update, no_update, no_update
+    family = meta["family"]
+    name = meta["name"]
+    props_order = meta.get("props") or []
+    collected: dict[str, Any] = {}
+    for raw, id_dict in zip(values or [], ids or []):
+        prop = id_dict.get("prop")
+        if not prop or prop == "_none":
+            continue
+        collected[prop] = _coerce_control_value(prop, raw, family)
+    # Preserve order from props_order for snippet stability
+    ordered = {p: collected[p] for p in props_order if p in collected}
+    for p, v in collected.items():
+        if p not in ordered:
+            ordered[p] = v
+    preview = instantiate(family, name, ordered)
+    snippet = build_snippet(family, name, ordered)
+    return preview, snippet, ordered
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", "8050"))
-    print(f"Starting gallery on 0.0.0.0:{port} (REACT_VERSION={os.environ.get('REACT_VERSION')})")
-    app.run(host="0.0.0.0", port=port, debug=False)
+    print("dlc gallery — http://127.0.0.1:8050/  (REACT_VERSION=%s)" % os.environ.get("REACT_VERSION"))
+    app.run(host="0.0.0.0", port=8050, debug=False)

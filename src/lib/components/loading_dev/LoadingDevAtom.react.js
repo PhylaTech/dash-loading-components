@@ -6,10 +6,10 @@ import { Atom as Upstream } from 'loading-dev';
  * LoadingDevAtom — Dash wrapper for upstream spinner.
  */
 const LoadingDevAtom = (props) => {
-    const {id, className, style, setProps, size, color, duration, playState} = props;
+    const {id, className, style, setProps, size, color, duration, playState, easing} = props;
     return (
         <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} duration={duration} playState={playState} />
+            <Upstream size={size} color={color} duration={duration} playState={playState} easing={easing} />
         </div>
     );
 };
@@ -49,6 +49,10 @@ LoadingDevAtom.propTypes = {
      * Whether the animation runs.
      */
     playState: PropTypes.oneOf(["paused", "running"]),
+    /**
+     * Animation easing curve.
+     */
+    easing: PropTypes.oneOf(["linear", "ease-in-out", "stacked"]),
 };
 
 export default LoadingDevAtom;

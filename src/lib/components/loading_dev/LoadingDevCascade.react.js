@@ -6,10 +6,10 @@ import { Cascade as Upstream } from 'loading-dev';
  * LoadingDevCascade — Dash wrapper for upstream spinner.
  */
 const LoadingDevCascade = (props) => {
-    const {id, className, style, setProps, size, color, duration, playState} = props;
+    const {id, className, style, setProps, size, color, duration, playState, cap} = props;
     return (
         <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} duration={duration} playState={playState} />
+            <Upstream size={size} color={color} duration={duration} playState={playState} cap={cap} />
         </div>
     );
 };
@@ -49,6 +49,10 @@ LoadingDevCascade.propTypes = {
      * Whether the animation runs.
      */
     playState: PropTypes.oneOf(["paused", "running"]),
+    /**
+     * Stroke line cap style.
+     */
+    cap: PropTypes.oneOf(["round", "flat"]),
 };
 
 export default LoadingDevCascade;

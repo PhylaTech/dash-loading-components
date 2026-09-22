@@ -29,6 +29,9 @@ Keyword arguments:
 - id (string; optional):
     The ID used to identify this component in Dash callbacks.
 
+- cap (a value equal to: "round", "flat"; optional):
+    Stroke line cap style.
+
 - className (string; optional):
     CSS class applied to the outer wrapper.
 
@@ -58,11 +61,12 @@ Keyword arguments:
         color: typing.Optional[str] = None,
         duration: typing.Optional[NumberType] = None,
         playState: typing.Optional[Literal["paused", "running"]] = None,
+        cap: typing.Optional[Literal["round", "flat"]] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'duration', 'playState', 'size', 'style']
+        self._prop_names = ['id', 'cap', 'className', 'color', 'duration', 'playState', 'size', 'style']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'duration', 'playState', 'size', 'style']
+        self.available_properties = ['id', 'cap', 'className', 'color', 'duration', 'playState', 'size', 'style']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()
