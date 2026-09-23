@@ -26,7 +26,7 @@ def Loading(
     size: Any = None,
     color: Optional[str] = None,
     speed: Optional[float] = 1.0,
-    className: Optional[str] = None,
+    class_name: Optional[str] = None,
     playing: bool = True,
     id: Any = None,
     style: Any = None,
@@ -48,8 +48,8 @@ def Loading(
         **Relative** rate. ``1.0`` = that family's normal tempo. Translated
         per family (duration ms, multiplier, percent, speedPlus, …).
         Never a shared physical unit across families.
-    className :
-        CSS class pass-through.
+    class_name :
+        CSS class pass-through (maps to React/Dash ``className``).
     playing :
         Whether the animation runs; mapped to pause/stop props when the
         family supports them, otherwise omitted.
@@ -110,8 +110,8 @@ def Loading(
         props["size"] = size
     if color is not None:
         props["color"] = color
-    if className is not None and className != "":
-        props["className"] = className
+    if class_name is not None and class_name != "":
+        props["className"] = class_name
 
     # Relative speed → native (only when family supports it)
     if speed is not None and supports_relative_speed(library):
