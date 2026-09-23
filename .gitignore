@@ -238,8 +238,8 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
-# mkdocs documentation
-/site
+# mkdocs documentation (disabled — site/ is the Pages redirect folder)
+# /site
 
 # mypy
 .mypy_cache/

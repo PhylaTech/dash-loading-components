@@ -91,4 +91,33 @@ dlc.loading_dev.Arc(size=48, color="#f97316")  # namespaced
 # or prefixed: dlc.LoadingDevArc(...)
 ```
 
-See `/workspace/dash-loading/GALLERY-MVP-STATUS.md` and `docs/UPSTREAM-INVENTORY.md`.
+See `docs/UPSTREAM-INVENTORY.md` for full upstream inventory.
+
+## Demo hosting
+
+The **live gallery** runs on [Render Free Web Service](https://render.com/docs/free):
+**<https://dash-loading-components.onrender.com>**
+
+The public front door at **<https://phylatech.github.io/dash-loading-components>** is a thin HTML redirect to the Render URL, deployed to GitHub Pages via the `gh-pages` branch.
+
+### Cold-start note
+
+Render Free services sleep after ~15 minutes of inactivity. The first request after idle takes roughly 30–60 seconds while the container wakes.
+
+### Cloud Economics watch items
+
+| Item | Free-tier value |
+|------|----------------|
+| RAM | 512 MB |
+| CPU | 0.1 vCPU |
+| Instance-hours | 750 h/month |
+| Egress | 5 GB included, then $0.15/GB (Hobby) |
+| Build minutes | 500 min/month (Node build runs inside Docker layers) |
+| Postgres | **not included on Free** — do not attach |
+
+### Setup steps (maintainer)
+
+1. **Render:** Create a new **Web Service** at <https://dashboard.render.com/>, connect this repo, and select **Blueprint (render.yaml)**. The service name should be `dash-loading-components` (producing the `*.onrender.com` hostname above). Render auto-deploys on push to `main`.
+2. **GitHub Pages:** Go to repo **Settings → Pages** and set Source to the `gh-pages` branch (root). The `docs.yml` workflow pushes `site/` there on every merge to `main`.
+3. **Repo homepage (optional):** In repo **Settings → General**, set the Website field to `https://phylatech.github.io/dash-loading-components`.
+4. If the Render hostname differs from `dash-loading-components.onrender.com`, update the URL in `site/index.html`.

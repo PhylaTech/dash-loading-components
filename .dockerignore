@@ -1,0 +1,41 @@
+node_modules
+.venv
+venv
+__pycache__
+*.pyc
+.git
+.github
+.idea
+.vscode
+.eslintcache
+.mypy_cache
+.pytest_cache
+.tox
+coverage
+htmlcov
+dist
+build
+*.egg-info
+.eggs
+*.tgz
+
+# R / Julia scaffold junk
+man/
+R/
+inst/
+*.Rd
+NAMESPACE
+DESCRIPTION
+*.jl
+deps/
+
+# Large docs not needed in image
+docs/
+site/
+
+# Local env / editor
+.env
+*.sublime-*
+.ropeproject
+.spyderproject
+npm-debug.log*
