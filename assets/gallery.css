@@ -108,7 +108,10 @@ a:hover { color: var(--accent); }
 }
 .dlc-card .name { font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 10px; }
 .dlc-card .preview {
-  display: flex; align-items: center; justify-content: center; min-height: 72px;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 96px; width: 100%;
+  /* Contain loaders whose animations/intrinsic size exceed the card slot */
+  overflow: hidden; position: relative;
 }
 
 /* Detail page shell: content + right TOC */
@@ -142,6 +145,8 @@ a:hover { color: var(--accent); }
   background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
   min-height: 320px; display: flex; align-items: center; justify-content: center;
   padding: 40px;
+  /* Contain expanding animations (shimmer sweep, propagate, orbit rings, etc.) */
+  overflow: hidden; position: relative;
 }
 .dlc-workbench-controls {
   background: var(--panel); border: 1px solid var(--border); border-radius: 16px;

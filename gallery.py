@@ -886,13 +886,30 @@ def instantiate(family: str, name: str, values: dict[str, Any]):
         return html.Div(f"error: {exc}", style={"color": "crimson", "fontSize": 13})
 
 
-def overview_preview_kwargs(family: str) -> dict[str, Any]:
+def overview_preview_kwargs(family: str, name: str | None = None) -> dict[str, Any]:
+    """Preview props for overview cards.
+
+    Prefer sizes that fit the ~124px-wide card slot. Wide intrinsic loaders
+    (epic hollow-dots, large grids) use a smaller overview size; expanding
+    animations are additionally clipped by `.preview { overflow: hidden }`.
+    """
     if family == "loader_spinner":
         return {"height": DEFAULT_SIZE, "width": DEFAULT_SIZE, "color": DEFAULT_COLOR}
     if family == "indicators":
-        return {"size": "medium", "color": DEFAULT_COLOR}
+        # "small" keeps LifeLine / BlinkBlur closer to the card width
+        return {"size": "small", "color": DEFAULT_COLOR}
     if family == "epic":
-        return {"size": DEFAULT_SIZE, "color": DEFAULT_COLOR}
+        # HollowDotsSpinner is ~6× size wide; size 20 ≈ 120px fits the card
+        return {"size": 20, "color": DEFAULT_COLOR}
+    if family == "spinners" and name in ("GridLoader", "MoonLoader", "PropagateLoader"):
+        return {"size": 36, "color": DEFAULT_COLOR}
+    if family == "spinners" and name == "BarLoader":
+        return {"height": 4, "width": 100, "color": DEFAULT_COLOR}
+    if family == "premium" and name == "ShimmerBox":
+        # Mapped by wrapper to width=2*size, height=size → 80×40
+        return {"size": 40, "color": "#e2e8f0"}
+    if family == "premium" and name == "OrbitRings":
+        return {"size": 40, "color": DEFAULT_COLOR}
     return {"size": DEFAULT_SIZE, "color": DEFAULT_COLOR}
 
 
@@ -1005,7 +1022,7 @@ def build_sidenav(active_family: Optional[str] = None, active_name: Optional[str
 
 
 def make_overview_card(family: str, name: str, component: Callable) -> html.Div:
-    kwargs = overview_preview_kwargs(family)
+    kwargs = overview_preview_kwargs(family, name)
     try:
         node = component(**kwargs)
     except Exception as exc:
