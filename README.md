@@ -48,6 +48,10 @@ Full pins, SPDX licenses, URLs, and peers: **[docs/UPSTREAM-INVENTORY.md](docs/U
 
 Where APIs overlap (e.g. react-spinners), credit upstream and prefer honest coexistence over claiming drop-in replacement.
 
+## Releases
+
+Releases are cut automatically by [release-please](https://github.com/googleapis/release-please) from [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, etc.) merged to `main`.
+
 ## License
 
 MIT — Copyright (c) 2026 Evan Roy Rees. See [LICENSE](LICENSE). Third-party works remain under their own licenses listed in the inventory.
