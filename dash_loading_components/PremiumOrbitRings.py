@@ -22,30 +22,45 @@ ComponentType = typing.Union[
 
 class PremiumOrbitRings(Component):
     """A PremiumOrbitRings component.
-PremiumOrbitRings — Dash wrapper for upstream spinner.
+PremiumOrbitRings — Dash wrapper for upstream OrbitRings.
+Requires premium-react-loaders CSS (see ./styles).
 
 Keyword arguments:
 
 - id (string; optional):
     The ID used to identify this component in Dash callbacks.
 
+- alternate (boolean; optional):
+    Alternate ring rotation directions.
+
 - className (string; optional):
-    CSS class applied to the outer wrapper.
+    CSS class applied to the upstream spinner root.
 
 - color (string; optional):
-    Color.
+    Primary color.
 
 - reverse (boolean; optional):
     Reverse animation direction.
 
+- ringCount (number; optional):
+    Number of concentric rings.
+
+- ringGap (number; optional):
+    Gap between rings in px.
+
 - secondaryColor (string; optional):
-    Secondary color for multi-color loaders.
+    Secondary color for alternating rings.
 
 - size (string | number; optional):
-    Size (sm/md/lg or number).
+    Size (xs/sm/md/lg/xl or number px).
 
 - speed (string | number; optional):
-    Speed (slow/normal/fast).
+    Speed: 'slow' | 'normal' | 'fast' or duration in milliseconds.
+    Common API relative speed is translated to ms before reaching this
+    prop.
+
+- thickness (number; optional):
+    Ring border thickness in px.
 
 - visible (boolean; optional):
     Whether the loader is visible."""
@@ -66,11 +81,15 @@ Keyword arguments:
         reverse: typing.Optional[bool] = None,
         secondaryColor: typing.Optional[str] = None,
         visible: typing.Optional[bool] = None,
+        thickness: typing.Optional[NumberType] = None,
+        ringCount: typing.Optional[NumberType] = None,
+        ringGap: typing.Optional[NumberType] = None,
+        alternate: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'reverse', 'secondaryColor', 'size', 'speed', 'style', 'visible']
+        self._prop_names = ['id', 'alternate', 'className', 'color', 'reverse', 'ringCount', 'ringGap', 'secondaryColor', 'size', 'speed', 'style', 'thickness', 'visible']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'reverse', 'secondaryColor', 'size', 'speed', 'style', 'visible']
+        self.available_properties = ['id', 'alternate', 'className', 'color', 'reverse', 'ringCount', 'ringGap', 'secondaryColor', 'size', 'speed', 'style', 'thickness', 'visible']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

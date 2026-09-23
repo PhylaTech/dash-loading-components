@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import '../../premium-styles';
 import { SpinnerBars as Upstream } from 'premium-react-loaders';
 
 /**

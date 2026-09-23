@@ -55,7 +55,8 @@ WORKBENCH_PROP_PRIORITY = [
     "playState", "paused", "loading", "enabled", "visible", "still",
     "reverse", "dense", "variant", "contained",
     "containerColor", "sizeRatio", "radius", "barCount", "dotCount",
-    "dotSize", "text", "textColor", "ariaLabel", "className",
+    "dotSize", "ringCount", "ringGap", "alternate", "orbitRadius", "stagger",
+    "text", "textColor", "ariaLabel", "className",
 ]
 
 PROP_SECTION_TITLES = {
@@ -94,6 +95,11 @@ PROP_SECTION_TITLES = {
     "animationDuration": "Animation duration",
     "still": "Still",
     "reverse": "Reverse",
+    "ringCount": "Ring count",
+    "ringGap": "Ring gap",
+    "alternate": "Alternate",
+    "orbitRadius": "Orbit radius",
+    "stagger": "Stagger",
     "dense": "Dense",
     "bgOpacity": "Background opacity",
     "strokeLength": "Stroke length",
@@ -509,6 +515,40 @@ PROP_SPECS: dict[str, dict[str, Any]] = {
         "default": 8,
         "doc": "Dot diameter in pixels.",
     },
+    "ringCount": {
+        "kind": "slider",
+        "min": 1,
+        "max": 8,
+        "step": 1,
+        "default": 3,
+        "doc": "Number of concentric rings (OrbitRings).",
+    },
+    "ringGap": {
+        "kind": "slider",
+        "min": 0,
+        "max": 24,
+        "step": 1,
+        "default": 6,
+        "doc": "Gap between rings in px (OrbitRings).",
+    },
+    "alternate": {
+        "kind": "bool",
+        "default": True,
+        "doc": "Alternate ring rotation directions (OrbitRings).",
+    },
+    "orbitRadius": {
+        "kind": "slider",
+        "min": 0.2,
+        "max": 1.0,
+        "step": 0.05,
+        "default": 0.5,
+        "doc": "Orbit radius relative to size (OrbitDots).",
+    },
+    "stagger": {
+        "kind": "bool",
+        "default": True,
+        "doc": "Stagger animation between dots (OrbitDots).",
+    },
 }
 
 # Relative speed for the common Loading path (1.0 = family normal).
@@ -559,6 +599,16 @@ LOADER_SPINNER_ANIM_DURATION_SPEC: dict[str, Any] = {
 }
 
 
+PREMIUM_THICKNESS_SPEC = {
+    "kind": "slider",
+    "min": 1,
+    "max": 12,
+    "step": 1,
+    "default": 2,
+    "doc": "Stroke / ring thickness in px (premium-react-loaders).",
+}
+
+
 def prop_spec(family: str, prop: str, name: str | None = None) -> dict[str, Any] | None:
     """Resolve control/default metadata; relative speed for Loading path."""
     if prop == "speed" and supports_relative_speed(family):
@@ -569,6 +619,8 @@ def prop_spec(family: str, prop: str, name: str | None = None) -> dict[str, Any]
         return INDICATORS_VARIANT[name]
     if prop == "animationDuration" and family == "loader_spinner":
         return LOADER_SPINNER_ANIM_DURATION_SPEC
+    if prop == "thickness" and family == "premium":
+        return PREMIUM_THICKNESS_SPEC
     return PROP_SPECS.get(prop)
 
 
@@ -589,7 +641,7 @@ FAMILY_PROP_ORDER = {
         "height", "width", "color", "secondaryColor", "strokeWidth", "strokeWidthSecondary",
         "animationDuration", "radius", "visible", "ariaLabel", "className",
     ],
-    "premium": ["size", "color", "speed", "secondaryColor", "thickness", "reverse", "visible", "dotCount", "dotSize", "barCount", "className"],
+    "premium": ["size", "color", "speed", "secondaryColor", "thickness", "reverse", "visible", "dotCount", "dotSize", "barCount", "ringCount", "ringGap", "alternate", "orbitRadius", "stagger", "className"],
     "indicators": [
         "size", "color", "speedPlus", "easing", "text", "textColor", "variant", "dense", "className"
     ],
@@ -685,6 +737,9 @@ def default_values(family: str, name: str, props: list[str]) -> dict[str, Any]:
             continue
         if p == "ariaLabel":
             continue
+        if family == "premium" and p == "secondaryColor":
+            # omit — light default washes out alternating OrbitRings on white
+            continue
         spec = prop_spec(family, p, name)
         if spec is not None:
             values[p] = spec["default"]
@@ -779,6 +834,7 @@ _LOADING_MANAGED = frozenset(
         "size",
         "color",
         "className",
+        "class_name",
     }
 )
 
@@ -788,11 +844,13 @@ def build_common_snippet(family: str, name: str, values: dict[str, Any]) -> str:
     parts = [f'library="{family}"', f'spinner="{name}"']
     cleaned = _omit_empty_strings(values)
     # Ordered common surface first
-    for key in ("size", "color", "speed", "className"):
+    for key in ("size", "color", "speed", "class_name"):
         if key == "speed" and not supports_relative_speed(family):
             continue
-        if key in cleaned:
-            parts.append(f"{key}={format_py_value(cleaned[key])}")
+        # Control store still uses React className; Common snippet is snake_case
+        src_key = "className" if key == "class_name" else key
+        if src_key in cleaned:
+            parts.append(f"{key}={format_py_value(cleaned[src_key])}")
         elif key == "speed" and supports_relative_speed(family):
             parts.append("speed=1.0")
     playing = _derive_playing(family, cleaned)
@@ -817,7 +875,7 @@ def instantiate(family: str, name: str, values: dict[str, Any]):
     if "color" in cleaned:
         kwargs["color"] = cleaned["color"]
     if "className" in cleaned:
-        kwargs["className"] = cleaned["className"]
+        kwargs["class_name"] = cleaned["className"]
     if supports_relative_speed(family):
         kwargs["speed"] = cleaned.get("speed", 1.0)
     kwargs["playing"] = _derive_playing(family, cleaned)

@@ -22,7 +22,8 @@ ComponentType = typing.Union[
 
 class PremiumOrbitDots(Component):
     """A PremiumOrbitDots component.
-PremiumOrbitDots — Dash wrapper for upstream spinner.
+PremiumOrbitDots — Dash wrapper for upstream OrbitDots.
+Requires premium-react-loaders CSS (see ./styles).
 
 Keyword arguments:
 
@@ -30,22 +31,39 @@ Keyword arguments:
     The ID used to identify this component in Dash callbacks.
 
 - className (string; optional):
-    CSS class applied to the outer wrapper.
+    CSS class applied to the upstream spinner root.
 
 - color (string; optional):
-    Color.
+    Primary color.
+
+- dotCount (number; optional):
+    Number of orbiting dots.
+
+- dotSize (number; optional):
+    Size of each dot.
+
+- orbitRadius (number; optional):
+    Orbit radius relative to size.
 
 - reverse (boolean; optional):
     Reverse animation direction.
 
 - secondaryColor (string; optional):
-    Secondary color for multi-color loaders.
+    Secondary color for alternating dots.
 
 - size (string | number; optional):
-    Size (sm/md/lg or number).
+    Size (xs/sm/md/lg/xl or number px).
 
 - speed (string | number; optional):
-    Speed (slow/normal/fast).
+    Speed: 'slow' | 'normal' | 'fast' or duration in milliseconds.
+    Common API relative speed is translated to ms before reaching this
+    prop.
+
+- stagger (boolean; optional):
+    Stagger animation between dots.
+
+- thickness (number; optional):
+    Thickness of orbit path / elements.
 
 - visible (boolean; optional):
     Whether the loader is visible."""
@@ -66,11 +84,16 @@ Keyword arguments:
         reverse: typing.Optional[bool] = None,
         secondaryColor: typing.Optional[str] = None,
         visible: typing.Optional[bool] = None,
+        thickness: typing.Optional[NumberType] = None,
+        dotCount: typing.Optional[NumberType] = None,
+        dotSize: typing.Optional[NumberType] = None,
+        orbitRadius: typing.Optional[NumberType] = None,
+        stagger: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'reverse', 'secondaryColor', 'size', 'speed', 'style', 'visible']
+        self._prop_names = ['id', 'className', 'color', 'dotCount', 'dotSize', 'orbitRadius', 'reverse', 'secondaryColor', 'size', 'speed', 'stagger', 'style', 'thickness', 'visible']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'reverse', 'secondaryColor', 'size', 'speed', 'style', 'visible']
+        self.available_properties = ['id', 'className', 'color', 'dotCount', 'dotSize', 'orbitRadius', 'reverse', 'secondaryColor', 'size', 'speed', 'stagger', 'style', 'thickness', 'visible']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

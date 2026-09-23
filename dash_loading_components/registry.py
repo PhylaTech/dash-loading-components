@@ -208,9 +208,14 @@ _DURATION_FAMILIES = {
 # Families whose native tempo is a unitless multiplier (1.0 = normal)
 _MULTIPLIER_FAMILIES = {
     "ldrs": "speed",
-    "premium": "speed",
     "m3": "speed",
     "spinners": "speedMultiplier",
+}
+
+# premium-react-loaders: native ``speed`` is a token OR duration in **ms**
+# (numbers are clamped 50–10000ms). Relative 1.0 → 1000ms (= upstream "normal").
+_MS_SPEED_FAMILIES = {
+    "premium": "speed",
 }
 
 # spinners-react: native speed is percent of default (100 = normal)
@@ -267,6 +272,8 @@ def native_tempo_prop(library: str) -> Optional[str]:
     """Return the upstream tempo prop name for ``library``, or None if unsupported."""
     if library in _DURATION_FAMILIES:
         return _DURATION_FAMILIES[library]
+    if library in _MS_SPEED_FAMILIES:
+        return _MS_SPEED_FAMILIES[library]
     if library in _MULTIPLIER_FAMILIES:
         return _MULTIPLIER_FAMILIES[library]
     if library in _PERCENT_FAMILIES:
@@ -299,6 +306,14 @@ def translate_relative_speed(library: str, speed: float) -> dict[str, Any]:
         # Faster relative speed → shorter cycle
         value = DURATION_BASE_MS / speed_f
         # Prefer int ms when close to whole milliseconds
+        if abs(value - round(value)) < 1e-9:
+            value = int(round(value))
+        return {prop: value}
+
+    if library in _MS_SPEED_FAMILIES:
+        # Same formula as duration families; prop name is still ``speed``
+        prop = _MS_SPEED_FAMILIES[library]
+        value = DURATION_BASE_MS / speed_f
         if abs(value - round(value)) < 1e-9:
             value = int(round(value))
         return {prop: value}

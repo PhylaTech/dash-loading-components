@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import 'premium-react-loaders/styles';
+import '../../premium-styles';
 import { SpinnerCircle as Upstream } from 'premium-react-loaders';
 
 /**
