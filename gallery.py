@@ -1860,5 +1860,6 @@ def update_detail(values, ids, meta):
 
 
 if __name__ == "__main__":
-    print("dlc gallery — http://127.0.0.1:8050/  (REACT_VERSION=%s)" % os.environ.get("REACT_VERSION"))
-    app.run(host="0.0.0.0", port=8050, debug=False)
+    _port = int(os.environ.get("PORT", "8050"))
+    print("dlc gallery — http://127.0.0.1:%d/  (REACT_VERSION=%s)" % (_port, os.environ.get("REACT_VERSION")))
+    app.run(host="0.0.0.0", port=_port, debug=False)
