@@ -671,10 +671,12 @@ def detail_path(family: str, name: str) -> str:
 
 
 def parse_pathname(pathname: Optional[str]) -> tuple[str, Optional[str], Optional[str]]:
-    """Return (mode, family, name). mode is 'overview' | 'detail' | 'unknown'."""
+    """Return (mode, family, name). mode is 'overview' | 'detail' | 'credits' | 'unknown'."""
     if not pathname or pathname == "/":
         return "overview", None, None
     pathname = unquote(pathname.rstrip("/") or "/")
+    if pathname in ("/credits", "/licenses"):
+        return "credits", None, None
     m = re.match(r"^/c/([a-z0-9_]+)/([A-Za-z0-9_]+)$", pathname)
     if m:
         family, name = m.group(1), m.group(2)
@@ -925,7 +927,7 @@ def overview_preview_kwargs(family: str, name: str | None = None) -> dict[str, A
 # ---------------------------------------------------------------------------
 
 def build_site_footer() -> html.Footer:
-    """dash-upset-style branding footer (overview + detail)."""
+    """dash-upset-style branding footer (overview + detail + credits)."""
     return html.Footer(
         [
             html.Div(
@@ -939,6 +941,13 @@ def build_site_footer() -> html.Footer:
                     ),
                     html.Span(" · Powered by "),
                     html.A(
+                        "Plotly Dash",
+                        href="https://dash.plotly.com",
+                        target="_blank",
+                        rel="noopener noreferrer",
+                    ),
+                    html.Span(" / "),
+                    html.A(
                         "Plotly",
                         href="https://plotly.com",
                         target="_blank",
@@ -951,11 +960,13 @@ def build_site_footer() -> html.Footer:
                         target="_blank",
                         rel="noopener noreferrer",
                     ),
+                    html.Span(" · "),
+                    dcc.Link("Credits", href="/credits"),
                 ],
                 className="dlc-site-footer-brand",
             ),
             html.P(
-                "svg_spinners gated (React ^18.2 peer). Local MVP — not published.",
+                "svg_spinners gated (React ^18.2 peer). Gallery preview — package in development.",
                 className="dlc-footer-note",
             ),
         ],
@@ -1003,13 +1014,16 @@ def build_sidenav(active_family: Optional[str] = None, active_name: Optional[str
             )
 
     footer = html.Div(
-        html.A(
-            "GitHub",
-            href="https://github.com/PhylaTech/dash-loading-components",
-            target="_blank",
-            rel="noopener noreferrer",
-            className="dlc-nav-github",
-        ),
+        [
+            html.A(
+                "GitHub",
+                href="https://github.com/PhylaTech/dash-loading-components",
+                target="_blank",
+                rel="noopener noreferrer",
+                className="dlc-nav-github",
+            ),
+            dcc.Link("Credits & Licenses", href="/credits", className="dlc-nav-credits"),
+        ],
         className="dlc-nav-footer",
     )
     return html.Aside(
@@ -1445,6 +1459,210 @@ def build_detail(family: str, name: str) -> html.Div:
     )
 
 
+UPSTREAM_CREDITS = [
+    {
+        "family": "loading_dev",
+        "npm": "loading-dev",
+        "version": "0.3.4",
+        "spdx": "MIT",
+        "homepage": "https://loading.dev/",
+        "repo": "https://github.com/jakubkrehel/loading",
+        "note": "Product tent-pole; drives React 19 / Dash ≥4.5 floor.",
+        "status": "mvp",
+    },
+    {
+        "family": "ldrs",
+        "npm": "ldrs",
+        "version": "1.1.9",
+        "spdx": "MIT",
+        "homepage": "https://uiball.com/ldrs/",
+        "repo": "https://github.com/GriffinJohnston/ldrs",
+        "note": "Beautiful CSS-animated loaders by UI Ball.",
+        "status": "mvp",
+    },
+    {
+        "family": "spinners",
+        "npm": "react-spinners",
+        "version": "0.17.1",
+        "spdx": "MIT",
+        "homepage": "https://www.npmjs.com/package/react-spinners",
+        "repo": "https://github.com/davidhu2000/react-spinners",
+        "note": "Classic spinner zoo; also used by dash-loading-spinners.",
+        "status": "mvp",
+    },
+    {
+        "family": "spinners_react",
+        "npm": "spinners-react",
+        "version": "1.0.11",
+        "spdx": "MIT",
+        "homepage": "https://www.npmjs.com/package/spinners-react",
+        "repo": "https://github.com/adexin/spinners-react",
+        "note": "Lightweight SVG spinners with speed/thickness controls.",
+        "status": "mvp",
+    },
+    {
+        "family": "loader_spinner",
+        "npm": "react-loader-spinner",
+        "version": "8.0.2",
+        "spdx": "MIT",
+        "homepage": "https://www.npmjs.com/package/react-loader-spinner",
+        "repo": "https://github.com/mhnpd/react-loader-spinner",
+        "note": "Diverse loader set with height/width/radius controls.",
+        "status": "mvp",
+    },
+    {
+        "family": "premium",
+        "npm": "premium-react-loaders",
+        "version": "4.2.0",
+        "spdx": "MIT",
+        "homepage": "https://www.npmjs.com/package/premium-react-loaders",
+        "repo": None,
+        "note": "Premium-quality orbit, dot, and bar loaders.",
+        "status": "mvp",
+    },
+    {
+        "family": "indicators",
+        "npm": "react-loading-indicators",
+        "version": "1.0.1",
+        "spdx": "MIT",
+        "homepage": "https://www.npmjs.com/package/react-loading-indicators",
+        "repo": None,
+        "note": "Size-token indicators with variant/easing support.",
+        "status": "mvp",
+    },
+    {
+        "family": "m3",
+        "npm": "@alerix/m3-loading-indicator",
+        "version": "1.0.5",
+        "spdx": "Apache-2.0",
+        "homepage": "https://www.npmjs.com/package/@alerix/m3-loading-indicator",
+        "repo": None,
+        "note": "Material Design 3 circular indicator. Apache-2.0 license.",
+        "status": "mvp",
+    },
+    {
+        "family": "epic",
+        "npm": "react-epic-spinners",
+        "version": "0.6.0",
+        "spdx": "MIT",
+        "homepage": "https://www.npmjs.com/package/react-epic-spinners",
+        "repo": "https://github.com/bondz/react-epic-spinners",
+        "note": "Ported from epic-spinners (Vue) to React.",
+        "status": "mvp",
+    },
+    {
+        "family": "svg_spinners",
+        "npm": "react-svg-spinners",
+        "version": "0.3.1",
+        "spdx": "MIT",
+        "homepage": "https://www.npmjs.com/package/react-svg-spinners",
+        "repo": "https://github.com/theme-park/react-svg-spinners",
+        "note": "Gated — React ^18.2 peer dependency not yet resolved for React 19.",
+        "status": "gated",
+    },
+]
+
+
+def _credits_badge(spdx: str) -> html.Span:
+    cls = "dlc-credits-badge "
+    if spdx == "MIT":
+        cls += "dlc-credits-badge-mit"
+    elif spdx.startswith("Apache"):
+        cls += "dlc-credits-badge-apache"
+    else:
+        cls += "dlc-credits-badge-gated"
+    return html.Span(spdx, className=cls)
+
+
+def _credits_links(entry: dict) -> list:
+    links = [
+        html.A("npm", href=f"https://www.npmjs.com/package/{entry['npm']}", target="_blank", rel="noopener noreferrer"),
+    ]
+    if entry.get("homepage") and "npmjs.com" not in entry["homepage"]:
+        links.append(html.Span(" · "))
+        links.append(html.A("homepage", href=entry["homepage"], target="_blank", rel="noopener noreferrer"))
+    if entry.get("repo"):
+        links.append(html.Span(" · "))
+        links.append(html.A("repo", href=entry["repo"], target="_blank", rel="noopener noreferrer"))
+    return links
+
+
+def build_credits() -> html.Div:
+    rows = []
+    for entry in UPSTREAM_CREDITS:
+        status_suffix = ""
+        if entry["status"] == "gated":
+            status_suffix = " (gated)"
+        rows.append(
+            html.Tr([
+                html.Td([html.Code(f"dlc.{entry['family']}"), html.Span(status_suffix, style={"color": "var(--muted)", "fontSize": "11px"})]),
+                html.Td([html.Code(entry["npm"]), html.Span(f" {entry['version']}", style={"color": "var(--muted)"})]),
+                html.Td(_credits_badge(entry["spdx"])),
+                html.Td(_credits_links(entry)),
+                html.Td(entry["note"]),
+            ])
+        )
+
+    table = html.Table(
+        [
+            html.Thead(html.Tr([
+                html.Th("dlc namespace"),
+                html.Th("Upstream package"),
+                html.Th("License"),
+                html.Th("Links"),
+                html.Th("Notes"),
+            ])),
+            html.Tbody(rows),
+        ],
+        className="dlc-credits-table",
+    )
+
+    return html.Div(
+        [
+            html.H1("Credits & Licenses", style={"fontSize": "28px", "margin": "0 0 8px", "letterSpacing": "-0.03em"}),
+            html.P(
+                [
+                    html.Strong("dash-loading-components"),
+                    html.Span(" is licensed under the "),
+                    html.A("MIT License", href="https://github.com/PhylaTech/dash-loading-components/blob/main/LICENSE", target="_blank", rel="noopener noreferrer"),
+                    html.Span(
+                        " and wraps third-party React loading-indicator libraries, "
+                        "redistributed under their own licenses. "
+                        "Full inventory is maintained in "
+                    ),
+                    html.A("docs/UPSTREAM-INVENTORY.md", href="https://github.com/PhylaTech/dash-loading-components/blob/main/docs/UPSTREAM-INVENTORY.md", target="_blank", rel="noopener noreferrer"),
+                    html.Span(" and the root "),
+                    html.A("NOTICE", href="https://github.com/PhylaTech/dash-loading-components/blob/main/NOTICE", target="_blank", rel="noopener noreferrer"),
+                    html.Span(" file."),
+                ],
+                className="dlc-credits-intro",
+            ),
+            html.H2("Day-one upstream families", style={"fontSize": "20px", "margin": "0 0 14px"}),
+            table,
+            html.Div(
+                [
+                    html.H2("Hard skips"),
+                    html.P(
+                        "css-spinners (GPL-3.0) and react18-loaders (MPL-2.0) are not wrapped "
+                        "due to license incompatibility with MIT distribution."
+                    ),
+                ],
+                className="dlc-credits-skip",
+            ),
+            html.P(
+                [
+                    html.Span("Copyright © 2026 Evan Roy Rees / "),
+                    html.A("Phyla Technologies", href="https://github.com/PhylaTech", target="_blank", rel="noopener noreferrer"),
+                ],
+                className="dlc-credits-note",
+                style={"marginTop": "24px"},
+            ),
+            build_site_footer(),
+        ],
+        className="dlc-main",
+    )
+
+
 def build_404() -> html.Div:
     return html.Div(
         [
@@ -1486,6 +1704,8 @@ def render_page(pathname):
             build_sidenav(active_family=family, active_name=name),
             build_detail(family, name),
         )
+    if mode == "credits":
+        return page_shell(build_sidenav(), build_credits())
     return page_shell(build_sidenav(), build_404())
 
 
