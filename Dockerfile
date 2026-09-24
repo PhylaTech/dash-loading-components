@@ -17,7 +17,7 @@ ENV REACT_VERSION=19.2.4
 RUN npm run build:js
 
 RUN python3 -m venv /opt/venv && \
-    /opt/venv/bin/pip install --no-cache-dir "dash[dev]>=4.5"
+    /opt/venv/bin/pip install --no-cache-dir "dash[dev]>=4.5.0rc0"
 
 COPY dash_loading_components/package-info.json dash_loading_components/package-info.json
 COPY dash_loading_components/__init__.py dash_loading_components/__init__.py
