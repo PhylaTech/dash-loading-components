@@ -193,29 +193,105 @@ COMPONENT_LOOKUP: dict[tuple[str, str], Callable] = {
 
 # ---------------------------------------------------------------------------
 # Relative speed → native prop translation
-# speed=1.0 means "that family's normal tempo" — never a shared physical unit.
+# speed=1.0 means "this spinner's normal tempo", never a shared physical unit.
 # ---------------------------------------------------------------------------
 
-# Base cycle length (ms) for duration-style families at relative speed 1.0
-DURATION_BASE_MS = 1000
-
-# Families whose native tempo prop is a duration in ms: native = base_ms / speed
-_DURATION_FAMILIES = {
+# Families whose native tempo prop is a *period*: one full animation loop.
+# Larger native value = slower, so native = normal_period / speed.
+#   loading-dev ``duration``           milliseconds
+#   react-epic-spinners ``animationDuration``  milliseconds
+#   ldrs ``speed``                     seconds (upstream's own wording)
+#   premium-react-loaders ``speed``    milliseconds (clamped 50-10000 upstream)
+_PERIOD_FAMILIES = {
     "loading_dev": "duration",
     "epic": "animationDuration",
+    "ldrs": "speed",
+    "premium": "speed",
 }
+
+# The native period each spinner runs at with the prop omitted, i.e. what
+# relative speed 1.0 must reproduce. Transcribed from upstream:
+#   loading-dev      SPINNER_MOTION  (dist/motion.d.ts)
+#   ldrs             applyDefaultProps in each dist/elements/<name>.js
+#   react-epic-spinners  per-component animationDuration default prop
+# A family whose upstream tempo really is one constant lives in
+# _FAMILY_PERIOD instead; anything absent from both falls back to 1000.
+_SPINNER_PERIOD: dict[str, dict[str, float]] = {
+    # milliseconds
+    "loading_dev": {
+        "Arc": 800,
+        "Atom": 1000,
+        "Blocks": 1300,
+        "BouncingDots": 500,
+        "Cascade": 1500,
+        "CircularDots": 800,
+        "Classic": 1200,
+        "ClassicV2": 800,
+        "Clock": 1200,
+        "Comet": 700,
+        "Compass": 500,
+        "Dual": 1000,
+        "Eclipse": 1200,
+        "Flip": 1200,
+        "Gather": 1600,
+        "Leap": 1800,
+        "LinearDots": 900,
+        "Loading": 1000,
+        "Morph": 1200,
+        "Orbit": 750,
+        "Pulse": 1200,
+        "Radar": 1500,
+        "Ring": 800,
+        "Ripple": 1200,
+        "Slide": 2400,
+        "Snake": 1400,
+        "Swirl": 1200,
+        "Trace": 1200,
+        "Wave": 900,
+    },
+    # seconds
+    "ldrs": {
+        "DotPulse": 1.3,
+        "DotWave": 1.0,
+        "Helix": 2.5,
+        "Hourglass": 1.75,
+        "Infinity": 1.3,
+        "Jelly": 0.9,
+        "LineSpinner": 1.0,
+        "Mirage": 2.5,
+        "Orbit": 1.5,
+        "Ping": 2.0,
+        "Quantum": 1.75,
+        "Ring": 2.0,
+    },
+    # milliseconds
+    "epic": {
+        "AtomSpinner": 1000,
+        "FlowerSpinner": 2500,
+        "HollowDotsSpinner": 1000,
+        "OrbitSpinner": 1000,
+        "RadarSpinner": 2000,
+        "SemipolarSpinner": 2000,
+        "SpringSpinner": 3000,
+        "TrinityRingsSpinner": 1500,
+    },
+}
+
+# Families where every spinner shares one normal period.
+# premium resolves the ``"normal"`` token to 1s for all loaders
+# (getAnimationDuration in dist/index4.js).
+_FAMILY_PERIOD: dict[str, float] = {
+    "premium": 1000,
+}
+
+# Fallback period when a spinner is missing from the tables above, and the
+# period assumed when the caller does not say which spinner it is building.
+DEFAULT_PERIOD_MS = 1000
 
 # Families whose native tempo is a unitless multiplier (1.0 = normal)
 _MULTIPLIER_FAMILIES = {
-    "ldrs": "speed",
     "m3": "speed",
     "spinners": "speedMultiplier",
-}
-
-# premium-react-loaders: native ``speed`` is a token OR duration in **ms**
-# (numbers are clamped 50–10000ms). Relative 1.0 → 1000ms (= upstream "normal").
-_MS_SPEED_FAMILIES = {
-    "premium": "speed",
 }
 
 # spinners-react: native speed is percent of default (100 = normal)
@@ -270,10 +346,8 @@ def get_component(library: str, spinner: str) -> Callable:
 
 def native_tempo_prop(library: str) -> Optional[str]:
     """Return the upstream tempo prop name for ``library``, or None if unsupported."""
-    if library in _DURATION_FAMILIES:
-        return _DURATION_FAMILIES[library]
-    if library in _MS_SPEED_FAMILIES:
-        return _MS_SPEED_FAMILIES[library]
+    if library in _PERIOD_FAMILIES:
+        return _PERIOD_FAMILIES[library]
     if library in _MULTIPLIER_FAMILIES:
         return _MULTIPLIER_FAMILIES[library]
     if library in _PERCENT_FAMILIES:
@@ -287,8 +361,36 @@ def supports_relative_speed(library: str) -> bool:
     return native_tempo_prop(library) is not None
 
 
-def translate_relative_speed(library: str, speed: float) -> dict[str, Any]:
+def normal_period(library: str, spinner: Optional[str] = None) -> float:
+    """Native period a spinner runs at with its tempo prop omitted.
+
+    The unit is the family's own (ms for loading-dev / epic / premium,
+    seconds for ldrs). Only meaningful for ``_PERIOD_FAMILIES``.
+    """
+    if spinner is not None:
+        per_spinner = _SPINNER_PERIOD.get(library)
+        if per_spinner and spinner in per_spinner:
+            return per_spinner[spinner]
+    if library in _FAMILY_PERIOD:
+        return _FAMILY_PERIOD[library]
+    return DEFAULT_PERIOD_MS
+
+
+def _tidy(value: float) -> Any:
+    """Whole numbers as ``int``; otherwise round off float noise."""
+    if abs(value - round(value)) < 1e-9:
+        return int(round(value))
+    return round(value, 4)
+
+
+def translate_relative_speed(
+    library: str, speed: float, spinner: Optional[str] = None
+) -> dict[str, Any]:
     """Translate relative ``speed`` (1.0 = normal) into native prop kwargs.
+
+    ``spinner`` is required to hit the right baseline for families whose
+    normal tempo is per-spinner (loading-dev, ldrs, epic). Omitting it falls
+    back to the family default, which is only correct for premium.
 
     Returns ``{}`` when the family has no tempo prop (do not invent one).
     """
@@ -301,22 +403,10 @@ def translate_relative_speed(library: str, speed: float) -> dict[str, Any]:
     if speed_f <= 0:
         raise ValueError(f"speed must be > 0, got {speed_f}")
 
-    if library in _DURATION_FAMILIES:
-        prop = _DURATION_FAMILIES[library]
-        # Faster relative speed → shorter cycle
-        value = DURATION_BASE_MS / speed_f
-        # Prefer int ms when close to whole milliseconds
-        if abs(value - round(value)) < 1e-9:
-            value = int(round(value))
-        return {prop: value}
-
-    if library in _MS_SPEED_FAMILIES:
-        # Same formula as duration families; prop name is still ``speed``
-        prop = _MS_SPEED_FAMILIES[library]
-        value = DURATION_BASE_MS / speed_f
-        if abs(value - round(value)) < 1e-9:
-            value = int(round(value))
-        return {prop: value}
+    if library in _PERIOD_FAMILIES:
+        # Faster relative speed means a shorter loop, so divide the baseline.
+        prop = _PERIOD_FAMILIES[library]
+        return {prop: _tidy(normal_period(library, spinner) / speed_f)}
 
     if library in _MULTIPLIER_FAMILIES:
         prop = _MULTIPLIER_FAMILIES[library]
@@ -324,10 +414,7 @@ def translate_relative_speed(library: str, speed: float) -> dict[str, Any]:
 
     if library in _PERCENT_FAMILIES:
         prop = _PERCENT_FAMILIES[library]
-        native = 100.0 * speed_f
-        if abs(native - round(native)) < 1e-9:
-            native = int(round(native))
-        return {prop: native}
+        return {prop: _tidy(100.0 * speed_f)}
 
     if library == "indicators":
         # Documented scale: speedPlus = clamp(round((speed - 1) * 5), -5, 5)

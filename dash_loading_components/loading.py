@@ -45,9 +45,10 @@ def Loading(
     color :
         Primary CSS color string.
     speed :
-        **Relative** rate. ``1.0`` = that family's normal tempo. Translated
-        per family (duration ms, multiplier, percent, speedPlus, …).
-        Never a shared physical unit across families.
+        **Relative** rate. ``1.0`` = this spinner's normal tempo, i.e. what
+        the upstream component does with its tempo prop left alone.
+        Translated per family (duration ms, multiplier, percent, speedPlus,
+        …). Never a shared physical unit across families or spinners.
     class_name :
         CSS class pass-through (maps to React/Dash ``className``).
     playing :
@@ -115,7 +116,7 @@ def Loading(
 
     # Relative speed → native (only when family supports it)
     if speed is not None and supports_relative_speed(library):
-        props.update(translate_relative_speed(library, speed))
+        props.update(translate_relative_speed(library, speed, spinner))
 
     # playing → native pause/run when supported
     play_map = playing_kwargs(library, playing)

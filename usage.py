@@ -1,21 +1,23 @@
-import dash_loading_components
-from dash import Dash, callback, html, Input, Output
+from dash import Dash, html
+from dash._dash_renderer import _set_react_version
+
+# The bundle is built against React 19; Dash still defaults to 18. Set it
+# explicitly rather than via REACT_VERSION so import order cannot matter.
+_set_react_version("19.2.4")
+
+import dash_loading_components as dlc  # noqa: E402
 
 app = Dash(__name__)
 
-app.layout = html.Div([
-    dash_loading_components.Arc(
-        id='input',
-        value='my-value',
-        label='my-label'
-    ),
-    html.Div(id='output')
-])
-
-
-@callback(Output('output', 'children'), Input('input', 'value'))
-def display_output(value):
-    return 'You have entered {}'.format(value)
+app.layout = html.Div(
+    [
+        # Common API: speed is relative, 1.0 = this spinner's normal tempo.
+        dlc.Loading(library="loading_dev", spinner="Arc", size=48, color="#f97316"),
+        # Namespaced API: upstream prop names and units.
+        dlc.ldrs.Mirage(id="mirage", size=60, color="#f97316", speed=2.5),
+    ],
+    id="demo",
+)
 
 
 if __name__ == '__main__':
