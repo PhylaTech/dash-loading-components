@@ -1683,8 +1683,31 @@ def page_shell(sidenav, main) -> html.Div:
 # App
 # ---------------------------------------------------------------------------
 
-app = Dash(__name__, suppress_callback_exceptions=True)
-app.title = "dlc gallery"
+_OG_IMAGE = "https://dash-loading-components.phylatech.com/assets/og-card.png"
+_OG_DESCRIPTION = (
+    "Interactive gallery of Dash loading spinners \u2014 wrappers for "
+    "loading.dev, ldrs, react-spinners, and more. Built by PhylaTech."
+)
+
+app = Dash(
+    __name__,
+    suppress_callback_exceptions=True,
+    meta_tags=[
+        {"name": "description", "content": _OG_DESCRIPTION},
+        {"property": "og:title", "content": "dash-loading-components"},
+        {"property": "og:description", "content": _OG_DESCRIPTION},
+        {"property": "og:type", "content": "website"},
+        {"property": "og:url", "content": "https://dash-loading-components.phylatech.com/"},
+        {"property": "og:site_name", "content": "PhylaTech"},
+        {"property": "og:image", "content": _OG_IMAGE},
+        {"property": "og:image:alt", "content": "dash-loading-components — Interactive Dash loading spinner gallery"},
+        {"name": "twitter:card", "content": "summary_large_image"},
+        {"name": "twitter:title", "content": "dash-loading-components"},
+        {"name": "twitter:description", "content": _OG_DESCRIPTION},
+        {"name": "twitter:image", "content": _OG_IMAGE},
+    ],
+)
+app.title = "dash-loading-components \u00b7 gallery"
 
 app.layout = html.Div(
     [
