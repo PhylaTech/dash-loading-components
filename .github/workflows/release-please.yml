@@ -57,6 +57,23 @@ jobs:
           pip install --upgrade pip build
           python -m build
 
+      # Catch a broken distribution before it is uploaded: PyPI releases are
+      # immutable, so a wheel missing the family subpackages (dlc.epic, ...)
+      # or carrying a stale package-info.json version can't be taken back.
+      - name: Smoke-test the built wheel
+        run: |
+          python -m venv /tmp/smoke
+          /tmp/smoke/bin/pip install --upgrade pip
+          /tmp/smoke/bin/pip install dist/*.whl
+          cd /tmp
+          /tmp/smoke/bin/python -c "
+          import json, dash_loading_components as dlc
+          expected = json.load(open('$GITHUB_WORKSPACE/package.json'))['version']
+          assert dlc.__version__ == expected, (dlc.__version__, expected)
+          assert dlc.epic.AtomSpinner and dlc.ldrs.DotPulse and dlc.Loading
+          print('smoke ok', dlc.__version__)
+          "
+
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         # Configure trusted publishing at:
