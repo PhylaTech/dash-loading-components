@@ -100,6 +100,10 @@ The **live gallery** runs on [Render Free Web Service](https://render.com/docs/f
 
 The public front door at **<https://phylatech.github.io/dash-loading-components>** is a thin HTML redirect to the Render URL, deployed to GitHub Pages via the `gh-pages` branch.
 
+### Pre-release pin
+
+The gallery runtime pins `dash>=4.5.0rc0` because Dash 4.5 stable is not yet published to PyPI; the pin will also accept the final 4.5 release once available.
+
 ### Cold-start note
 
 Render Free services sleep after ~15 minutes of inactivity. The first request after idle takes roughly 30–60 seconds while the container wakes.
