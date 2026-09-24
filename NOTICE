@@ -1,0 +1,28 @@
+dash-loading-components (dlc)
+Copyright (c) 2026 Evan Roy Rees / Phyla Technologies
+
+This package is licensed under the MIT License (see LICENSE).
+
+It wraps and redistributes third-party loading-indicator libraries under their
+own licenses. Full upstream inventory (npm name, version, SPDX license,
+homepage/repo URLs, React peers, wrap status) lives in:
+
+  docs/UPSTREAM-INVENTORY.md
+
+Notable upstream projects (non-exhaustive; see inventory for pins and status):
+
+  - loading-dev / loading.dev (jakubkrehel/loading) — MIT
+  - ldrs (GriffinJohnston/ldrs) — MIT
+  - react-spinners (davidhu2000/react-spinners) — MIT
+  - spinners-react — MIT
+  - react-loader-spinner — MIT
+  - premium-react-loaders — MIT
+  - react-loading-indicators — MIT
+  - react-svg-spinners — MIT (gated: React ^18.2 peer)
+  - @alerix/m3-loading-indicator — Apache-2.0
+  - react-epic-spinners — MIT
+
+Hard skips (not wrapped): css-spinners (GPL-3.0), react18-loaders (MPL-2.0).
+
+When redistributing this package, retain this NOTICE and the inventory document
+so third-party attribution remains intact.

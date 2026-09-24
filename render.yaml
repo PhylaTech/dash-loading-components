@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: dash-loading-components
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: REACT_VERSION
+        value: "19.2.4"
