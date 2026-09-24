@@ -12,6 +12,7 @@ RUN npm ci
 
 COPY src/ src/
 COPY .babelrc webpack.config.js ./
+COPY dash_loading_components/ dash_loading_components/
 
 ENV REACT_VERSION=19.2.4
 RUN npm run build:js
@@ -19,8 +20,6 @@ RUN npm run build:js
 RUN python3 -m venv /opt/venv && \
     /opt/venv/bin/pip install --no-cache-dir "dash[dev]>=4.5.0rc0"
 
-COPY dash_loading_components/package-info.json dash_loading_components/package-info.json
-COPY dash_loading_components/__init__.py dash_loading_components/__init__.py
 RUN /opt/venv/bin/dash-generate-components \
     ./src/lib/components dash_loading_components \
     -p package-info.json --r-prefix '' --jl-prefix '' --ignore '\.test\.'
