@@ -95,10 +95,12 @@ See `docs/UPSTREAM-INVENTORY.md` for full upstream inventory.
 
 ## Demo hosting
 
-The **live gallery** runs on [Render Free Web Service](https://render.com/docs/free):
-**<https://dash-loading-components.onrender.com>**
+The **live gallery** is at:
+**<https://dash-loading-components.phylatech.com>** (canonical public URL)
 
-The public front door at **<https://phylatech.github.io/dash-loading-components>** is a thin HTML redirect to the Render URL, deployed to GitHub Pages via the `gh-pages` branch.
+The Render service hostname is `dash-loading-components.onrender.com`; the custom domain `dash-loading-components.phylatech.com` is a Namecheap CNAME pointing to Render.
+
+The **GitHub Pages front door** at **<https://phylatech.github.io/dash-loading-components>** is a thin HTML redirect to the canonical URL above, deployed via the `gh-pages` branch.
 
 ### Pre-release pin
 
@@ -121,7 +123,7 @@ Render Free services sleep after ~15 minutes of inactivity. The first request af
 
 ### Setup steps (maintainer)
 
-1. **Render:** Create a new **Web Service** at <https://dashboard.render.com/>, connect this repo, and select **Blueprint (render.yaml)**. The service name should be `dash-loading-components` (producing the `*.onrender.com` hostname above). Render auto-deploys on push to `main`.
+1. **Render:** Create a new **Web Service** at <https://dashboard.render.com/>, connect this repo, and select **Blueprint (render.yaml)**. The service name should be `dash-loading-components` (producing the `*.onrender.com` hostname). Add the custom domain `dash-loading-components.phylatech.com` in the Render dashboard; CNAME it from Namecheap to the Render hostname. Render auto-deploys on push to `main`.
 2. **GitHub Pages:** Go to repo **Settings → Pages** and set Source to the `gh-pages` branch (root). The `docs.yml` workflow pushes `site/` there on every merge to `main`.
-3. **Repo homepage (optional):** In repo **Settings → General**, set the Website field to `https://phylatech.github.io/dash-loading-components`.
-4. If the Render hostname differs from `dash-loading-components.onrender.com`, update the URL in `site/index.html`.
+3. **Repo homepage (optional):** In repo **Settings → General**, set the Website field to `https://dash-loading-components.phylatech.com`.
+4. `site/index.html` should redirect to the canonical URL `https://dash-loading-components.phylatech.com`.
