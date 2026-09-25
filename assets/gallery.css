@@ -54,10 +54,23 @@ p { text-wrap: pretty; }
   color: var(--mantine-color-text);
   font-weight: 650; letter-spacing: -0.02em; font-size: 15px;
 }
-.dlc-brand-mark { display: inline-flex; color: var(--dlc-accent); }
+/* The mark cycles through every loader (assets/gallery.js): all are in the
+   DOM, one shown at a time; hidden ones neither paint nor animate. */
+.dlc-brand-mark {
+  position: relative; display: inline-flex; width: 22px; height: 22px;
+  align-items: center; justify-content: center; color: var(--dlc-accent); overflow: hidden;
+}
+.dlc-mark {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  transform: scale(var(--mark-scale, 1));
+}
+.dlc-mark[hidden] { display: none; }
+.dlc-mark.is-entering { animation: dlc-slide-in 360ms cubic-bezier(0.2, 0, 0, 1); }
+.dlc-mark.is-leaving { animation: dlc-slide-out 260ms cubic-bezier(0.2, 0, 0, 1) forwards; }
+@keyframes dlc-slide-in { from { translate: 0 100%; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+@keyframes dlc-slide-out { to { translate: 0 -100%; opacity: 0; } }
 /* The mark is a live loader. Idle in the corner of every page it would pull
    the eye forever, so it holds still until the brand is hovered. */
-.dlc-brand:not(:hover) .dlc-brand-mark * { animation-play-state: paused !important; }
 @media (max-width: 30em) { .dlc-brand-name { display: none; } }
 html[data-mac] .dlc-mod-other, html:not([data-mac]) .dlc-mod-mac { display: none; }
 /* No keyboard, no shortcut to advertise. */
@@ -131,6 +144,56 @@ html[data-mac] .dlc-mod-other, html:not([data-mac]) .dlc-mod-mac { display: none
 .dlc-install { margin-bottom: 12px; }
 .dlc-install, .dlc-hero-code {
   border: 1px solid var(--dlc-border); border-radius: var(--mantine-radius-md);
+}
+/* Hero carousel: snippet beside the loader it builds, one featured loader
+   at a time; slides are stacked and swapped by assets/gallery.js. */
+.dlc-hero-carousel { max-width: 920px; }
+.dlc-carousel { position: relative; overflow: hidden; }
+.dlc-slide {
+  display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 12px; align-items: stretch;
+  min-height: 176px;
+}
+.dlc-slide[hidden] { display: none; }
+.dlc-slide.is-entering { animation: dlc-slide-in-x 420ms cubic-bezier(0.2, 0, 0, 1); }
+/* Exits softer than enters: shorter travel, shorter time. */
+.dlc-slide.is-leaving { position: absolute; inset: 0; animation: dlc-slide-out-x 300ms cubic-bezier(0.2, 0, 0, 1) forwards; }
+@keyframes dlc-slide-in-x { from { translate: 40px 0; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+@keyframes dlc-slide-out-x { to { translate: -24px 0; opacity: 0; } }
+.dlc-slide .dlc-hero-code { min-width: 0; }
+/* Centre the one-line call in the row: the snippet is shorter than the stage. */
+.dlc-slide .mantine-CodeHighlight-codeHighlight { position: relative; display: grid; align-content: center; height: 100%; }
+.dlc-hero-stage {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  padding: 20px; color: var(--mantine-color-text); text-decoration: none;
+  border: 1px solid var(--dlc-border); border-radius: var(--mantine-radius-md);
+  background:
+    radial-gradient(circle, light-dark(rgb(0 0 0 / 0.07), rgb(255 255 255 / 0.06)) 1px, transparent 1px)
+    0 0 / 16px 16px,
+    var(--dlc-surface-sunken);
+  transition-property: border-color; transition-duration: 150ms;
+}
+.dlc-hero-stage:hover { border-color: var(--dlc-accent); }
+.dlc-hero-loader { display: flex; align-items: center; justify-content: center; height: 96px; }
+.dlc-hero-name { font-family: var(--mantine-font-family-monospace); font-size: 13px; }
+.dlc-hero-ns { color: var(--mantine-color-dimmed); }
+.dlc-carousel-nav { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; }
+.dlc-carousel-btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+  border: 1px solid var(--dlc-border); border-radius: 50%; background: var(--dlc-surface);
+  color: var(--mantine-color-dimmed); cursor: pointer;
+  transition-property: color, border-color, scale; transition-duration: 120ms;
+}
+.dlc-carousel-btn:hover { color: var(--dlc-accent); border-color: var(--dlc-accent); }
+.dlc-carousel-btn:active { scale: 0.96; }
+.dlc-flip { rotate: 180deg; }
+.dlc-carousel-dots { display: inline-flex; gap: 6px; }
+.dlc-carousel-dots i {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--dlc-border);
+  transition-property: background-color, width; transition-duration: 200ms;
+}
+.dlc-carousel-dots i.is-active { background: var(--dlc-accent); width: 16px; border-radius: 3px; }
+@media (max-width: 48em) {
+  .dlc-slide { grid-template-columns: 1fr; }
 }
 
 .dlc-family { padding: 36px 0 8px; scroll-margin-top: 80px; }
@@ -280,5 +343,6 @@ html[data-mac] .dlc-mod-other, html:not([data-mac]) .dlc-mod-mac { display: none
    what reduced motion means. */
 @media (prefers-reduced-motion: reduce) {
   .dlc-card, .dlc-pager-card { transition-duration: 1ms; }
+  .dlc-mark, .dlc-slide { animation: none !important; }
   .dlc-card:hover { translate: none; }
 }

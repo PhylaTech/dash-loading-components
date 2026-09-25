@@ -145,4 +145,68 @@
       },
     },
   });
+
+  // Brand mark: a random loader every few seconds, sliding in from below.
+  // Hero carousel: featured loaders in order, auto-advancing, paused while
+  // hovered. Both work on stacked elements already in the page.
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const swap = (items, from, to, axis) => {
+    if (from === to) return;
+    const leaving = items[from], entering = items[to];
+    entering.hidden = false;
+    if (!reduced && leaving) {
+      leaving.classList.add('is-leaving');
+      entering.classList.add('is-entering');
+      setTimeout(() => {
+        leaving.hidden = true;
+        leaving.classList.remove('is-leaving');
+        entering.classList.remove('is-entering');
+      }, 440);
+    } else if (leaving) {
+      leaving.hidden = true;
+    }
+  };
+
+  const cycleMark = () => {
+    const marks = document.querySelectorAll('.dlc-brand-mark .dlc-mark');
+    if (!marks.length) return;
+    let current = [...marks].findIndex((m) => !m.hidden);
+    if (current < 0) { current = Math.floor(Math.random() * marks.length); marks[current].hidden = false; }
+    setInterval(() => {
+      let next = Math.floor(Math.random() * (marks.length - 1));
+      if (next >= current) next += 1;
+      swap(marks, current, next);
+      current = next;
+    }, 4000);
+  };
+
+  const carousel = () => {
+    const root = document.querySelector('.dlc-hero-carousel');
+    if (!root || root.dataset.ready) return;
+    root.dataset.ready = '1';
+    const slides = root.querySelectorAll('.dlc-slide');
+    const dots = root.querySelector('.dlc-carousel-dots');
+    dots.replaceChildren(...[...slides].map(() => document.createElement('i')));
+    let current = 0, timer;
+    const show = (i) => {
+      const next = (i + slides.length) % slides.length;
+      swap(slides, current, next);
+      current = next;
+      dots.querySelectorAll('i').forEach((d, k) => d.classList.toggle('is-active', k === current));
+    };
+    // Under reduced motion the arrows still work; the page just stops moving on its own.
+    const start = () => { clearInterval(timer); if (!reduced) timer = setInterval(() => show(current + 1), 5000); };
+    slides[0].hidden = false;
+    show(0);
+    start();
+    root.querySelectorAll('.dlc-carousel-btn').forEach((b) => b.addEventListener('click', () => { show(current + +b.dataset.step); start(); }));
+    root.addEventListener('mouseenter', () => clearInterval(timer));
+    root.addEventListener('mouseleave', start);
+  };
+
+  let markStarted = false;
+  new MutationObserver(() => {
+    if (!markStarted && document.querySelector('.dlc-brand-mark .dlc-mark')) { markStarted = true; cycleMark(); }
+    carousel();
+  }).observe(document.documentElement, {childList: true, subtree: true});
 })();
