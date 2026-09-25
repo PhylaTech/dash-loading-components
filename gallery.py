@@ -20,7 +20,9 @@ os.environ.setdefault("REACT_VERSION", "19.2.4")
 
 import dash
 import dash_mantine_components as dmc
-from dash import ALL, MATCH, Dash, Input, Output, State, callback, clientside_callback, dcc, html, no_update
+from dash import (
+    ALL, MATCH, ClientsideFunction, Dash, Input, Output, State, callback, clientside_callback, dcc, html, no_update,
+)
 
 import dash_loading_components as dlc
 from dash_loading_components.registry import COMPONENT_LOOKUP, FAMILIES, FAMILY_LOOKUP
@@ -659,10 +661,6 @@ THEME = {
 
 HEADER_HEIGHT = 60
 NAVBAR_WIDTH = 280
-COLOR_SWATCHES = [
-    "#f97316", "#ef4444", "#ec4899", "#a855f7", "#6366f1", "#3b82f6",
-    "#06b6d4", "#10b981", "#84cc16", "#eab308", "#71717a", "#18181b",
-]
 
 
 def icon(name: str, className: str = "") -> html.Span:
@@ -679,20 +677,21 @@ def uses_size_presets(family: str, props: list[str]) -> bool:
     return "size" in props and family not in ("indicators", "loader_spinner")
 
 
-def search_data() -> list[dict]:
-    """Select groups for the header search: every component, then pages."""
-    groups = [
-        {
-            "group": f"{label} · dlc.{key}",
-            "items": [{"value": detail_path(key, name), "label": name} for name, _c in items],
-        }
-        for key, label, items in FAMILIES
+def search_index() -> list[dict[str, str]]:
+    """Everything the header search can jump to, read by assets/gallery.js."""
+    entries = [
+        {"title": name, "group": f"dlc.{key}", "href": detail_path(key, name)}
+        for key, name in CATALOG
     ]
-    groups.append({"group": "Pages", "items": [
-        {"value": "/", "label": "Overview"},
-        {"value": "/credits", "label": "Credits & Licenses"},
-    ]})
-    return groups
+    entries += [
+        {"title": label, "group": "Library", "href": f"/#family-{key}"}
+        for key, label, _items in FAMILIES
+    ]
+    entries += [
+        {"title": "Overview", "group": "Page", "href": "/"},
+        {"title": "Credits & Licenses", "group": "Page", "href": "/credits"},
+    ]
+    return entries
 
 
 def build_header() -> dmc.AppShellHeader:
@@ -725,28 +724,28 @@ def build_header() -> dmc.AppShellHeader:
                 ),
                 dmc.Group(
                     [
-                        dmc.Select(
-                            id="site-search",
-                            data=search_data(),
-                            searchable=True,
-                            clearable=False,
-                            value=None,
-                            placeholder="Search",
-                            nothingFoundMessage="No components match",
-                            leftSection=icon("search"),
-                            rightSection=dmc.Kbd(
-                                [html.Span("⌘", className="dlc-mod-mac"),
-                                 html.Span("Ctrl", className="dlc-mod-other"), " K"],
-                                size="xs", className="dlc-kbd",
-                            ),
-                            rightSectionWidth=52,
-                            rightSectionPointerEvents="none",
-                            maxDropdownHeight=380,
-                            limit=40,
-                            w={"base": 170, "sm": 260},
+                        # Not dmc.Select: Mantine's popovers position through a
+                        # ref that React 19 does not hand them, so the list would
+                        # open at the page's top-left corner. A plain input with a
+                        # list below it, filtered in assets/gallery.js.
+                        html.Div(
+                            [
+                                icon("search", "dlc-search-icon"),
+                                # dcc.Input takes no ARIA props; gallery.js adds the
+                                # combobox attributes on load.
+                                dcc.Input(id="site-search", type="search", placeholder="Search",
+                                          autoComplete="off", className="dlc-search-input"),
+                                dmc.Kbd(
+                                    [html.Span("⌘", className="dlc-mod-mac"),
+                                     html.Span("Ctrl", className="dlc-mod-other"), " K"],
+                                    size="xs", className="dlc-kbd",
+                                ),
+                                html.Div(id="site-search-results", role="listbox",
+                                         className="dlc-search-results", hidden=True),
+                                html.Div(id="site-search-index", hidden=True,
+                                         **{"data-index": json.dumps(search_index())}),
+                            ],
                             className="dlc-search",
-                            comboboxProps={"shadow": "md"},
-                            **{"aria-label": "Search components"},
                         ),
                         external_link(
                             dmc.ActionIcon(icon("github"), variant="default", size="lg",
@@ -936,26 +935,54 @@ def workbench_control(prop: str, value: Any, family: str, props: list[str], name
                         dmc.Text(f"{current:g}", id={"type": "prop-readout", "prop": prop},
                                  size="xs", c="dimmed", className="dlc-tabular")],
                        justify="space-between"),
-             dmc.Slider(id=ctrl_id, min=spec["min"], max=spec["max"], step=spec["step"],
-                        value=current, updatemode="drag", size="sm", label=None,
-                        className="dlc-ctrl-slider")],
+             # dcc, not dmc.Slider: Mantine's thumb tracks the pointer through
+             # a ref React 19 never gives it, leaving keyboard-only sliders.
+             dcc.Slider(id=ctrl_id, min=spec["min"], max=spec["max"], step=spec["step"],
+                        value=current, marks=None, tooltip=None, updatemode="drag",
+                        allow_direct_input=False, className="dlc-ctrl-slider")],
             gap=6,
         )
     if kind == "color":
-        return dmc.ColorInput(
-            id=ctrl_id, label=label, value=value or "", placeholder="Default",
-            format="rgba" if "rgba" in (value or "") else "hex",
-            swatches=COLOR_SWATCHES, swatchesPerRow=6, size="sm",
+        # The browser's own picker behind a swatch, beside a text field that
+        # takes any CSS color (dmc.ColorInput's popover has the same React 19
+        # positioning problem as the search). assets/gallery.js keeps the
+        # three in step.
+        hex_value = value if re.fullmatch(r"#[0-9a-fA-F]{6}", value or "") else "#000000"
+        return dmc.Stack(
+            [
+                dmc.Text(label, size="sm", fw=500),
+                html.Div(
+                    [
+                        html.Label(
+                            dcc.Input(
+                                id={"type": "color-swatch", "prop": prop},
+                                type="color", value=hex_value, className="dlc-color-picker",
+                            ),
+                            id={"type": "color-chip", "prop": prop},
+                            className="dlc-color-chip",
+                            style={"--chip": value or "transparent"},
+                        ),
+                        dcc.Input(
+                            id=ctrl_id, type="text", value=value or "", placeholder="Default",
+                            debounce=True, spellCheck=False, className="dlc-color-text",
+                        ),
+                    ],
+                    className="dlc-color-input",
+                ),
+            ],
+            gap=4,
         )
     if kind == "enum":
         opts = spec["options"]
         labels = spec.get("labels") or {o: o for o in opts}
         return segmented([(labels[o], o) for o in opts], value if value in opts else spec["default"])
     if kind == "dropdown":
-        return dmc.Select(
-            id=ctrl_id, label=label, data=spec["options"], value=value,
-            clearable=spec["default"] is None, placeholder="Default", size="sm",
-            allowDeselect=spec["default"] is None,
+        return dmc.Stack(
+            [dmc.Text(label, size="sm", fw=500),
+             dcc.Dropdown(id=ctrl_id, options=spec["options"], value=value,
+                          clearable=spec["default"] is None, searchable=False,
+                          placeholder="Default", className="dlc-ctrl-dropdown")],
+            gap=4,
         )
     if kind == "bool":
         return dmc.Switch(id={"type": "prop-switch", "prop": prop}, label=label,
@@ -1247,19 +1274,6 @@ def render_page(pathname):
     return build_404()
 
 
-@callback(
-    Output("url", "pathname"),
-    Output("site-search", "value"),
-    Input("site-search", "value"),
-    prevent_initial_call=True,
-)
-def go_to_search_result(href):
-    """Picking a search result navigates, then clears the box for the next search."""
-    if not href:
-        return no_update, no_update
-    return href, None
-
-
 # The mobile navbar opens from the burger and closes on navigation. Both run
 # in the browser: a server round trip here reads as a sticky drawer.
 clientside_callback(
@@ -1351,6 +1365,17 @@ def update_detail(raw_values, raw_checked, value_ids, switch_ids, meta):
     sent = sent_values(family, name, values)
     return instantiate(family, name, sent), build_snippet(family, name, sent).rstrip()
 
+
+# Color field, native picker and swatch stay in step, in the browser.
+clientside_callback(
+    ClientsideFunction(namespace="dlc", function_name="syncColor"),
+    Output({"type": "prop-ctrl", "prop": MATCH, "kind": "color"}, "value", allow_duplicate=True),
+    Output({"type": "color-swatch", "prop": MATCH}, "value"),
+    Output({"type": "color-chip", "prop": MATCH}, "style"),
+    Input({"type": "color-swatch", "prop": MATCH}, "value"),
+    Input({"type": "prop-ctrl", "prop": MATCH, "kind": "color"}, "value"),
+    prevent_initial_call=True,
+)
 
 # Slider readouts follow the thumb without a server round trip, formatted as
 # the server's f"{v:g}" first renders them (0.1 steps arrive as 1.2000000002).
