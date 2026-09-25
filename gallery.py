@@ -1327,6 +1327,10 @@ _COLOR_SCHEME_BOOTSTRAP = (
     "if(/Mac|iPhone|iPad/.test(navigator.platform))document.documentElement.dataset.mac=''</script>"
 )
 app.index_string = app.index_string.replace("<head>", "<head>" + _COLOR_SCHEME_BOOTSTRAP, 1)
+# Our mark instead of Dash's default favicon.
+app.index_string = app.index_string.replace(
+    "{%favicon%}", '<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">', 1
+)
 
 app.layout = dmc.MantineProvider(
     [

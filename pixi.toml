@@ -21,3 +21,4 @@ build = "npm run build:js && npm run build:backends"
 gallery = { cmd = "python gallery.py", env = { REACT_VERSION = "19.2.4" } }
 serve = { cmd = "gunicorn gallery:server --bind 127.0.0.1:8050", env = { REACT_VERSION = "19.2.4" } }
 test = "pytest"
+og-card = { cmd = "python scripts/og_card.py", env = { REACT_VERSION = "19.2.4" } }
