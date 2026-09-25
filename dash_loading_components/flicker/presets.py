@@ -450,14 +450,8 @@ def sandglass():
 
 
 def sweep():
-    # A radar arm turning, lighting echoes that linger a moment after it passes.
-    blips = [((1, 5), 1), ((4, 1), 5), ((5, 4), 3)]
-    frames = []
-    for f in range(8):
-        cells = ray(f * 45, 0, 3)
-        cells |= {cell for cell, at in blips if (f - at) % 8 < 3}
-        frames.append(cells)
-    return frames
+    # A radar arm turning round its scope.
+    return [ray(f * 45, 0, 3) for f in range(8)]
 
 
 def lemniscate():
@@ -496,7 +490,7 @@ _DESIGNS = [
     ("Rebound", "geometry", rebound, "A ball that hangs at the top, stretches as it drops, and squashes on the floor."),
     ("Coil", "geometry", coil, "A square spiral wound into the center and unwound again."),
     ("Sandglass", "geometry", sandglass, "Sand running from the top bulb to the bottom, one grain at a time."),
-    ("Sweep", "geometry", sweep, "A radar arm turning, lighting echoes that linger after it passes."),
+    ("Sweep", "geometry", sweep, "A radar arm turning round its scope."),
     ("Lemniscate", "geometry", lemniscate, "A dot running a figure of eight, trailing two more."),
 ]
 

@@ -65,8 +65,9 @@ Keyword arguments:
 - speed (number; optional):
     Playback multiplier: 2 plays twice as fast.
 
-- variant (a value equal to: '7x7', '5x5'; optional):
-    The full 7x7 grid, or its inner 5x5."""
+- variant (a value equal to: '7x7', '5x5', '9x9'; optional):
+    The grid: the full 7x7, its inner 5x5 (bigger dots), or the 7x7
+    padded to 9x9 with a ring of unlit dots (smaller dots)."""
     _children_props: typing.List[str] = []
     _base_nodes = ['children']
     _namespace = 'dash_loading_components'
@@ -82,7 +83,7 @@ Keyword arguments:
         size: typing.Optional[NumberType] = None,
         color: typing.Optional[str] = None,
         off_color: typing.Optional[str] = None,
-        variant: typing.Optional[Literal["7x7", "5x5"]] = None,
+        variant: typing.Optional[Literal["7x7", "5x5", "9x9"]] = None,
         reverse: typing.Optional[bool] = None,
         speed: typing.Optional[NumberType] = None,
         aria_label: typing.Optional[str] = None,

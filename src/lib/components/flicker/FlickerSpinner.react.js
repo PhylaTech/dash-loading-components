@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {contract, wrapperClass} from '../../contract';
-import { FlickerSpinner as Upstream } from 'flicker-dot';
+import { FlickerSpinner as Upstream, DOT_R, OFFSET, PITCH, SIZE_FULL, VIEWBOX_FULL } from 'flicker-dot';
 
 const ROWS = 7;
 const CELLS = ROWS * ROWS;
@@ -27,6 +27,18 @@ function toFrames(grids) {
     return frames.every(Boolean) ? frames : null;
 }
 
+// 9x9 is the 7x7 with one more ring of unlit dots round it: same pitch and
+// radius as upstream's grid, so the dots come out smaller at the same size.
+const PADDED = VIEWBOX_FULL + 2 * PITCH;
+const RING = [];
+for (let r = 0; r < ROWS + 2; r++) {
+    for (let c = 0; c < ROWS + 2; c++) {
+        if (r % (ROWS + 1) === 0 || c % (ROWS + 1) === 0) {
+            RING.push([OFFSET + PITCH * c, OFFSET + PITCH * r]);
+        }
+    }
+}
+
 /**
  * FlickerSpinner — Dash wrapper for flicker-dot's player. The named presets
  * in dlc.flicker are this component with their frames filled in.
@@ -42,13 +54,22 @@ const FlickerSpinner = (props) => {
     // fixed light grey, so one `color` reads on light and dark pages alike.
     const on = color || 'currentColor';
     const off = off_color || `color-mix(in srgb, ${on} 16%, transparent)`;
+    const padded = variant === '9x9';
+    const player = frames && (
+        <Upstream grids={frames} size={padded ? VIEWBOX_FULL : size} onColor={on} offColor={off}
+            variant={padded ? '7x7' : variant} reverse={reverse} speed={speed} title={aria_label}
+            playing={playing} style={{display: 'block'}} {...contract('flicker', 'Spinner', props)} />
+    );
+    const px = size ?? SIZE_FULL;
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
-            {frames && (
-                <Upstream grids={frames} size={size} onColor={on} offColor={off} variant={variant}
-                    reverse={reverse} speed={speed} title={aria_label} playing={playing}
-                    style={{display: 'block'}} {...contract('flicker', 'Spinner', props)} />
-            )}
+            {player && padded ? (
+                <svg width={px} height={px} viewBox={`0 0 ${PADDED} ${PADDED}`} role="presentation"
+                    style={{display: 'block'}}>
+                    {RING.map(([cx, cy]) => <circle key={`${cx},${cy}`} cx={cx} cy={cy} r={DOT_R} fill={off} />)}
+                    <g transform={`translate(${PITCH} ${PITCH})`}>{player}</g>
+                </svg>
+            ) : player}
         </div>
     );
 };
@@ -91,9 +112,10 @@ FlickerSpinner.propTypes = {
      */
     off_color: PropTypes.string,
     /**
-     * The full 7x7 grid, or its inner 5x5.
+     * The grid: the full 7x7, its inner 5x5 (bigger dots), or the 7x7 padded
+     * to 9x9 with a ring of unlit dots (smaller dots).
      */
-    variant: PropTypes.oneOf(['7x7', '5x5']),
+    variant: PropTypes.oneOf(['7x7', '5x5', '9x9']),
     /**
      * Play the frames backwards.
      */

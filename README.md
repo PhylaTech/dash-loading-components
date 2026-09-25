@@ -96,6 +96,8 @@ dlc.flicker.Spinner(grids=[blink, [row.replace("#", ".") for row in blink]])
 ```
 
 `dlc.flicker.PRESETS` holds every preset's frames, a starting point for your own.
+`variant` picks the grid: `"7x7"`, its inner `"5x5"` (bigger dots) or `"9x9"`,
+the 7x7 padded with a ring of unlit dots (smaller dots at the same size).
 Dots off default to a faint tint of `color` rather than upstream's light grey, so
 one `color` reads on light and dark pages.
 

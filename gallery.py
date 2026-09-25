@@ -306,8 +306,8 @@ INDICATORS_VARIANT = {
 
 PREMIUM_THICKNESS_SPEC = {"kind": "slider", "min": 1, "max": 12, "step": 1, "default": 2}
 
-FLICKER_VARIANT_SPEC = {"kind": "enum", "options": ["7x7", "5x5"],
-                        "labels": {"7x7": "7×7", "5x5": "5×5"}, "default": "7x7"}
+FLICKER_VARIANT_SPEC = {"kind": "enum", "options": ["5x5", "7x7", "9x9"],
+                        "labels": {"5x5": "5×5", "7x7": "7×7", "9x9": "9×9"}, "default": "7x7"}
 
 
 def prop_spec(family: str, prop: str, name: str | None = None) -> dict[str, Any] | None:
@@ -1089,7 +1089,8 @@ def section_copy(family: str, prop: str) -> str:
     if family == "indicators" and prop == "easing":
         return "The CSS easing of each cycle. Empty keeps the curve each indicator is designed with."
     if family == "flicker" and prop == "variant":
-        return "The full 7×7 grid, or only its inner 5×5."
+        return ("The grid the loop plays on: the full 7×7, only its inner 5×5 for bigger dots, "
+                "or padded out to 9×9 with a ring of unlit dots for smaller ones.")
     return PROP_SECTION_COPY.get(prop, f"Configurable `{prop}` for this wrapper.")
 
 
