@@ -70,7 +70,8 @@ jobs:
           import json, dash_loading_components as dlc
           expected = json.load(open('$GITHUB_WORKSPACE/package.json'))['version']
           assert dlc.__version__ == expected, (dlc.__version__, expected)
-          assert dlc.epic.AtomSpinner and dlc.ldrs.DotPulse and dlc.Loading
+          assert dlc.epic.AtomSpinner and dlc.ldrs.DotPulse and dlc.list_spinners('premium')
+          assert dlc.premium.OrbitRings(rate=2.0, ring_count=4).to_plotly_json()['props'] == {'rate': 2.0, 'ring_count': 4}
           print('smoke ok', dlc.__version__)
           "
 
