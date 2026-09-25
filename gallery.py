@@ -118,7 +118,8 @@ PROP_SECTION_COPY = {
     "width": "Width in pixels for loaders that expose width separately from height.",
     "color": "Any valid CSS color. The gallery default accent is #f97316.",
     "speed": (
-        "Relative rate for the Common API: 1.0 = this family’s normal tempo. "
+        "Relative rate for the Common API: 1.0 = this spinner’s normal tempo, "
+        "the tempo it runs at upstream with no tempo prop set. "
         "The Namespaced snippet shows the translated native unit "
         "(duration ms, speedMultiplier, percent, etc.)."
     ),
@@ -551,7 +552,7 @@ PROP_SPECS: dict[str, dict[str, Any]] = {
     },
 }
 
-# Relative speed for the common Loading path (1.0 = family normal).
+# Relative speed for the common Loading path (1.0 = this spinner's normal).
 # Native units appear only in the Namespaced snippet after translation.
 RELATIVE_SPEED_SPEC: dict[str, Any] = {
     "kind": "slider",
@@ -560,7 +561,7 @@ RELATIVE_SPEED_SPEC: dict[str, Any] = {
     "step": 0.1,
     "default": 1.0,
     "doc": (
-        "Relative rate: 1.0 = this family's normal tempo. "
+        "Relative rate: 1.0 = this spinner's normal tempo. "
         "Translated to native units in the Namespaced snippet "
         "(fixes the old shared-unit footgun)."
     ),
@@ -776,12 +777,14 @@ def _omit_empty_strings(values: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
-def build_namespaced_values(family: str, values: dict[str, Any]) -> dict[str, Any]:
+def build_namespaced_values(
+    family: str, name: str, values: dict[str, Any]
+) -> dict[str, Any]:
     """Control values → native prop dict (relative speed translated)."""
     native = dict(values)
     if supports_relative_speed(family) and "speed" in native:
         rel = native.pop("speed")
-        native.update(translate_relative_speed(family, rel))
+        native.update(translate_relative_speed(family, rel, name))
     return _omit_empty_strings(native)
 
 
@@ -1067,7 +1070,10 @@ def build_overview() -> html.Div:
                 [
                     html.H2([html.Code(f"dlc.{key}"), html.Span(f"  ·  {label}",
                               style={"fontWeight": 500, "opacity": 0.7, "fontSize": "0.85em"})]),
-                    html.P(f"{len(items)} components", className="meta"),
+                    html.P(
+                        f"{len(items)} component" + ("" if len(items) == 1 else "s"),
+                        className="meta",
+                    ),
                     html.Div(
                         [make_overview_card(key, n, c) for n, c in items],
                         className="dlc-grid",
@@ -1147,7 +1153,7 @@ def build_prop_example_snippet(family: str, name: str, prop: str) -> str:
             f'dlc.Loading(library="{family}", spinner="{name}", '
             f"size={DEFAULT_SIZE}, speed=1.5)"
         )
-        native = translate_relative_speed(family, 1.5)
+        native = translate_relative_speed(family, 1.5, name)
         kw = ", ".join(f"{k}={format_py_value(v)}" for k, v in native.items())
         lines.append(f"# namespaced ≈ dlc.{family}.{name}({kw})")
     elif prop == "easing":
@@ -1414,7 +1420,7 @@ def build_detail(family: str, name: str) -> html.Div:
                         build_snippet(
                             family,
                             name,
-                            build_namespaced_values(family, values),
+                            build_namespaced_values(family, name, values),
                         ),
                         id="detail-snippet-namespaced",
                         className="dlc-snippet",
@@ -1877,7 +1883,7 @@ def update_detail(values, ids, meta):
     preview = instantiate(family, name, ordered)
     common = build_common_snippet(family, name, ordered)
     namespaced = build_snippet(
-        family, name, build_namespaced_values(family, ordered)
+        family, name, build_namespaced_values(family, name, ordered)
     )
     return preview, common, namespaced, ordered
 

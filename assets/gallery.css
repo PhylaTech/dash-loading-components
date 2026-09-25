@@ -215,7 +215,11 @@ a:hover { color: var(--accent); }
 }
 .dlc-ctrl-dropdown { font-size: 13px; }
 .dlc-ctrl-check { font-size: 13px; }
-.dlc-ctrl-slider { padding: 0 4px; }
+/* Dash ships a violet slider; retint it to the gallery accent. */
+.dlc-ctrl-slider { padding: 0 4px; --Dash-Fill-Interactive-Strong: var(--accent); }
+/* The always-visible slider value box sits below the rail, outside layout
+   flow, so a slider row needs room for it or it lands on the next label. */
+.dlc-ctrl-row:has(.dlc-ctrl-slider) { margin-bottom: 34px; }
 .dlc-reset-btn {
   margin-top: 8px; align-self: flex-start;
   padding: 8px 12px; border-radius: 8px;
