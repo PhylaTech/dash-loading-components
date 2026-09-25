@@ -29,11 +29,23 @@ jobs:
       # The bundle and the generated Python wrappers are committed, and the
       # gallery and the published wheel serve them as-is. Rebuild from source
       # and fail if anything differs, so a PR cannot ship a stale build.
+      # @plotly/webpack-dash-dynamic-import stamps the bundle with the build
+      # time (v<version>m<unix seconds>, an async-chunk fingerprint this
+      # package never uses), so that one token is masked before comparing.
       - name: Check the committed build is current
         run: |
           pixi run build
-          git diff --stat --exit-code -- dash_loading_components/ \
-            || { echo "::error::Committed build is stale: run 'pixi run build' and commit the result."; exit 1; }
+          fingerprint() { sed -E 's/v[0-9A-Za-z_-]+m[0-9]{10}/vFINGERPRINT/g'; }
+          stale=0
+          for f in $(git diff --name-only -- dash_loading_components/); do
+            if ! cmp -s <(git show "HEAD:$f" | fingerprint) <(fingerprint < "$f"); then
+              echo "::error file=$f::$f is stale: run 'pixi run build' and commit the result."; stale=1
+            fi
+          done
+          for f in $(git ls-files --others --exclude-standard -- dash_loading_components/); do
+            echo "::error file=$f::$f is generated but not committed."; stale=1
+          done
+          exit $stale
 
       # ubuntu-latest ships Chrome; Selenium resolves the matching driver.
       - name: Test
