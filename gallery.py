@@ -612,10 +612,10 @@ def format_python_snippet(source: str, line_length: int = SNIPPET_LINE_LENGTH) -
         return source
 
 
-def build_snippet(family: str, name: str, values: dict[str, Any]) -> str:
+def build_snippet(family: str, name: str, values: dict[str, Any], line_length: int = SNIPPET_LINE_LENGTH) -> str:
     parts = [f"{k}={format_py_value(v)}" for k, v in values.items()]
     return format_python_snippet(
-        f"import dash_loading_components as dlc\n\ndlc.{family}.{name}({', '.join(parts)})\n"
+        f"import dash_loading_components as dlc\n\ndlc.{family}.{name}({', '.join(parts)})\n", line_length
     )
 
 
@@ -636,6 +636,100 @@ OVERVIEW_SIZE: dict[tuple[str, str], dict[str, Any]] = {
     **_for("indicators", " ".join(n for n, _ in FAMILY_LOOKUP["indicators"][1]),
            {"size": "small"}),
 }
+
+
+# Card values scaled to the 20px brand mark. Loaders that size by token or
+# aspect (indicators, ShimmerBox, BarLoader) get their own numbers; the rest
+# take size=20 and, where their motion spills past the box, a scale.
+MARK_SIZE = 20
+MARK_VALUES: dict[tuple[str, str], dict[str, Any]] = {
+    ("premium", "ShimmerBox"): {"size": 10},
+    ("spinners", "BarLoader"): {"width": 40, "height": 3},
+}
+MARK_SCALE: dict[str, float] = {"indicators": 0.32, "epic": 0.55}
+MARK_SCALE.update({f"spinners/{n}": 0.5 for n in ("PropagateLoader", "GridLoader")})
+
+
+def brand_mark_values(family: str, name: str) -> dict[str, Any]:
+    values = {k: v for k, v in overview_values(family, name).items() if k not in ("size", "height", "width")}
+    if family == "indicators":
+        values["size"] = "small"
+    else:
+        values["size"] = MARK_SIZE
+    values.update(MARK_VALUES.get((family, name), {}))
+    return values
+
+
+def build_brand_mark() -> html.Span:
+    """Every loader, stacked; assets/gallery.js shows a random one at a time."""
+    marks = []
+    for family, name in CATALOG:
+        scale = MARK_SCALE.get(f"{family}/{name}", MARK_SCALE.get(family))
+        node = instantiate(family, name, brand_mark_values(family, name))
+        marks.append(html.Span(
+            node, className="dlc-mark", title=f"dlc.{family}.{name}", hidden=True,
+            style={"--mark-scale": scale} if scale else None,
+        ))
+    return html.Span(marks, className="dlc-brand-mark", **{"aria-hidden": "true"})
+
+
+# Hero carousel: one slide per featured loader, snippet beside the loader.
+# A curated dozen, not the catalog: 107 highlighted snippets is a lot of DOM.
+FEATURED: list[tuple[str, str, dict[str, Any]]] = [
+    ("loading_dev", "Dual", {"rate": 1.5}),
+    ("ldrs", "Helix", {}),
+    ("premium", "OrbitRings", {"ring_count": 4}),
+    ("loading_dev", "Cascade", {"cap": "flat"}),
+    ("spinners", "HashLoader", {}),
+    ("indicators", "Mosaic", {}),
+    ("m3", "LoadingIndicator", {}),
+    ("loading_dev", "Blocks", {"sweep": "columns"}),
+    ("spinners_react", "SpinnerDiamond", {"thickness": 140}),
+    ("epic", "TrinityRingsSpinner", {}),
+    ("loader_spinner", "DNA", {}),
+    ("premium", "MobiusLoader", {"playing": False}),
+]
+
+
+def build_hero_carousel() -> html.Div:
+    slides = []
+    for family, name, extras in FEATURED:
+        values = {"size": 48, "color": DEFAULT_COLOR, **extras}
+        slides.append(html.Div(
+            [
+                # Wide enough that every featured call stays on one line, so
+                # the slides are all the same height and nothing below jumps.
+                dmc.CodeHighlight(code=build_snippet(family, name, values, 88).rstrip(),
+                                  language="python", className="dlc-hero-code"),
+                dcc.Link(
+                    [
+                        html.Div(instantiate(family, name, {**values, "size": 64}), className="dlc-hero-loader"),
+                        html.Div([html.Span(f"dlc.{family}.", className="dlc-hero-ns"), html.Strong(name)],
+                                 className="dlc-hero-name"),
+                    ],
+                    href=detail_path(family, name),
+                    className="dlc-hero-stage",
+                ),
+            ],
+            className="dlc-slide",
+            hidden=True,
+        ))
+    return html.Div(
+        [
+            html.Div(slides, className="dlc-carousel", id="hero-carousel"),
+            html.Div(
+                [
+                    html.Button(icon("chevron", "dlc-flip"), className="dlc-carousel-btn", type="button",
+                                **{"data-step": "-1", "aria-label": "Previous loader"}),
+                    html.Span(className="dlc-carousel-dots", **{"aria-hidden": "true"}),  # indicator only
+                    html.Button(icon("chevron"), className="dlc-carousel-btn", type="button",
+                                **{"data-step": "1", "aria-label": "Next loader"}),
+                ],
+                className="dlc-carousel-nav",
+            ),
+        ],
+        className="dlc-hero-carousel",
+    )
 
 
 def overview_values(family: str, name: str) -> dict[str, Any]:
@@ -705,10 +799,7 @@ def build_header() -> dmc.AppShellHeader:
                                    **{"aria-label": "Toggle navigation"}),
                         dmc.Anchor(
                             [
-                                html.Span(
-                                    dlc.loading_dev.Loading(size=20, color=DEFAULT_COLOR),
-                                    className="dlc-brand-mark",
-                                ),
+                                build_brand_mark(),
                                 html.Span("dash-loading-components", className="dlc-brand-name"),
                             ],
                             href="/",
@@ -871,18 +962,7 @@ def build_overview() -> html.Div:
                     ),
                     dmc.CodeHighlight(code="pip install dash-loading-components", language="bash",
                                       className="dlc-install", maw=560, mb="sm"),
-                    dmc.CodeHighlight(
-                        code=format_python_snippet(
-                            "import dash_loading_components as dlc\n\n"
-                            "# size, color, rate and playing work the same on every component\n"
-                            'dlc.loading_dev.Dual(size=48, color="#f97316", rate=1.5)\n\n'
-                            "# each library's own props are there too, in snake_case\n"
-                            'dlc.premium.OrbitRings(size=48, color="#f97316", ring_count=4)\n'
-                        ).rstrip(),
-                        language="python",
-                        maw=560,
-                        className="dlc-hero-code",
-                    ),
+                    build_hero_carousel(),
                 ],
                 className="dlc-hero",
             ),
