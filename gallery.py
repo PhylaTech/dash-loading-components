@@ -9,10 +9,12 @@ Run locally with `pixi run gallery`. Deployed behind gunicorn as
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
 import re
+from pathlib import Path
 from typing import Any, Callable, Optional
 from urllib.parse import unquote
 
@@ -1347,7 +1349,11 @@ def build_404() -> html.Div:
 # App
 # ---------------------------------------------------------------------------
 
-_OG_IMAGE = f"{SITE_URL}/assets/og-card.png"
+# Link previews are cached per URL by Slack, X and the rest, so a new card
+# only shows once the URL changes: version it by the file's own bytes.
+_OG_IMAGE = f"{SITE_URL}/assets/og-card.png?v=" + hashlib.md5(
+    (Path(__file__).parent / "assets" / "og-card.png").read_bytes()
+).hexdigest()[:8]
 _OG_DESCRIPTION = (
     "Interactive gallery of Dash loading spinners: wrappers for "
     "loading.dev, ldrs, react-spinners, and more. Built by PhylaTech."
@@ -1365,6 +1371,8 @@ app = Dash(
         {"property": "og:url", "content": f"{SITE_URL}/"},
         {"property": "og:site_name", "content": "PhylaTech"},
         {"property": "og:image", "content": _OG_IMAGE},
+        {"property": "og:image:width", "content": "1200"},
+        {"property": "og:image:height", "content": "630"},
         {"property": "og:image:alt", "content": "dash-loading-components: Interactive Dash loading spinner gallery"},
         {"name": "twitter:card", "content": "summary_large_image"},
         {"name": "twitter:title", "content": "dash-loading-components"},
