@@ -166,6 +166,41 @@ def jellyfish():
             shift(closing, 0), shift(open_bell, 0), shift(sway, 1), shift(open_bell, 2), shift(sway, 2)]
 
 
+def test_tube():
+    # A test tube on the bench, bubbles rising through it and off the rim.
+    tube = {(r, 1) for r in range(6)} | {(r, 5) for r in range(6)} | {(6, 2), (6, 3), (6, 4)}
+    liquid = {(r, c) for r in (4, 5) for c in (2, 3, 4)}
+    bubbles = [(2, 0), (4, 3), (3, 6)]  # (column, frame it leaves the liquid)
+    frames = []
+    for f in range(8):
+        cells = set(tube | liquid)
+        for col, start in bubbles:
+            r = 3 - (f - start) % 8
+            if r >= 0:
+                cells.add((r, col))
+        frames.append(cells)
+    return frames
+
+
+def fish():
+    # A fish swimming across, its tail beating as it goes.
+    tail_out = art("#..##..", ".#####.", "#..##..")
+    tail_in = art("...##..", "######.", "...##..")
+    return [shift(tail_out if i % 2 == 0 else tail_in, 2, dc) for i, dc in enumerate(range(-5, 7))]
+
+
+def snail():
+    # A snail gliding along, feelers waving, as the ground slides beneath.
+    shell = shift(art(".###...", "#...#..", "#.#.#..", "#..##.."), 1)
+    body = {(5, c) for c in range(N)}
+    feelers = [{(4, 6), (3, 6)}, {(4, 6), (3, 5)}]
+    frames = []
+    for f in range(6):
+        ground = {(6, c) for c in range(N) if (c + f) % 3 != 0}
+        frames.append(shell | body | feelers[(f // 2) % 2] | ground)
+    return frames
+
+
 def frond():
     # A fern: the rachis grows, leaflets open in pairs from the base up.
     stem = [(r, 3) for r in range(5, 0, -1)]
@@ -352,6 +387,27 @@ def heatmap():
     return frames
 
 
+def line_chart():
+    # A line drawn point to point across a pair of axes.
+    axes = {(r, 0) for r in range(N)} | {(6, c) for c in range(N)}
+    ys = [5, 4, 4, 2, 3, 1]
+    frames, line = [], set()
+    for i, y in enumerate(ys):
+        col = i + 1
+        prev = ys[i - 1] if i else y
+        line |= {(r, col) for r in range(min(prev, y), max(prev, y) + 1)} if i else {(y, col)}
+        frames.append(axes | line)
+    return frames + [frames[-1], frames[-1], axes]
+
+
+def database():
+    # A database filling up, disk by disk from the bottom.
+    disks = art(".#####.", "#.....#", ".#####.", "#.....#", ".#####.", "#.....#", ".#####.")
+    bands = [{(r, c) for c in range(1, 6)} for r in (5, 3, 1)]
+    frames = [disks | set().union(*bands[:i]) for i in range(len(bands) + 1)]
+    return frames + [frames[-1]]
+
+
 # ---------------------------------------------------------------------------
 # Everyday: the waits people meet in any app
 # ---------------------------------------------------------------------------
@@ -380,6 +436,57 @@ def magnifier():
     handle = {(MID + 2, MID + 2), (MID + 3, MID + 3)}
     path = [(-1, -1), (-1, 0), (0, 0), (0, -1)]
     return [shift(glass | handle, dr, dc) for dr, dc in path for _ in range(2)]
+
+
+def download():
+    # Arrows streaming down into a tray.
+    tray = {(5, 0), (5, 6)} | {(6, c) for c in range(N)}
+    arrow = art("...#...", ".#.#.#.", "..###..", "...#...")
+    return [tray | {(r, c) for r, c in shift(arrow, f) | shift(arrow, f - 5) if 0 <= r < 5} for f in range(5)]
+
+
+def crosswalk():
+    # A pedestrian signal: the figure stands, then strides across.
+    stand = art("...#...", "..###..", ".#.#.#.", ".#.#.#.", "..###..", "..#.#..", "..#.#..")
+    stride = art("...#...", "..###..", ".#.#.#.", "...#...", "..#.#..", ".#...#.", "#.....#")
+    passing = art("...#...", "..##...", "..###..", "...#...", "...##..", "...#.#.", "..#..#.")
+    return [stand] * 5 + [stride, passing] * 4
+
+
+def mail():
+    # A letter dropping into its envelope and the flap folding shut.
+    envelope = art(".......", ".......", "#######", "#.....#", "#.....#", "#.....#", "#######")
+    flap = {(3, 1), (4, 2), (5, 3), (4, 4), (3, 5)}
+    letter = art("..###..", "..###..")
+    frames = [envelope | shift(letter, dr) for dr in (-1, 0, 1)]
+    return frames + [envelope, envelope | flap, envelope | flap, envelope | flap]
+
+
+def wifi():
+    # A signal finding its bars, arc by arc, then searching again.
+    def arc(k):
+        return {(r, c) for r in range(N) for c in range(N)
+                if r < 6 and round(math.hypot(r - 6, c - MID)) == k and abs(c - MID) <= r - 6 + k + 1}
+    levels = [{(6, 3)}]
+    for k in (2, 4, 6):
+        levels.append(levels[-1] | arc(k))
+    return levels + [levels[-1]]
+
+
+def battery():
+    # A battery charging, one cell at a time.
+    case = {(1, c) for c in range(6)} | {(5, c) for c in range(6)} | {(r, 0) for r in range(1, 6)} \
+        | {(r, 5) for r in range(1, 6)} | {(2, 6), (3, 6), (4, 6)}
+    cells = [{(r, c) for r in (2, 3, 4)} for c in range(1, 5)]
+    frames = [case | set().union(*cells[:i]) for i in range(len(cells) + 1)]
+    return frames + [frames[-1]]
+
+
+def truck():
+    # A delivery truck on its way, the road markings rushing past.
+    # The road runs on row 5, inside the 5x5 safe area, so variant="5x5" moves too.
+    body = art("####...", "####.#.", "######.", "######.", ".#..#..")
+    return [body | {(5, c) for c in range(N) if (c + f) % 3 != 2} for f in range(3)]
 
 
 # ---------------------------------------------------------------------------
@@ -572,6 +679,9 @@ _DESIGNS = [
     ("Firefly", "field", firefly, "Fireflies drifting as they glow, never more than two at once."),
     ("Tide", "field", tide, "Water rising and falling, its surface rolling as it goes."),
     ("MassSpec", "field", mass_spec, "A mass spectrum being acquired: peaks and their isotope patterns landing as the scan runs up the m/z axis."),
+    ("TestTube", "field", test_tube, "A test tube on the bench, bubbles rising through it and off the rim."),
+    ("Fish", "field", fish, "A fish swimming across, its tail beating as it goes."),
+    ("Snail", "field", snail, "A snail gliding along, feelers waving, as the ground slides beneath."),
     ("Jellyfish", "field", jellyfish, "A jellyfish squeezing its bell to rise, then opening wide and sinking as its tentacles sway."),
     ("Frond", "field", frond, "A fern growing its stem, then opening its leaflets in pairs from the base up."),
     ("Diatom", "field", diatom, "A centric diatom, its striae turning slowly inside the round shell."),
@@ -586,9 +696,17 @@ _DESIGNS = [
     ("Histogram", "data", histogram, "Bins filling left to right into a bell curve, then emptying."),
     ("PieChart", "data", pie_chart, "A pie filling slice by slice from twelve o'clock, then emptying the same way round."),
     ("Heatmap", "data", heatmap, "A hot spot wandering a heat map, dense at its core and speckled at its edge."),
+    ("LineChart", "data", line_chart, "A line drawn point to point across a pair of axes."),
+    ("Database", "data", database, "A database filling up, disk by disk from the bottom."),
     ("Cart", "everyday", cart, "A shopping cart rolling in, an item dropping into it, and off it goes."),
     ("Upload", "everyday", upload, "Arrows streaming up out of a tray."),
     ("Magnifier", "everyday", magnifier, "A magnifying glass circling as it searches."),
+    ("Download", "everyday", download, "Arrows streaming down into a tray."),
+    ("Crosswalk", "everyday", crosswalk, "A pedestrian signal: the figure stands, then strides across."),
+    ("Mail", "everyday", mail, "A letter dropping into its envelope and the flap folding shut."),
+    ("Wifi", "everyday", wifi, "A signal finding its bars, arc by arc, then searching again."),
+    ("Battery", "everyday", battery, "A battery charging, one cell at a time."),
+    ("Truck", "everyday", truck, "A delivery truck on its way, the road markings rushing past."),
     ("Departures", "board", departures, "Three lines of a departure board ticking past at their own pace."),
     ("SplitFlap", "board", split_flap, "A split-flap sign flipping through its glyphs, the flap caught mid-turn."),
     ("Marquee", "board", marquee, "Chase lights running round a theatre sign."),
@@ -612,7 +730,7 @@ _DESIGNS = [
 CATEGORIES = {
     "field": ("Field", "the naturalist set"),
     "data": ("Data", "charts drawing themselves"),
-    "everyday": ("Everyday", "carts, uploads and searches"),
+    "everyday": ("Everyday", "the waits people meet in any app"),
     "board": ("Board", "what flip-dot panels do in stations and stadiums"),
     "geometry": ("Geometry", "shapes in motion"),
 }
