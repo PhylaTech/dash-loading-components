@@ -25,6 +25,7 @@
   "license": "MIT",
   "dependencies": {
     "@alerix/m3-loading-indicator": "^1.0.5",
+    "flicker-dot": "^0.1.4",
     "ldrs": "^1.1.9",
     "loading-dev": "^0.3.4",
     "premium-react-loaders": "^4.2.0",

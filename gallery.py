@@ -57,7 +57,7 @@ SIZE_PRESET_DEFAULT = 48
 
 # Workbench control order (props not listed follow in family order)
 WORKBENCH_PROP_PRIORITY = [
-    "size", "height", "width", "color", "rate", "playing",
+    "size", "height", "width", "color", "off_color", "rate", "playing",
     "easing", "cap", "sweep", "direction", "origin",
     "thickness", "stroke", "stroke_width", "stroke_width_secondary",
     "stroke_length", "bg_opacity", "secondary_color", "margin",
@@ -114,6 +114,7 @@ PROP_SECTION_TITLES = {
     "bar_count": "Bar count",
     "dot_count": "Dot count",
     "dot_size": "Dot size",
+    "off_color": "Off color",
 }
 
 PROP_SECTION_COPY = {
@@ -171,6 +172,7 @@ PROP_SECTION_COPY = {
     "alternate": "Turns every other ring the opposite way.",
     "orbit_radius": "Radius of the orbit relative to the size.",
     "stagger": "Offsets each dot’s pulse from the last.",
+    "off_color": "Color of the unlit dots. Empty keeps the spinner’s own, a faint tint of the on color.",
 }
 
 # Upstream tempo and pause props, replaced on the page by the contract's
@@ -217,7 +219,8 @@ LOADING_DEV_EASING = {
 }
 LOADING_DEV_CAP = {"Arc", "Cascade", "Dual", "Ring", "Snake", "Trace"}
 
-SKIP_UI_PROPS = {"id", "style", "setProps"}
+# grids is the frame data a flicker preset fills in, not a knob.
+SKIP_UI_PROPS = {"id", "style", "setProps", "grids"}
 
 # Control definitions. `default` is what the control starts at; per-spinner
 # corrections live in UPSTREAM_DEFAULTS. A color default of "" means "leave
@@ -274,6 +277,7 @@ PROP_SPECS: dict[str, dict[str, Any]] = {
     "alternate": {"kind": "bool", "default": True},
     "orbit_radius": {"kind": "slider", "min": 0.2, "max": 1.0, "step": 0.05, "default": 0.5},
     "stagger": {"kind": "bool", "default": True},
+    "off_color": {"kind": "color", "default": ""},
 }
 
 RATE_SPEC: dict[str, Any] = {"kind": "slider", "min": 0.5, "max": 3.0, "step": 0.1, "default": 1.0}
@@ -302,6 +306,9 @@ INDICATORS_VARIANT = {
 
 PREMIUM_THICKNESS_SPEC = {"kind": "slider", "min": 1, "max": 12, "step": 1, "default": 2}
 
+FLICKER_VARIANT_SPEC = {"kind": "enum", "options": ["7x7", "5x5"],
+                        "labels": {"7x7": "7×7", "5x5": "5×5"}, "default": "7x7"}
+
 
 def prop_spec(family: str, prop: str, name: str | None = None) -> dict[str, Any] | None:
     """Resolve control metadata for one prop of one spinner."""
@@ -313,6 +320,8 @@ def prop_spec(family: str, prop: str, name: str | None = None) -> dict[str, Any]
         return INDICATORS_VARIANT[name]
     if prop == "thickness" and family == "premium":
         return PREMIUM_THICKNESS_SPEC
+    if prop == "variant" and family == "flicker":
+        return FLICKER_VARIANT_SPEC
     return PROP_SPECS.get(prop)
 
 
@@ -405,6 +414,7 @@ FAMILY_PROP_ORDER = {
     "indicators": ["size", "color", "rate", "playing", "easing", "text", "text_color", "variant", "dense", "className"],
     "m3": ["size", "color", "rate", "playing", "contained", "container_color", "size_ratio", "className"],
     "epic": ["size", "color", "rate", "playing", "className"],
+    "flicker": ["size", "color", "off_color", "rate", "playing", "variant", "reverse", "aria_label", "className"],
 }
 
 
@@ -474,6 +484,15 @@ UPSTREAM_CREDITS = [
         "status": "mvp",
     },
     {
+        "family": "flicker", "npm": "flicker-dot", "version": "0.1.4", "spdx": "MIT",
+        "homepage": "https://flicker.laurie.fyi", "repo": "https://github.com/laurieesc/flicker-dot",
+        "blurb": (
+            "Laura Escobar's flip-dot player, on 30 original presets drawn by PhylaTech. "
+            "dlc.flicker.Spinner(grids=...) plays frames of your own."
+        ),
+        "status": "mvp",
+    },
+    {
         "family": "svg_spinners", "npm": "react-svg-spinners", "version": "0.3.1", "spdx": "MIT",
         "homepage": "https://www.npmjs.com/package/react-svg-spinners",
         "repo": "https://github.com/theme-park/react-svg-spinners",
@@ -496,6 +515,8 @@ CATALOG: list[tuple[str, str]] = [
 def description_for(family: str, name: str, upstream: str) -> str:
     if family == "loading_dev" and name in LOADING_DEV_BLURBS:
         return LOADING_DEV_BLURBS[name]
+    if family == "flicker":
+        return dlc.flicker.PRESETS[name].blurb
     return f"The {name} loader from {upstream}, as a Dash component."
 
 
@@ -735,7 +756,7 @@ def build_brand_mark() -> html.Span:
 
 
 # Hero carousel: one slide per featured loader, snippet beside the loader.
-# A curated dozen, not the catalog: 107 highlighted snippets is a lot of DOM.
+# A curated handful, not the catalog: every highlighted snippet is DOM.
 FEATURED: list[tuple[str, str, dict[str, Any]]] = [
     ("loading_dev", "Dual", {"rate": 1.5}),
     ("ldrs", "Helix", {}),
@@ -749,6 +770,7 @@ FEATURED: list[tuple[str, str, dict[str, Any]]] = [
     ("epic", "TrinityRingsSpinner", {}),
     ("loader_spinner", "DNA", {}),
     ("ldrs", "Mirage", {}),
+    ("flicker", "Mycelium", {}),
 ]
 
 
@@ -992,6 +1014,21 @@ def make_overview_card(family: str, name: str) -> dmc.Anchor:
     )
 
 
+def family_grids(key: str, items: list[tuple[str, Callable]]) -> list:
+    """One grid of cards, or, for flicker's presets, one per category."""
+    if key != "flicker":
+        return [html.Div([make_overview_card(key, n) for n, _c in items], className="dlc-grid")]
+    grids = []
+    for i, (category, (title, note)) in enumerate(dlc.flicker.CATEGORIES.items()):
+        names = [n for n, _c in items if dlc.flicker.PRESETS[n].category == category]
+        grids += [
+            dmc.Group([dmc.Text(title, size="sm", fw=600), dmc.Text(note, size="sm", c="dimmed")],
+                      gap=6, className="dlc-subfamily is-first" if i == 0 else "dlc-subfamily"),
+            html.Div([make_overview_card(key, n) for n in names], className="dlc-grid"),
+        ]
+    return grids
+
+
 def build_overview() -> html.Div:
     sections = []
     for key, label, items in FAMILIES:
@@ -1012,7 +1049,7 @@ def build_overview() -> html.Div:
                         align="center",
                     ),
                     dmc.Text(credit["blurb"], c="dimmed", size="sm", mt=6, mb="md"),
-                    html.Div([make_overview_card(key, n) for n, _c in items], className="dlc-grid"),
+                    *family_grids(key, items),
                 ],
                 id=f"family-{key}",
                 className="dlc-family",
@@ -1051,6 +1088,8 @@ def section_copy(family: str, prop: str) -> str:
         return "A size token: small, medium or large."
     if family == "indicators" and prop == "easing":
         return "The CSS easing of each cycle. Empty keeps the curve each indicator is designed with."
+    if family == "flicker" and prop == "variant":
+        return "The full 7×7 grid, or only its inner 5×5."
     return PROP_SECTION_COPY.get(prop, f"Configurable `{prop}` for this wrapper.")
 
 

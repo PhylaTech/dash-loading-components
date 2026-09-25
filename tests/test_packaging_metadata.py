@@ -52,7 +52,7 @@ CASES = [react_prop_names(s) for s in SOURCES]
 
 
 def test_every_source_was_parsed():
-    assert len(CASES) == 107, len(CASES)
+    assert len(CASES) == 108, len(CASES)
 
 
 @pytest.mark.parametrize("display_name,react_props", CASES)

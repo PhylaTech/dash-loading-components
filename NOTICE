@@ -21,6 +21,9 @@ Notable upstream projects (non-exhaustive; see inventory for pins and status):
   - react-svg-spinners — MIT (gated: React ^18.2 peer)
   - @alerix/m3-loading-indicator — Apache-2.0
   - react-epic-spinners — MIT
+  - flicker-dot (laurieesc/flicker-dot) — MIT. The dlc.flicker presets are
+    original PhylaTech designs under this package's MIT license; none of the
+    flicker.laurie.fyi gallery patterns are included.
 
 Hard skips (not wrapped): css-spinners (GPL-3.0), react18-loaders (MPL-2.0).
 

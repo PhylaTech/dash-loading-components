@@ -54,6 +54,7 @@ const TEMPO = {
     epic: {prop: 'animationDuration', of: (rate, spinner) => PERIOD.epic[spinner] / rate},
     premium: {prop: 'speed', of: (rate) => PREMIUM_PERIOD / rate},
     m3: {prop: 'speed', of: (rate) => rate},
+    flicker: {prop: 'speed', of: (rate) => rate},
     spinners: {prop: 'speedMultiplier', of: (rate) => rate},
     spinners_react: {prop: 'speed', of: (rate) => 100 * rate},
     // speedPlus is an integer offset in [-5, 5], 0 = normal.
