@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import datetime, timezone
 import logging
 import os
 import re
@@ -1354,6 +1355,7 @@ def build_404() -> html.Div:
 _OG_IMAGE = f"{SITE_URL}/assets/og-card.png?v=" + hashlib.md5(
     (Path(__file__).parent / "assets" / "og-card.png").read_bytes()
 ).hexdigest()[:8]
+_PUBLISHED = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 _OG_DESCRIPTION = (
     "Interactive gallery of Dash loading spinners: wrappers for "
     "loading.dev, ldrs, react-spinners, and more. Built by PhylaTech."
@@ -1365,6 +1367,12 @@ app = Dash(
     meta_tags=[
         {"name": "viewport", "content": "width=device-width, initial-scale=1"},
         {"name": "description", "content": _OG_DESCRIPTION},
+        # LinkedIn's inspector wants an author and a publish date. Each
+        # deploy republishes the site, so the date is when this process began.
+        {"name": "author", "content": "Phyla Technologies"},
+        {"property": "article:author", "content": "https://github.com/PhylaTech"},
+        {"property": "article:published_time", "content": _PUBLISHED},
+        {"property": "og:updated_time", "content": _PUBLISHED},
         {"property": "og:title", "content": "dash-loading-components"},
         {"property": "og:description", "content": _OG_DESCRIPTION},
         {"property": "og:type", "content": "website"},
