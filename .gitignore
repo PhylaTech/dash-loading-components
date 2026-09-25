@@ -291,3 +291,6 @@ JuliaManifest.toml
 /man/
 /src/jl/
 /src/DashLoadingComponents.jl
+
+# pixi environments
+.pixi/

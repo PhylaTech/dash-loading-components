@@ -10,15 +10,14 @@ uses to cut releases from `main`.
 ## Local setup
 
 ```bash
-python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt -r tests/requirements.txt
+pixi install
 npm install
-npm run build
-pytest
+pixi run build
+pixi run test
 ```
 
-`npm run build` compiles the JS bundle and regenerates the Python wrappers from
-the React components. Use `npm run build:js` when you have only changed React
+`pixi run build` compiles the JS bundle and regenerates the Python wrappers from
+the React components. Use `pixi run build-js` when you have only changed React
 or CSS under `src/`.
 
 Do not hand-edit anything under `dash_loading_components/` except

@@ -44,10 +44,17 @@ Keyword arguments:
 - margin (number | string; optional):
     Margin between elements.
 
+- playing (boolean; optional):
+    Set to False to pause the animation.
+
+- rate (number; optional):
+    Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as
+    fast, 0.5 half. Leave unset to keep the upstream tempo.
+
 - size (number; optional):
     Size in pixels.
 
-- speedMultiplier (number; optional):
+- speed_multiplier (number; optional):
     Speed multiplier.
 
 - width (number | string; optional):
@@ -66,15 +73,17 @@ Keyword arguments:
         size: typing.Optional[NumberType] = None,
         color: typing.Optional[str] = None,
         loading: typing.Optional[bool] = None,
-        speedMultiplier: typing.Optional[NumberType] = None,
+        speed_multiplier: typing.Optional[NumberType] = None,
         height: typing.Optional[typing.Union[NumberType, str]] = None,
         width: typing.Optional[typing.Union[NumberType, str]] = None,
         margin: typing.Optional[typing.Union[NumberType, str]] = None,
+        rate: typing.Optional[NumberType] = None,
+        playing: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'height', 'loading', 'margin', 'size', 'speedMultiplier', 'style', 'width']
+        self._prop_names = ['id', 'className', 'color', 'height', 'loading', 'margin', 'playing', 'rate', 'size', 'speed_multiplier', 'style', 'width']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'height', 'loading', 'margin', 'size', 'speedMultiplier', 'style', 'width']
+        self.available_properties = ['id', 'className', 'color', 'height', 'loading', 'margin', 'playing', 'rate', 'size', 'speed_multiplier', 'style', 'width']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

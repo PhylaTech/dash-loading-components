@@ -41,8 +41,15 @@ Keyword arguments:
 - easing (a value equal to: "linear", "ease-in-out", "stacked"; optional):
     Animation easing curve.
 
-- playState (a value equal to: "paused", "running"; optional):
+- play_state (a value equal to: "paused", "running"; optional):
     Whether the animation runs.
+
+- playing (boolean; optional):
+    Set to False to pause the animation.
+
+- rate (number; optional):
+    Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as
+    fast, 0.5 half. Leave unset to keep the upstream tempo.
 
 - size (number; optional):
     Width/height in pixels. Defaults to 20."""
@@ -60,13 +67,15 @@ Keyword arguments:
         size: typing.Optional[NumberType] = None,
         color: typing.Optional[str] = None,
         duration: typing.Optional[NumberType] = None,
-        playState: typing.Optional[Literal["paused", "running"]] = None,
+        play_state: typing.Optional[Literal["paused", "running"]] = None,
         easing: typing.Optional[Literal["linear", "ease-in-out", "stacked"]] = None,
+        rate: typing.Optional[NumberType] = None,
+        playing: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'duration', 'easing', 'playState', 'size', 'style']
+        self._prop_names = ['id', 'className', 'color', 'duration', 'easing', 'play_state', 'playing', 'rate', 'size', 'style']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'duration', 'easing', 'playState', 'size', 'style']
+        self.available_properties = ['id', 'className', 'color', 'duration', 'easing', 'play_state', 'playing', 'rate', 'size', 'style']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

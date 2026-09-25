@@ -1,15 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {contract, wrapperClass} from '../../contract';
 import Upstream from 'react-spinners/ScaleLoader';
 
 /**
  * SpinnersScaleLoader — Dash wrapper for upstream spinner.
  */
 const SpinnersScaleLoader = (props) => {
-    const {id, className, style, setProps, size, color, loading, speedMultiplier, height, width, margin, radius, barCount} = props;
+    const {id, className, style, size, color, loading, speed_multiplier, height, width, margin, radius, bar_count, rate, playing} = props;
     return (
-        <div id={id} className={className} style={style}>
-            <Upstream color={color} loading={loading} speedMultiplier={speedMultiplier} height={height} width={width} margin={margin} radius={radius} barCount={barCount} />
+        <div id={id} className={wrapperClass(className, playing)} style={style}>
+            <Upstream color={color} loading={loading} speedMultiplier={speed_multiplier} height={height} width={width} margin={margin} radius={radius} barCount={bar_count} {...contract('spinners', 'ScaleLoader', props)} />
         </div>
     );
 };
@@ -30,10 +31,6 @@ SpinnersScaleLoader.propTypes = {
      */
     style: PropTypes.object,
     /**
-     * Dash-assigned callback that should be called to report property changes.
-     */
-    setProps: PropTypes.func,
-    /**
      * Size in pixels.
      */
     size: PropTypes.number,
@@ -48,7 +45,7 @@ SpinnersScaleLoader.propTypes = {
     /**
      * Speed multiplier.
      */
-    speedMultiplier: PropTypes.number,
+    speed_multiplier: PropTypes.number,
     /**
      * Height where applicable.
      */
@@ -68,7 +65,16 @@ SpinnersScaleLoader.propTypes = {
     /**
      * Number of bars.
      */
-    barCount: PropTypes.number,
+    bar_count: PropTypes.number,
+    /**
+     * Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as fast,
+     * 0.5 half. Leave unset to keep the upstream tempo.
+     */
+    rate: PropTypes.number,
+    /**
+     * Set to False to pause the animation.
+     */
+    playing: PropTypes.bool,
 };
 
 export default SpinnersScaleLoader;

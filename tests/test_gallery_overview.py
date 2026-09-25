@@ -110,40 +110,36 @@ def test_no_overview_card_clips_its_spinner(dash_duo):
     )
 
 
-def _nav_matches(dash_duo):
-    return dash_duo.driver.execute_script(
-        """
-        return [...document.querySelectorAll('.dlc-nav-comp')]
-          .filter((e) => getComputedStyle(e).display !== 'none').length;
-        """
-    )
+def test_header_search_jumps_to_a_component(dash_duo):
+    """⌘K focuses the header search; typing filters every component, grouped
+    by library, and Enter opens the highlighted one."""
+    from selenium.webdriver.common.keys import Keys
 
-
-def test_search_filters_from_a_detail_page(dash_duo):
-    """The search callback has to survive pages that lack its outputs.
-
-    Its overview-only outputs are pattern ids for this reason. As plain string
-    ids, Dash aborted the whole callback on any detail page: the console filled
-    with `A nonexistent object was used in an Output`, and typing in the
-    sidebar search did nothing at all.
-    """
     app = import_app('gallery')
     dash_duo.start_server(app)
     dash_duo.driver.set_window_size(1440, 1200)
-
     dash_duo.driver.get(dash_duo.server_url + '/c/ldrs/Mirage')
     dash_duo.wait_for_element('#detail-preview')
-    before = _nav_matches(dash_duo)
-    assert before > 50, before
 
-    dash_duo.find_element('#nav-search').send_keys('orbit')
-    dash_duo.wait_for_element('.dlc-nav-comp')
+    body = dash_duo.find_element('body')
+    body.send_keys(Keys.CONTROL, 'k')
+    body.send_keys(Keys.COMMAND, 'k')
+    search = dash_duo.find_element('#site-search')
+    assert dash_duo.driver.switch_to.active_element == search
+
+    search.send_keys('orbit')
     for _ in range(40):
-        if _nav_matches(dash_duo) < before:
+        options = dash_duo.driver.find_elements('css selector', '.mantine-Select-option')
+        if len(options) == 6:
             break
         time.sleep(0.1)
-    assert _nav_matches(dash_duo) == 6, _nav_matches(dash_duo)
+    names = [o.text for o in options]
+    assert names == ['Orbit', 'Orbit', 'OrbitDots', 'OrbitRings', 'OrbitProgress', 'OrbitSpinner'], names
 
+    search.send_keys(Keys.ARROW_DOWN, Keys.ARROW_DOWN, Keys.ENTER)
+    dash_duo.wait_for_text_to_equal('h1', 'Orbit')
+    assert dash_duo.driver.current_url.endswith('/c/ldrs/Orbit')
+    assert search.get_attribute('value') == ''
     assert dash_duo.get_logs() == []
 
 

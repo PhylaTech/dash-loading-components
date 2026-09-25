@@ -11,24 +11,35 @@ Browse them all in the live gallery: **<https://dash-loading-components.phylatec
 pip install dash-loading-components
 ```
 
-## Two APIs
+## One contract, every component
 
 ```python
 import dash_loading_components as dlc
 
-# Common factory. `speed` is relative: 1.0 is this spinner's normal tempo,
-# translated to whatever native unit its family uses.
-dlc.Loading(library="loading_dev", spinner="Dual", size=48, color="#f97316", speed=1.0)
-
-# Namespaced. Upstream prop names and units, and every exotic prop a family has.
-dlc.loading_dev.Dual(size=48, color="#f97316", duration=1000)
-dlc.spinners.ClipLoader(size=24, color="#f97316")
-dlc.ldrs.Ring()
+dlc.loading_dev.Dual(size=48, color="#f97316", rate=1.5)
+dlc.premium.OrbitRings(size=48, color="#f97316", ring_count=4, playing=False)
+dlc.ldrs.Ring(size=48, color="#f97316", stroke=5)
 ```
 
-`dlc.Loading` covers the props every family shares (`size`, `color`, `speed`,
-`playing`, `class_name`) and forwards anything else through. Reach for the
-namespaced form when you want a family's own vocabulary.
+Every component takes the same four props with the same meaning:
+
+| prop | meaning |
+|---|---|
+| `size` | pixels (`react-loading-indicators` takes its own `"small"` / `"medium"` / `"large"` tokens) |
+| `color` | any CSS color |
+| `rate` | relative tempo: `1.0` is this spinner's own tempo, `2.0` twice as fast. Unset keeps the upstream tempo |
+| `playing` | `False` pauses the animation |
+
+Each library's own props are there too, in snake_case, in the library's own
+units: `dlc.loading_dev.Arc(duration=1600, easing="stacked")`,
+`dlc.spinners.ClipLoader(speed_multiplier=2)`. A native tempo or pause prop
+passed alongside `rate` or `playing` wins.
+
+Need a loading overlay? Use Dash's own:
+
+```python
+dcc.Loading(children, custom_spinner=dlc.ldrs.Ring(size=48))
+```
 
 Discover what is available at runtime:
 
@@ -68,21 +79,18 @@ Version pins, SPDX licenses, upstream URLs and React peers:
 [docs/UPSTREAM-INVENTORY.md](docs/UPSTREAM-INVENTORY.md). Attribution:
 [NOTICE](NOTICE).
 
-## Relative speed
+## Relative tempo
 
-`speed` on `dlc.Loading` is a rate, not a duration. `1.0` reproduces the tempo
-the upstream component runs at on its own, and the value is translated per
-family: a duration in milliseconds for loading-dev and epic, seconds per loop
-for ldrs, a multiplier for react-spinners, a percentage for spinners-react, an
-offset for react-loading-indicators.
+`rate` is a rate, not a duration. `1.0` reproduces the tempo the upstream
+component runs at on its own, and the value is translated per family in the
+wrappers: a duration in milliseconds for loading-dev, epic and premium,
+seconds per loop for ldrs, a multiplier for react-spinners and m3, a
+percentage for spinners-react, an offset for react-loading-indicators.
 
 That baseline is per spinner, not per family. `loading_dev.Compass` is normally
-500ms and `loading_dev.Slide` is 2400ms, so `speed=1.0` gives each of them its
-own tempo and `speed=2.0` runs either at twice its own rate.
-
-To set a native unit directly, use the namespaced form. Passing both a relative
-`speed` and a native tempo prop raises `ValueError` rather than silently
-picking one.
+500ms and `loading_dev.Slide` is 2400ms, so `rate=1.0` gives each of them its
+own tempo and `rate=2.0` halves both. `react-loader-spinner` has no tempo prop,
+so `rate` does nothing there.
 
 ## Compared with dash-loading-spinners
 
@@ -109,16 +117,18 @@ so commit subjects need a `feat:` / `fix:` / `chore:` prefix.
 Local setup:
 
 ```bash
-python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt -r tests/requirements.txt
+pixi install           # Python, Node, Dash, the gallery's deps, test tooling
 npm install
-npm run build          # JS bundle + generated Python wrappers
-python usage.py        # minimal demo app
-python gallery.py      # the full gallery, http://127.0.0.1:8050/
-pytest
+pixi run build         # JS bundle + generated Python wrappers
+pixi run python usage.py   # minimal demo app
+pixi run gallery       # the full gallery, http://127.0.0.1:8050/
+pixi run test
 ```
 
-`npm run build:js` alone is enough when you have only changed React or CSS
+The deployed gallery runs under gunicorn (`gallery:server`); `pixi run serve`
+does the same locally.
+
+`pixi run build-js` alone is enough when you have only changed React or CSS
 under `src/`.
 
 ## License

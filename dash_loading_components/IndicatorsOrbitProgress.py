@@ -41,16 +41,23 @@ Keyword arguments:
 - easing (string; optional):
     CSS animation easing function (e.g. linear, ease-in, ease-out).
 
+- playing (boolean; optional):
+    Set to False to pause the animation.
+
+- rate (number; optional):
+    Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as
+    fast, 0.5 half. Leave unset to keep the upstream tempo.
+
 - size (string | number; optional):
     Size (small/medium/large or number).
 
-- speedPlus (number; optional):
+- speed_plus (number; optional):
     Speed adjustment.
 
 - text (string; optional):
     Optional text.
 
-- textColor (string; optional):
+- text_color (string; optional):
     Text color.
 
 - variant (string; optional):
@@ -69,16 +76,18 @@ Keyword arguments:
         size: typing.Optional[typing.Union[str, NumberType]] = None,
         color: typing.Optional[typing.Union[str, typing.Sequence[str]]] = None,
         text: typing.Optional[str] = None,
-        textColor: typing.Optional[str] = None,
-        speedPlus: typing.Optional[NumberType] = None,
+        text_color: typing.Optional[str] = None,
+        speed_plus: typing.Optional[NumberType] = None,
         variant: typing.Optional[str] = None,
         easing: typing.Optional[str] = None,
         dense: typing.Optional[bool] = None,
+        rate: typing.Optional[NumberType] = None,
+        playing: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'dense', 'easing', 'size', 'speedPlus', 'style', 'text', 'textColor', 'variant']
+        self._prop_names = ['id', 'className', 'color', 'dense', 'easing', 'playing', 'rate', 'size', 'speed_plus', 'style', 'text', 'text_color', 'variant']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'dense', 'easing', 'size', 'speedPlus', 'style', 'text', 'textColor', 'variant']
+        self.available_properties = ['id', 'className', 'color', 'dense', 'easing', 'playing', 'rate', 'size', 'speed_plus', 'style', 'text', 'text_color', 'variant']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

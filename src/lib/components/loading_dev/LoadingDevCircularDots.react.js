@@ -1,15 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {contract, wrapperClass} from '../../contract';
 import { CircularDots as Upstream } from 'loading-dev';
 
 /**
  * LoadingDevCircularDots — Dash wrapper for upstream spinner.
  */
 const LoadingDevCircularDots = (props) => {
-    const {id, className, style, setProps, size, color, duration, playState} = props;
+    const {id, className, style, size, color, duration, play_state, rate, playing} = props;
     return (
         <div id={id} style={style}>
-            <Upstream size={size} color={color} duration={duration} playState={playState} className={className} />
+            <Upstream size={size} color={color} duration={duration} playState={play_state} className={wrapperClass(className, playing)} {...contract('loading_dev', 'CircularDots', props)} />
         </div>
     );
 };
@@ -30,10 +31,6 @@ LoadingDevCircularDots.propTypes = {
      */
     style: PropTypes.object,
     /**
-     * Dash-assigned callback that should be called to report property changes.
-     */
-    setProps: PropTypes.func,
-    /**
      * Width/height in pixels. Defaults to 20.
      */
     size: PropTypes.number,
@@ -48,7 +45,16 @@ LoadingDevCircularDots.propTypes = {
     /**
      * Whether the animation runs.
      */
-    playState: PropTypes.oneOf(["paused", "running"]),
+    play_state: PropTypes.oneOf(["paused", "running"]),
+    /**
+     * Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as fast,
+     * 0.5 half. Leave unset to keep the upstream tempo.
+     */
+    rate: PropTypes.number,
+    /**
+     * Set to False to pause the animation.
+     */
+    playing: PropTypes.bool,
 };
 
 export default LoadingDevCircularDots;

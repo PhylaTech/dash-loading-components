@@ -29,7 +29,7 @@ Keyword arguments:
 - id (string; optional):
     The ID used to identify this component in Dash callbacks.
 
-- ariaLabel (string; optional):
+- aria_label (string; optional):
     Aria label.
 
 - className (string; optional):
@@ -41,13 +41,23 @@ Keyword arguments:
 - height (number | string; optional):
     Height.
 
+- playing (boolean; optional):
+    Set to False to pause the animation.
+
 - radius (number | string; optional):
     Radius where applicable.
 
-- secondaryColor (string; optional):
+- rate (number; optional):
+    Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as
+    fast, 0.5 half. Leave unset to keep the upstream tempo.
+
+- secondary_color (string; optional):
     Secondary color.
 
-- strokeWidth (number | string; optional):
+- size (number; optional):
+    Height and width in pixels, unless either is given on its own.
+
+- stroke_width (number | string; optional):
     Stroke width.
 
 - visible (boolean; optional):
@@ -66,19 +76,22 @@ Keyword arguments:
         id: typing.Optional[typing.Union[str, dict]] = None,
         className: typing.Optional[str] = None,
         style: typing.Optional[typing.Any] = None,
+        size: typing.Optional[NumberType] = None,
         height: typing.Optional[typing.Union[NumberType, str]] = None,
         width: typing.Optional[typing.Union[NumberType, str]] = None,
         color: typing.Optional[str] = None,
-        secondaryColor: typing.Optional[str] = None,
+        secondary_color: typing.Optional[str] = None,
         radius: typing.Optional[typing.Union[NumberType, str]] = None,
-        ariaLabel: typing.Optional[str] = None,
+        aria_label: typing.Optional[str] = None,
         visible: typing.Optional[bool] = None,
-        strokeWidth: typing.Optional[typing.Union[NumberType, str]] = None,
+        stroke_width: typing.Optional[typing.Union[NumberType, str]] = None,
+        rate: typing.Optional[NumberType] = None,
+        playing: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'ariaLabel', 'className', 'color', 'height', 'radius', 'secondaryColor', 'strokeWidth', 'style', 'visible', 'width']
+        self._prop_names = ['id', 'aria_label', 'className', 'color', 'height', 'playing', 'radius', 'rate', 'secondary_color', 'size', 'stroke_width', 'style', 'visible', 'width']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'ariaLabel', 'className', 'color', 'height', 'radius', 'secondaryColor', 'strokeWidth', 'style', 'visible', 'width']
+        self.available_properties = ['id', 'aria_label', 'className', 'color', 'height', 'playing', 'radius', 'rate', 'secondary_color', 'size', 'stroke_width', 'style', 'visible', 'width']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

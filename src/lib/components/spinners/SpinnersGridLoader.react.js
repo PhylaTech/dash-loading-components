@@ -1,15 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {contract, wrapperClass} from '../../contract';
 import Upstream from 'react-spinners/GridLoader';
 
 /**
  * SpinnersGridLoader — Dash wrapper for upstream spinner.
  */
 const SpinnersGridLoader = (props) => {
-    const {id, className, style, setProps, size, color, loading, speedMultiplier, height, width, margin} = props;
+    const {id, className, style, size, color, loading, speed_multiplier, height, width, margin, rate, playing} = props;
     return (
-        <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} loading={loading} speedMultiplier={speedMultiplier} height={height} width={width} margin={margin} />
+        <div id={id} className={wrapperClass(className, playing)} style={style}>
+            <Upstream size={size} color={color} loading={loading} speedMultiplier={speed_multiplier} height={height} width={width} margin={margin} {...contract('spinners', 'GridLoader', props)} />
         </div>
     );
 };
@@ -30,10 +31,6 @@ SpinnersGridLoader.propTypes = {
      */
     style: PropTypes.object,
     /**
-     * Dash-assigned callback that should be called to report property changes.
-     */
-    setProps: PropTypes.func,
-    /**
      * Size in pixels.
      */
     size: PropTypes.number,
@@ -48,7 +45,7 @@ SpinnersGridLoader.propTypes = {
     /**
      * Speed multiplier.
      */
-    speedMultiplier: PropTypes.number,
+    speed_multiplier: PropTypes.number,
     /**
      * Height where applicable.
      */
@@ -61,6 +58,15 @@ SpinnersGridLoader.propTypes = {
      * Margin between elements.
      */
     margin: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    /**
+     * Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as fast,
+     * 0.5 half. Leave unset to keep the upstream tempo.
+     */
+    rate: PropTypes.number,
+    /**
+     * Set to False to pause the animation.
+     */
+    playing: PropTypes.bool,
 };
 
 export default SpinnersGridLoader;

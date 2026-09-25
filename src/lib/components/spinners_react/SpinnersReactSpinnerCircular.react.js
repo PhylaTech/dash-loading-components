@@ -1,15 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {contract, wrapperClass} from '../../contract';
 import { SpinnerCircular as Upstream } from 'spinners-react';
 
 /**
  * SpinnersReactSpinnerCircular — Dash wrapper for upstream spinner.
  */
 const SpinnersReactSpinnerCircular = (props) => {
-    const {id, className, style, setProps, size, color, secondaryColor, thickness, speed, enabled, still} = props;
+    const {id, className, style, size, color, secondary_color, thickness, speed, enabled, still, rate, playing} = props;
     return (
-        <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} secondaryColor={secondaryColor} thickness={thickness} speed={speed} enabled={enabled} still={still} />
+        <div id={id} className={wrapperClass(className, playing)} style={style}>
+            <Upstream size={size} color={color} secondaryColor={secondary_color} thickness={thickness} speed={speed} enabled={enabled} still={still} {...contract('spinners_react', 'SpinnerCircular', props)} />
         </div>
     );
 };
@@ -30,10 +31,6 @@ SpinnersReactSpinnerCircular.propTypes = {
      */
     style: PropTypes.object,
     /**
-     * Dash-assigned callback that should be called to report property changes.
-     */
-    setProps: PropTypes.func,
-    /**
      * Size.
      */
     size: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
@@ -44,7 +41,7 @@ SpinnersReactSpinnerCircular.propTypes = {
     /**
      * Secondary color.
      */
-    secondaryColor: PropTypes.string,
+    secondary_color: PropTypes.string,
     /**
      * Thickness.
      */
@@ -61,6 +58,15 @@ SpinnersReactSpinnerCircular.propTypes = {
      * Disable animation while keeping the spinner visible.
      */
     still: PropTypes.bool,
+    /**
+     * Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as fast,
+     * 0.5 half. Leave unset to keep the upstream tempo.
+     */
+    rate: PropTypes.number,
+    /**
+     * Set to False to pause the animation.
+     */
+    playing: PropTypes.bool,
 };
 
 export default SpinnersReactSpinnerCircular;

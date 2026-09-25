@@ -24,9 +24,9 @@ class PremiumShimmerBox(Component):
     """A PremiumShimmerBox component.
 PremiumShimmerBox — Dash wrapper for upstream spinner.
 
-Upstream ShimmerBox uses width/height (defaults 200×100) and baseColor,
-not the Common API `size`/`color`. Map those so gallery + dlc.Loading
-size presets produce a box that fits preview frames.
+Upstream ShimmerBox takes width/height (defaults 200x100) and baseColor.
+`size` and `color` map onto those so the box behaves like every other
+dlc component.
 
 Keyword arguments:
 
@@ -43,11 +43,14 @@ Keyword arguments:
     Explicit box height (px or CSS length). Overrides size-derived
     height.
 
-- reverse (boolean; optional):
-    Reverse animation direction (reserved; upstream uses direction
-    enum).
+- playing (boolean; optional):
+    Set to False to pause the animation.
 
-- secondaryColor (string; optional):
+- rate (number; optional):
+    Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as
+    fast, 0.5 half. Leave unset to keep the upstream tempo.
+
+- secondary_color (string; optional):
     Mapped to upstream highlightColor (shimmer highlight).
 
 - size (string | number; optional):
@@ -79,14 +82,15 @@ Keyword arguments:
         height: typing.Optional[typing.Union[str, NumberType]] = None,
         color: typing.Optional[str] = None,
         speed: typing.Optional[typing.Union[str, NumberType]] = None,
-        reverse: typing.Optional[bool] = None,
-        secondaryColor: typing.Optional[str] = None,
+        secondary_color: typing.Optional[str] = None,
         visible: typing.Optional[bool] = None,
+        rate: typing.Optional[NumberType] = None,
+        playing: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'height', 'reverse', 'secondaryColor', 'size', 'speed', 'style', 'visible', 'width']
+        self._prop_names = ['id', 'className', 'color', 'height', 'playing', 'rate', 'secondary_color', 'size', 'speed', 'style', 'visible', 'width']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'height', 'reverse', 'secondaryColor', 'size', 'speed', 'style', 'visible', 'width']
+        self.available_properties = ['id', 'className', 'color', 'height', 'playing', 'rate', 'secondary_color', 'size', 'speed', 'style', 'visible', 'width']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

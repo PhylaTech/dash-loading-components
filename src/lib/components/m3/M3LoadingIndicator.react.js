@@ -1,15 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {contract, wrapperClass} from '../../contract';
 import { M3LoadingIndicator as Upstream } from '@alerix/m3-loading-indicator/react';
 
 /**
  * M3LoadingIndicator — Dash wrapper for upstream spinner.
  */
 const M3LoadingIndicator = (props) => {
-    const {id, className, style, setProps, size, color, sizeRatio, speed, paused, contained, containerColor} = props;
+    const {id, className, style, size, color, size_ratio, speed, paused, contained, container_color, rate, playing} = props;
     return (
-        <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} sizeRatio={sizeRatio} speed={speed} paused={paused} contained={contained} containerColor={containerColor} />
+        <div id={id} className={wrapperClass(className, playing)} style={style}>
+            <Upstream size={size} color={color} sizeRatio={size_ratio} speed={speed} paused={paused} contained={contained} containerColor={container_color} {...contract('m3', 'M3LoadingIndicator', props)} />
         </div>
     );
 };
@@ -30,10 +31,6 @@ M3LoadingIndicator.propTypes = {
      */
     style: PropTypes.object,
     /**
-     * Dash-assigned callback that should be called to report property changes.
-     */
-    setProps: PropTypes.func,
-    /**
      * CSS pixel size (default 48).
      */
     size: PropTypes.number,
@@ -44,7 +41,7 @@ M3LoadingIndicator.propTypes = {
     /**
      * Ratio of indicator shape to container.
      */
-    sizeRatio: PropTypes.number,
+    size_ratio: PropTypes.number,
     /**
      * Animation speed multiplier.
      */
@@ -60,7 +57,16 @@ M3LoadingIndicator.propTypes = {
     /**
      * Container background when contained.
      */
-    containerColor: PropTypes.string,
+    container_color: PropTypes.string,
+    /**
+     * Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as fast,
+     * 0.5 half. Leave unset to keep the upstream tempo.
+     */
+    rate: PropTypes.number,
+    /**
+     * Set to False to pause the animation.
+     */
+    playing: PropTypes.bool,
 };
 
 export default M3LoadingIndicator;

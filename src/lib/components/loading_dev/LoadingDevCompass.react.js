@@ -1,15 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {contract, wrapperClass} from '../../contract';
 import { Compass as Upstream } from 'loading-dev';
 
 /**
  * LoadingDevCompass — Dash wrapper for upstream spinner.
  */
 const LoadingDevCompass = (props) => {
-    const {id, className, style, setProps, size, color, duration, playState} = props;
+    const {id, className, style, size, color, duration, play_state, rate, playing} = props;
     return (
         <div id={id} style={style}>
-            <Upstream size={size} color={color} duration={duration} playState={playState} className={className} />
+            <Upstream size={size} color={color} duration={duration} playState={play_state} className={wrapperClass(className, playing)} {...contract('loading_dev', 'Compass', props)} />
         </div>
     );
 };
@@ -30,10 +31,6 @@ LoadingDevCompass.propTypes = {
      */
     style: PropTypes.object,
     /**
-     * Dash-assigned callback that should be called to report property changes.
-     */
-    setProps: PropTypes.func,
-    /**
      * Width/height in pixels. Defaults to 20.
      */
     size: PropTypes.number,
@@ -48,7 +45,16 @@ LoadingDevCompass.propTypes = {
     /**
      * Whether the animation runs.
      */
-    playState: PropTypes.oneOf(["paused", "running"]),
+    play_state: PropTypes.oneOf(["paused", "running"]),
+    /**
+     * Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as fast,
+     * 0.5 half. Leave unset to keep the upstream tempo.
+     */
+    rate: PropTypes.number,
+    /**
+     * Set to False to pause the animation.
+     */
+    playing: PropTypes.bool,
 };
 
 export default LoadingDevCompass;

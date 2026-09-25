@@ -1,5 +1,6 @@
 node_modules
 .venv
+.pixi
 venv
 __pycache__
 *.pyc

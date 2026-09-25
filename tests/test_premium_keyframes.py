@@ -17,8 +17,6 @@ import dash_loading_components as dlc
 dash._dash_renderer._set_react_version("19.2.4")
 
 SIZE = 48
-# Pass speed in ms, as dlc.Loading does. Upstream runs `parseInt` over its own
-# token durations, so a token turns "1s" into a 1ms animation.
 SPEED_MS = 1000
 
 
@@ -106,16 +104,19 @@ def test_atom_electrons_ride_their_orbit(dash_duo):
     dash_duo.wait_for_element('[data-testid="atom-loader"]')
 
     # Pause the orbits and seek them by hand. Polling a running animation
-    # through the driver samples too coarsely to land on the extremes.
+    # through the driver samples too coarsely to land on the extremes. Seek
+    # through the Web Animations API: each orbit has its own period (upstream
+    # adds 150ms per ring), and shifting animation-delay on a running
+    # animation lands wherever it had already got to.
     def reach_at(fraction):
         return dash_duo.driver.execute_script(
             """
             const frac = arguments[0];
             document.querySelectorAll('[data-testid="atom-loader"] [style*="atom-orbit"]')
-              .forEach((c) => {
-                c.style.animationPlayState = 'paused';
-                c.style.animationDelay = `${-frac * arguments[1]}ms`;
-              });
+              .forEach((c) => c.getAnimations().forEach((a) => {
+                a.pause();
+                a.currentTime = frac * a.effect.getTiming().duration;
+              }));
             const root = document.querySelector('[data-testid="atom-loader"] .relative');
             const pr = root.getBoundingClientRect();
             return [...root.querySelectorAll('div[style*="background-color"]')]
@@ -125,7 +126,6 @@ def test_atom_electrons_ride_their_orbit(dash_duo):
                         r.width, r.height]; });
             """,
             fraction,
-            SPEED_MS,
         )
 
     # At the start of the cycle every electron sits on the ellipse's short
@@ -152,3 +152,39 @@ def test_atom_electrons_ride_their_orbit(dash_duo):
         assert abs(d - SIZE * 0.3) < 1.5, d
     for d in long_axis:
         assert abs(d - SIZE * 0.5) < 1.5, d
+
+
+def test_speed_tokens_are_not_read_as_milliseconds(dash_duo):
+    """Upstream resolves its speed tokens to CSS times ("1s") and four
+    loaders parseInt that as milliseconds, so the default speed ran them as a
+    1ms loop: a blur in the overview, where no speed is passed. The wrappers
+    resolve tokens to milliseconds before upstream sees them."""
+    app = Dash(__name__)
+    app.layout = html.Div(
+        [
+            dlc.premium.OrbitRings(size=SIZE, id="orbit-rings"),
+            dlc.premium.AtomLoader(size=SIZE, id="atom-loader"),
+            dlc.premium.MobiusLoader(size=SIZE, id="mobius-loader"),
+            dlc.premium.ButtonSpinner(size=SIZE, id="button-spinner"),
+            dlc.premium.OrbitRings(size=SIZE, speed="slow", id="slow"),
+            dlc.premium.OrbitRings(size=SIZE, speed="fast", id="fast"),
+        ]
+    )
+    dash_duo.start_server(app)
+    dash_duo.wait_for_element("#fast [data-testid]")
+
+    def shortest(selector):
+        return dash_duo.driver.execute_script(
+            """
+            return Math.min(...[...document.querySelectorAll(arguments[0])]
+              .map((e) => getComputedStyle(e))
+              .filter((c) => c.animationName !== 'none')
+              .map((c) => parseFloat(c.animationDuration) * 1000));
+            """,
+            selector,
+        )
+
+    for loader in ("orbit-rings", "atom-loader", "mobius-loader", "button-spinner"):
+        assert shortest(f"#{loader} *") == 1000, loader
+    assert shortest("#slow *") == 2000
+    assert shortest("#fast *") == 500

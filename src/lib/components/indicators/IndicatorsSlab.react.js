@@ -1,15 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {contract, wrapperClass} from '../../contract';
 import { Slab as Upstream } from 'react-loading-indicators';
 
 /**
  * IndicatorsSlab — Dash wrapper for upstream spinner.
  */
 const IndicatorsSlab = (props) => {
-    const {id, className, style, setProps, size, color, text, textColor, speedPlus, variant, easing} = props;
+    const {id, className, style, size, color, text, text_color, speed_plus, variant, easing, rate, playing} = props;
     return (
-        <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} text={text} textColor={textColor} speedPlus={speedPlus} variant={variant} easing={easing} />
+        <div id={id} className={wrapperClass(className, playing)} style={style}>
+            <Upstream size={size} color={color} text={text} textColor={text_color} speedPlus={speed_plus} variant={variant} easing={easing} {...contract('indicators', 'Slab', props)} />
         </div>
     );
 };
@@ -30,10 +31,6 @@ IndicatorsSlab.propTypes = {
      */
     style: PropTypes.object,
     /**
-     * Dash-assigned callback that should be called to report property changes.
-     */
-    setProps: PropTypes.func,
-    /**
      * Size (small/medium/large or number).
      */
     size: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -48,11 +45,11 @@ IndicatorsSlab.propTypes = {
     /**
      * Text color.
      */
-    textColor: PropTypes.string,
+    text_color: PropTypes.string,
     /**
      * Speed adjustment.
      */
-    speedPlus: PropTypes.number,
+    speed_plus: PropTypes.number,
     /**
      * Variant where supported (OrbitProgress, ThreeDot).
      */
@@ -61,6 +58,15 @@ IndicatorsSlab.propTypes = {
      * CSS animation easing function (e.g. linear, ease-in, ease-out).
      */
     easing: PropTypes.string,
+    /**
+     * Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as fast,
+     * 0.5 half. Leave unset to keep the upstream tempo.
+     */
+    rate: PropTypes.number,
+    /**
+     * Set to False to pause the animation.
+     */
+    playing: PropTypes.bool,
 };
 
 export default IndicatorsSlab;

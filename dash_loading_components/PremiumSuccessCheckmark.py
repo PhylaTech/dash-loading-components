@@ -35,7 +35,14 @@ Keyword arguments:
 - color (string; optional):
     Color.
 
-- secondaryColor (string; optional):
+- playing (boolean; optional):
+    Set to False to pause the animation.
+
+- rate (number; optional):
+    Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as
+    fast, 0.5 half. Leave unset to keep the upstream tempo.
+
+- secondary_color (string; optional):
     Secondary color for multi-color loaders.
 
 - size (string | number; optional):
@@ -60,13 +67,15 @@ Keyword arguments:
         size: typing.Optional[typing.Union[str, NumberType]] = None,
         color: typing.Optional[str] = None,
         speed: typing.Optional[typing.Union[str, NumberType]] = None,
-        secondaryColor: typing.Optional[str] = None,
+        secondary_color: typing.Optional[str] = None,
         visible: typing.Optional[bool] = None,
+        rate: typing.Optional[NumberType] = None,
+        playing: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'secondaryColor', 'size', 'speed', 'style', 'visible']
+        self._prop_names = ['id', 'className', 'color', 'playing', 'rate', 'secondary_color', 'size', 'speed', 'style', 'visible']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'secondaryColor', 'size', 'speed', 'style', 'visible']
+        self.available_properties = ['id', 'className', 'color', 'playing', 'rate', 'secondary_color', 'size', 'speed', 'style', 'visible']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()
