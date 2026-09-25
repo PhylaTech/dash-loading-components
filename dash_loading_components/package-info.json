@@ -1,6 +1,6 @@
 {
   "name": "dash_loading_components",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Dash loading indicators umbrella (dlc). Requires Dash >=4.5 / React 19.",
   "repository": {
     "type": "git",

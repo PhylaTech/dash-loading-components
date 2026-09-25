@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.1](https://github.com/PhylaTech/dash-loading-components/compare/v0.1.0...0.1.1) (2026-09-25)
+
+
+### Features
+
+* add the flicker family with 61 original flip-dot presets ([#27](https://github.com/PhylaTech/dash-loading-components/issues/27)) ([31530e2](https://github.com/PhylaTech/dash-loading-components/commit/31530e25a7442452192d498fc414766717ac96a7))
+* **gallery:** social card and favicon in the site's style, animated Iconify header icons ([#20](https://github.com/PhylaTech/dash-loading-components/issues/20)) ([971a44b](https://github.com/PhylaTech/dash-loading-components/commit/971a44bf23f7277c05b66ed50e5c8bfa0b6a2de2))
+
+
+### Bug Fixes
+
+* **ci:** smoke-test the published wheel against the prop contract, not the removed factory ([#17](https://github.com/PhylaTech/dash-loading-components/issues/17)) ([fe4ad81](https://github.com/PhylaTech/dash-loading-components/commit/fe4ad81358642816e3d3a9795a1b1eba8ae560a7))
+* **gallery:** author and publish date meta for LinkedIn previews ([#23](https://github.com/PhylaTech/dash-loading-components/issues/23)) ([cef5ce6](https://github.com/PhylaTech/dash-loading-components/commit/cef5ce6a3b9931ebc8403f3adf4c832c330ca3ce))
+* **gallery:** keep every cycling brand mark inside its slot ([#21](https://github.com/PhylaTech/dash-loading-components/issues/21)) ([4794601](https://github.com/PhylaTech/dash-loading-components/commit/47946017841efa0568fb31b6b676473c53dd5aae))
+* **gallery:** version the og:image URL so link previews refetch the card ([#22](https://github.com/PhylaTech/dash-loading-components/issues/22)) ([e701f42](https://github.com/PhylaTech/dash-loading-components/commit/e701f42612d1817489ca9af67a3054e95be79bc0))
+
 ## 0.1.0 (2026-09-25)
 
 
