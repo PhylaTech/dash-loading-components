@@ -1,5 +1,5 @@
 import json
-from setuptools import setup
+from setuptools import setup, find_packages
 from pathlib import Path
 
 here = Path(__file__).parent
@@ -13,13 +13,15 @@ setup(
     name=package_name,
     version=package["version"],
     author=package['author'],
-    packages=[package_name],
+    # The family namespaces (dlc.epic, dlc.ldrs, ...) are real subpackages and
+    # are imported from __init__.py, so they must ship in the distribution.
+    packages=find_packages(include=[package_name, package_name + '.*']),
     include_package_data=True,
     license=package['license'],
     description=package.get('description', package_name),
     long_description=long_description,
     long_description_content_type="text/markdown",
-    install_requires=[],
+    install_requires=['dash>=4.5.0rc0'],
     classifiers = [
         'Framework :: Dash',
     ],    

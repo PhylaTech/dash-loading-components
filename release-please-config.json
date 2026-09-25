@@ -10,7 +10,14 @@
       "include-v-in-tag": true,
       "include-component-in-tag": false,
       "draft": false,
-      "prerelease": false
+      "prerelease": false,
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "dash_loading_components/package-info.json",
+          "jsonpath": "$.version"
+        }
+      ]
     }
   }
 }
