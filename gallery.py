@@ -891,6 +891,19 @@ def instantiate(family: str, name: str, values: dict[str, Any]):
         return html.Div(f"error: {exc}", style={"color": "crimson", "fontSize": 13})
 
 
+# Loaders whose animation sweeps well past its own box. Shrinking `size`
+# either does not help (react-loading-indicators takes size tokens, not
+# pixels) or leaves the loader too small to read, so scale the whole preview
+# down instead: same proportions, just fitted to the card slot. Values are
+# the measured ink extent over a full cycle divided by the slot width; the
+# clipping test in tests/test_gallery_overview.py keeps them honest.
+OVERVIEW_SCALE: dict[tuple[str, str], float] = {
+    ("spinners", "PropagateLoader"): 0.56,
+    ("indicators", "LifeLine"): 0.68,
+    ("indicators", "BlinkBlur"): 0.8,
+}
+
+
 def overview_preview_kwargs(family: str, name: str | None = None) -> dict[str, Any]:
     """Preview props for overview cards.
 
@@ -1044,6 +1057,9 @@ def make_overview_card(family: str, name: str, component: Callable) -> html.Div:
         node = component(**kwargs)
     except Exception as exc:
         node = html.Div("err", title=str(exc), style={"color": "crimson", "fontSize": 11})
+    scale = OVERVIEW_SCALE.get((family, name))
+    if scale is not None:
+        node = html.Div(node, style={"transform": f"scale({scale})"})
     card = html.A(
         [
             html.Div(name, className="name"),

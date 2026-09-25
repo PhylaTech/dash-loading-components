@@ -127,6 +127,9 @@ a:hover { color: var(--accent); }
 .dlc-card .preview {
   display: flex; align-items: center; justify-content: center;
   min-height: 96px; width: 100%;
+  /* Slack for loaders that animate past their layout box (bouncing dots and
+     the like). Without it the clip below shaves the top of every bounce. */
+  padding: 10px 4px;
   /* Contain loaders whose animations/intrinsic size exceed the card slot */
   overflow: hidden; position: relative;
 }
