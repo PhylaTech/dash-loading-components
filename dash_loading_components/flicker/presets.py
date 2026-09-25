@@ -141,15 +141,29 @@ def tide():
     return frames
 
 
-def osculum():
-    # A sponge pumping: water enters through pores in the wall (gaps travel
-    # around it) and jets out through the osculum at the top.
-    jet = [(3, 3), (2, 3), (1, 3), (0, 3)]
-    frames = []
-    for f in range(12):
-        pores = {ROUND[f % 12], ROUND[(f + 6) % 12], (1, 3)}
-        frames.append((set(ROUND) - pores) | {jet[f % 4]})
-    return frames
+def mass_spec():
+    # A mass spectrum being acquired: the scan runs up the m/z axis and each
+    # centroid peak lands as it passes, a tall monoisotopic peak trailed by
+    # its smaller isotope peaks. Thin sticks on a baseline, unlike Equalizer's
+    # bouncing bars.
+    baseline = {(6, c) for c in range(N)}
+    peaks = {1: 5, 2: 2, 3: 1, 5: 3, 6: 1}
+    frames, acquired = [], set()
+    for col in range(N):
+        acquired = acquired | {(r, col) for r in range(6 - peaks.get(col, 0), 6)}
+        frames.append(baseline | acquired | {(5, col)})
+    return frames + [baseline | acquired] * 3
+
+
+def jellyfish():
+    # A jellyfish pulsing: the bell squeezes narrow and it rises, then opens
+    # wide, its tentacles swaying, and it sinks back as it drifts.
+    open_bell = art(".#####.", "#.....#", ".#.#.#.", "#.#.#..", ".#.#.#.")
+    closing = art("..###..", ".#...#.", ".#.#.#.", "..#.#..", "..#.#..")
+    closed = art("..###..", ".#...#.", ".#...#.", "..#.#..", "..#.#..", "..#.#..")
+    sway = art(".#####.", "#.....#", ".#.#.#.", "..#.#.#", ".#.#.#.")
+    return [shift(open_bell, 1), shift(closing, 1), shift(closed, 0), shift(closed, 0),
+            shift(closing, 0), shift(open_bell, 0), shift(sway, 1), shift(open_bell, 2), shift(sway, 2)]
 
 
 def frond():
@@ -196,10 +210,9 @@ def cladogram():
             if nb in tree and nb not in depth:
                 depth[nb] = depth[(r, c)] + 1
                 queue.append(nb)
-    top = max(depth.values())
-    grown = [{c for c, d in depth.items() if d <= t} for t in range(0, top + 1, 2)]
-    if max(depth.values()) % 2:
-        grown.append(set(tree))
+    # One depth per frame, so every branch appears after the one it grows
+    # from, and pruning takes the tips first.
+    grown = [{c for c, d in depth.items() if d <= t} for t in range(max(depth.values()) + 1)]
     return bounce(grown + [grown[-1]])
 
 
@@ -289,6 +302,84 @@ def chromatogram():
             cells |= {(round(5 - t * rate), col) for rate in rates}
         frames.append(cells)
     return frames + [frames[-1], frames[-1]]
+
+
+# ---------------------------------------------------------------------------
+# Data: charts drawing themselves, for dashboards waiting on a query
+# ---------------------------------------------------------------------------
+
+def scatter():
+    # Points landing one by one along a rising trend, on a pair of axes.
+    axes = {(r, 0) for r in range(N)} | {(6, c) for c in range(N)}
+    points = [(5, 2), (4, 1), (3, 3), (4, 4), (2, 4), (3, 5), (1, 5), (2, 6), (1, 3)]
+    frames = [axes | set(points[:i]) for i in range(1, len(points) + 1)]
+    return frames + [frames[-1], frames[-1], axes]
+
+
+def histogram():
+    # Bins filling left to right into a bell curve, then emptying.
+    heights = [1, 2, 4, 6, 4, 2, 1]
+    bars = [{(r, c) for r in range(N - h, N)} for c, h in enumerate(heights)]
+    grow = [set().union(*bars[: i + 1]) for i in range(N)]
+    return grow + [grow[-1], grow[-1]] + [set().union(*bars[i:]) for i in range(1, N)]
+
+
+def pie_chart():
+    # A pie filling slice by slice, clockwise from twelve, then emptying the
+    # same way round.
+    disc = [(r, c) for r in range(N) for c in range(N) if math.hypot(r - MID, c - MID) <= 2.6]
+    angle = {cell: math.degrees(math.atan2(cell[1] - MID, MID - cell[0])) % 360 for cell in disc}
+    center = {(MID, MID)}
+    fill = [center | {c for c in disc if angle[c] < 45 * (i + 1)} for i in range(8)]
+    empty = [center | {c for c in disc if angle[c] >= 45 * (i + 1)} for i in range(7)]
+    return fill + [fill[-1]] + empty
+
+
+def heatmap():
+    # A hot spot wandering a heat map: dense at its core, thinning to a
+    # sparse speckle at the edge.
+    frames = []
+    for f in range(8):
+        a = 2 * math.pi * f / 8
+        hr, hc = MID + 1.2 * math.sin(a), MID + 1.2 * math.cos(a)
+        cells = set()
+        for r in range(N):
+            for c in range(N):
+                d = math.hypot(r - hr, c - hc)
+                if d < 1.2 or (d < 2.4 and (r + c) % 2 == 0) or (d < 3.4 and r % 2 == 0 and c % 2 == 0):
+                    cells.add((r, c))
+        frames.append(cells)
+    return frames
+
+
+# ---------------------------------------------------------------------------
+# Everyday: the waits people meet in any app
+# ---------------------------------------------------------------------------
+
+def cart():
+    # A shopping cart rolling in, an item dropping into it, and off it goes.
+    body = art("#......", ".#####.", ".#...#.", ".#####.", "..#.#..")
+    item = [(0, 3), (1, 3), (3, 3)]
+    at_rest = shift(body, 2)
+    frames = [shift(at_rest, 0, dc) for dc in (-5, -3, -1)]
+    frames += [at_rest | {cell} for cell in item[:2]] + [at_rest | {(4, 3)}, at_rest | {(4, 3)}]
+    frames += [shift(at_rest | {(4, 3)}, 0, dc) for dc in (2, 4, 6)]
+    return frames
+
+
+def upload():
+    # Arrows streaming up out of a tray.
+    tray = {(5, 0), (5, 6)} | {(6, c) for c in range(N)}
+    arrow = art("...#...", "..###..", ".#.#.#.", "...#...")
+    return [tray | {(r, c) for r, c in shift(arrow, -f) | shift(arrow, 5 - f) if 0 <= r < 5} for f in range(5)]
+
+
+def magnifier():
+    # A magnifying glass circling as it searches.
+    glass = set(ring_path(1)) - {(MID, MID)}
+    handle = {(MID + 2, MID + 2), (MID + 3, MID + 3)}
+    path = [(-1, -1), (-1, 0), (0, 0), (0, -1)]
+    return [shift(glass | handle, dr, dc) for dr, dc in path for _ in range(2)]
 
 
 # ---------------------------------------------------------------------------
@@ -480,7 +571,8 @@ _DESIGNS = [
     ("SporeRing", "field", spore_ring, "Spores thrown off in rings, two rings in flight at once."),
     ("Firefly", "field", firefly, "Fireflies drifting as they glow, never more than two at once."),
     ("Tide", "field", tide, "Water rising and falling, its surface rolling as it goes."),
-    ("Osculum", "field", osculum, "A marine sponge pumping: pores open around its wall as water jets out of the top."),
+    ("MassSpec", "field", mass_spec, "A mass spectrum being acquired: peaks and their isotope patterns landing as the scan runs up the m/z axis."),
+    ("Jellyfish", "field", jellyfish, "A jellyfish squeezing its bell to rise, then opening wide and sinking as its tentacles sway."),
     ("Frond", "field", frond, "A fern growing its stem, then opening its leaflets in pairs from the base up."),
     ("Diatom", "field", diatom, "A centric diatom, its striae turning slowly inside the round shell."),
     ("Cladogram", "field", cladogram, "A tree of life drawn from the root up to its tips, then pruned back."),
@@ -490,6 +582,13 @@ _DESIGNS = [
     ("Mitosis", "field", mitosis, "A cell pinching in two and the daughter cells drawing back together."),
     ("Seedling", "field", seedling, "A seed in the soil sending up a shoot that opens its first leaves."),
     ("Chromatogram", "field", chromatogram, "Thin-layer chromatography: spots climbing three lanes at their own retention factors."),
+    ("Scatter", "data", scatter, "Points landing one by one along a rising trend."),
+    ("Histogram", "data", histogram, "Bins filling left to right into a bell curve, then emptying."),
+    ("PieChart", "data", pie_chart, "A pie filling slice by slice from twelve o'clock, then emptying the same way round."),
+    ("Heatmap", "data", heatmap, "A hot spot wandering a heat map, dense at its core and speckled at its edge."),
+    ("Cart", "everyday", cart, "A shopping cart rolling in, an item dropping into it, and off it goes."),
+    ("Upload", "everyday", upload, "Arrows streaming up out of a tray."),
+    ("Magnifier", "everyday", magnifier, "A magnifying glass circling as it searches."),
     ("Departures", "board", departures, "Three lines of a departure board ticking past at their own pace."),
     ("SplitFlap", "board", split_flap, "A split-flap sign flipping through its glyphs, the flap caught mid-turn."),
     ("Marquee", "board", marquee, "Chase lights running round a theatre sign."),
@@ -512,6 +611,8 @@ _DESIGNS = [
 # category key -> (title, note), in gallery order.
 CATEGORIES = {
     "field": ("Field", "the naturalist set"),
+    "data": ("Data", "charts drawing themselves"),
+    "everyday": ("Everyday", "carts, uploads and searches"),
     "board": ("Board", "what flip-dot panels do in stations and stadiums"),
     "geometry": ("Geometry", "shapes in motion"),
 }
