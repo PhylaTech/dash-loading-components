@@ -8,7 +8,7 @@ import 'ldrs/react/Ring.css';
  * LdrsRing — Dash wrapper for upstream spinner.
  */
 const LdrsRing = (props) => {
-    const {id, className, style, size, color, speed, stroke, bg_opacity, rate, playing} = props;
+    const {id, className, style, size, color, speed, stroke, bg_opacity, playing} = props;
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
             <Upstream size={size} color={color} speed={speed} stroke={stroke} bgOpacity={bg_opacity} {...contract('ldrs', 'Ring', props)} />

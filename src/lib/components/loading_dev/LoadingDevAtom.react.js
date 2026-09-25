@@ -7,7 +7,7 @@ import { Atom as Upstream } from 'loading-dev';
  * LoadingDevAtom — Dash wrapper for upstream spinner.
  */
 const LoadingDevAtom = (props) => {
-    const {id, className, style, size, color, duration, play_state, easing, rate, playing} = props;
+    const {id, className, style, size, color, duration, play_state, easing, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream size={size} color={color} duration={duration} playState={play_state} easing={easing} className={wrapperClass(className, playing)} {...contract('loading_dev', 'Atom', props)} />

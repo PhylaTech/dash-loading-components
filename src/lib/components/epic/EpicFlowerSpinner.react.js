@@ -7,7 +7,7 @@ import { FlowerSpinner as Upstream } from 'react-epic-spinners';
  * EpicFlowerSpinner — Dash wrapper for upstream spinner.
  */
 const EpicFlowerSpinner = (props) => {
-    const {id, className, style, size, color, animation_duration, rate, playing} = props;
+    const {id, className, style, size, color, animation_duration, playing} = props;
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
             <Upstream size={size} color={color} animationDuration={animation_duration} {...contract('epic', 'FlowerSpinner', props)} />

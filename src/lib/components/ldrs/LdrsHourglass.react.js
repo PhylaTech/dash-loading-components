@@ -8,7 +8,7 @@ import 'ldrs/react/Hourglass.css';
  * LdrsHourglass — Dash wrapper for upstream spinner.
  */
 const LdrsHourglass = (props) => {
-    const {id, className, style, size, color, speed, stroke, bg_opacity, rate, playing} = props;
+    const {id, className, style, size, color, speed, stroke, bg_opacity, playing} = props;
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
             <Upstream size={size} color={color} speed={speed} stroke={stroke} bgOpacity={bg_opacity} {...contract('ldrs', 'Hourglass', props)} />

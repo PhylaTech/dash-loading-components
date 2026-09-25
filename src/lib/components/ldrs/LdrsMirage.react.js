@@ -8,7 +8,7 @@ import 'ldrs/react/Mirage.css';
  * LdrsMirage — Dash wrapper for upstream spinner.
  */
 const LdrsMirage = (props) => {
-    const {id, className, style, size, color, speed, stroke, rate, playing} = props;
+    const {id, className, style, size, color, speed, stroke, playing} = props;
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
             <Upstream size={size} color={color} speed={speed} stroke={stroke} {...contract('ldrs', 'Mirage', props)} />

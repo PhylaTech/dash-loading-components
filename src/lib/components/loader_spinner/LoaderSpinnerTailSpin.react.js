@@ -7,7 +7,7 @@ import { TailSpin as Upstream } from 'react-loader-spinner';
  * LoaderSpinnerTailSpin — Dash wrapper for upstream spinner.
  */
 const LoaderSpinnerTailSpin = (props) => {
-    const {id, className, style, size, height, width, color, secondary_color, radius, aria_label, visible, stroke_width, rate, playing} = props;
+    const {id, className, style, size, height, width, color, secondary_color, radius, aria_label, visible, stroke_width, playing} = props;
     const root = useRef(null);
     usePlaying(root, playing);
     return (

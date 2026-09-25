@@ -9,7 +9,7 @@ import { OrbitRings as Upstream } from 'premium-react-loaders';
  * Requires premium-react-loaders CSS (see ./styles).
  */
 const PremiumOrbitRings = (props) => {
-    const {id, className, style, size, color, speed, reverse, secondary_color, visible, thickness, ring_count, ring_gap, alternate, rate, playing} = props;
+    const {id, className, style, size, color, speed, reverse, secondary_color, visible, thickness, ring_count, ring_gap, alternate, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream

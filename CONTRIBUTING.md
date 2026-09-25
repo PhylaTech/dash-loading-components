@@ -16,8 +16,9 @@ pixi run build
 pixi run test
 ```
 
-Every pull request runs `.github/workflows/tests.yml`: it rebuilds from
-source, fails if the committed build differs, then runs the suite headless.
+Every pull request runs `.github/workflows/tests.yml`: it lints `src/`
+(`pixi run lint`), rebuilds from source, fails if the committed build differs,
+then runs the suite headless.
 Locally, `pixi run test` is the same suite.
 
 `pixi run build` compiles the JS bundle and regenerates the Python wrappers from

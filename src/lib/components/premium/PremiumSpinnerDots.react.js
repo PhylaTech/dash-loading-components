@@ -8,7 +8,7 @@ import { SpinnerDots as Upstream } from 'premium-react-loaders';
  * PremiumSpinnerDots — Dash wrapper for upstream spinner.
  */
 const PremiumSpinnerDots = (props) => {
-    const {id, className, style, size, color, speed, reverse, secondary_color, visible, dot_count, dot_size, rate, playing} = props;
+    const {id, className, style, size, color, speed, reverse, secondary_color, visible, dot_count, dot_size, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream size={size} color={color} speed={speed} reverse={reverse} secondaryColor={secondary_color} visible={visible} dotCount={dot_count} dotSize={dot_size} className={wrapperClass(className, playing)} {...contract('premium', 'SpinnerDots', props)} />

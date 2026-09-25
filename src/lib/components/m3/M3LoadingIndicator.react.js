@@ -7,7 +7,7 @@ import { M3LoadingIndicator as Upstream } from '@alerix/m3-loading-indicator/rea
  * M3LoadingIndicator — Dash wrapper for upstream spinner.
  */
 const M3LoadingIndicator = (props) => {
-    const {id, className, style, size, color, size_ratio, speed, paused, contained, container_color, rate, playing} = props;
+    const {id, className, style, size, color, size_ratio, speed, paused, contained, container_color, playing} = props;
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
             <Upstream size={size} color={color} sizeRatio={size_ratio} speed={speed} paused={paused} contained={contained} containerColor={container_color} {...contract('m3', 'M3LoadingIndicator', props)} />

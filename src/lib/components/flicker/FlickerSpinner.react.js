@@ -74,7 +74,6 @@ const FlickerSpinner = (props) => {
     const parsed = toFrames(grids);
     const frames = parsed && parsed.map((cells) => orient(cells, rotate, mirror));
     if (!parsed) {
-        // eslint-disable-next-line no-console
         console.error('dlc.flicker.Spinner: grids must be a non-empty list of frames, each 49 values, 7 rows of 7, or 7 strings of 7.');
     }
     // Lit dots are `color` at on_opacity; unlit dots are off_color (default

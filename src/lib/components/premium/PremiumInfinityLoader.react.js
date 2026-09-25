@@ -8,7 +8,7 @@ import { InfinityLoader as Upstream } from 'premium-react-loaders';
  * PremiumInfinityLoader — Dash wrapper for upstream spinner.
  */
 const PremiumInfinityLoader = (props) => {
-    const {id, className, style, size, color, speed, reverse, secondary_color, visible, rate, playing} = props;
+    const {id, className, style, size, color, speed, reverse, secondary_color, visible, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream size={size} color={color} speed={speed} reverse={reverse} secondaryColor={secondary_color} visible={visible} className={wrapperClass(className, playing)} {...contract('premium', 'InfinityLoader', props)} />

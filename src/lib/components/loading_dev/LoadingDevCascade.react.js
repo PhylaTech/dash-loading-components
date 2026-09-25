@@ -7,7 +7,7 @@ import { Cascade as Upstream } from 'loading-dev';
  * LoadingDevCascade — Dash wrapper for upstream spinner.
  */
 const LoadingDevCascade = (props) => {
-    const {id, className, style, size, color, duration, play_state, cap, rate, playing} = props;
+    const {id, className, style, size, color, duration, play_state, cap, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream size={size} color={color} duration={duration} playState={play_state} cap={cap} className={wrapperClass(className, playing)} {...contract('loading_dev', 'Cascade', props)} />

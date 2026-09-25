@@ -7,7 +7,7 @@ import Upstream from 'react-spinners/ScaleLoader';
  * SpinnersScaleLoader — Dash wrapper for upstream spinner.
  */
 const SpinnersScaleLoader = (props) => {
-    const {id, className, style, size, color, loading, speed_multiplier, height, width, margin, radius, bar_count, rate, playing} = props;
+    const {id, className, style, color, loading, speed_multiplier, height, width, margin, radius, bar_count, playing} = props;
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
             <Upstream color={color} loading={loading} speedMultiplier={speed_multiplier} height={height} width={width} margin={margin} radius={radius} barCount={bar_count} {...contract('spinners', 'ScaleLoader', props)} />

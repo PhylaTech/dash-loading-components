@@ -9,7 +9,7 @@ import { OrbitDots as Upstream } from 'premium-react-loaders';
  * Requires premium-react-loaders CSS (see ./styles).
  */
 const PremiumOrbitDots = (props) => {
-    const {id, className, style, size, color, speed, reverse, secondary_color, visible, thickness, dot_count, dot_size, orbit_radius, stagger, rate, playing} = props;
+    const {id, className, style, size, color, speed, reverse, secondary_color, visible, thickness, dot_count, dot_size, orbit_radius, stagger, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream

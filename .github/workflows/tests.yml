@@ -26,6 +26,9 @@ jobs:
       - name: Install npm packages
         run: pixi run npm ci
 
+      - name: Lint
+        run: pixi run lint
+
       # The bundle and the generated Python wrappers are committed, and the
       # gallery and the published wheel serve them as-is. Rebuild from source
       # and fail if anything differs, so a PR cannot ship a stale build.

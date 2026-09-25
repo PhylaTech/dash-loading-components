@@ -7,7 +7,7 @@ import { FourSquare as Upstream } from 'react-loading-indicators';
  * IndicatorsFourSquare — Dash wrapper for upstream spinner.
  */
 const IndicatorsFourSquare = (props) => {
-    const {id, className, style, size, color, text, text_color, speed_plus, variant, easing, rate, playing} = props;
+    const {id, className, style, size, color, text, text_color, speed_plus, variant, easing, playing} = props;
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
             <Upstream size={size} color={color} text={text} textColor={text_color} speedPlus={speed_plus} variant={variant} easing={easing} {...contract('indicators', 'FourSquare', props)} />

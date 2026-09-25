@@ -8,7 +8,7 @@ import 'ldrs/react/LineSpinner.css';
  * LdrsLineSpinner — Dash wrapper for upstream spinner.
  */
 const LdrsLineSpinner = (props) => {
-    const {id, className, style, size, color, speed, stroke, rate, playing} = props;
+    const {id, className, style, size, color, speed, stroke, playing} = props;
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
             <Upstream size={size} color={color} speed={speed} stroke={stroke} {...contract('ldrs', 'LineSpinner', props)} />

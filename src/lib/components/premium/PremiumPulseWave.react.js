@@ -8,7 +8,7 @@ import { PulseWave as Upstream } from 'premium-react-loaders';
  * PremiumPulseWave — Dash wrapper for upstream spinner.
  */
 const PremiumPulseWave = (props) => {
-    const {id, className, style, size, color, speed, reverse, secondary_color, visible, rate, playing} = props;
+    const {id, className, style, size, color, speed, reverse, secondary_color, visible, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream size={size} color={color} speed={speed} reverse={reverse} secondaryColor={secondary_color} visible={visible} className={wrapperClass(className, playing)} {...contract('premium', 'PulseWave', props)} />

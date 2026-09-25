@@ -7,7 +7,7 @@ import { SpinnerDiamond as Upstream } from 'spinners-react';
  * SpinnersReactSpinnerDiamond — Dash wrapper for upstream spinner.
  */
 const SpinnersReactSpinnerDiamond = (props) => {
-    const {id, className, style, size, color, secondary_color, thickness, speed, enabled, still, rate, playing} = props;
+    const {id, className, style, size, color, secondary_color, thickness, speed, enabled, still, playing} = props;
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
             <Upstream size={size} color={color} secondaryColor={secondary_color} thickness={thickness} speed={speed} enabled={enabled} still={still} {...contract('spinners_react', 'SpinnerDiamond', props)} />

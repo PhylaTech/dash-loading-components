@@ -8,7 +8,7 @@ import { SpinnerCircle as Upstream } from 'premium-react-loaders';
  * PremiumSpinnerCircle — Dash wrapper for upstream spinner.
  */
 const PremiumSpinnerCircle = (props) => {
-    const {id, className, style, size, color, speed, reverse, secondary_color, visible, thickness, rate, playing} = props;
+    const {id, className, style, size, color, speed, reverse, secondary_color, visible, thickness, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream size={size} color={color} speed={speed} reverse={reverse} secondaryColor={secondary_color} visible={visible} thickness={thickness} className={wrapperClass(className, playing)} {...contract('premium', 'SpinnerCircle', props)} />

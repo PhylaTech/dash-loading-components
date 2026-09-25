@@ -7,7 +7,7 @@ import { HollowDotsSpinner as Upstream } from 'react-epic-spinners';
  * EpicHollowDotsSpinner — Dash wrapper for upstream spinner.
  */
 const EpicHollowDotsSpinner = (props) => {
-    const {id, className, style, size, color, animation_duration, rate, playing} = props;
+    const {id, className, style, size, color, animation_duration, playing} = props;
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
             <Upstream size={size} color={color} animationDuration={animation_duration} {...contract('epic', 'HollowDotsSpinner', props)} />

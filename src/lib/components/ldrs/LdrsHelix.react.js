@@ -8,7 +8,7 @@ import 'ldrs/react/Helix.css';
  * LdrsHelix — Dash wrapper for upstream spinner.
  */
 const LdrsHelix = (props) => {
-    const {id, className, style, size, color, speed, stroke, rate, playing} = props;
+    const {id, className, style, size, color, speed, stroke, playing} = props;
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
             <Upstream size={size} color={color} speed={speed} stroke={stroke} {...contract('ldrs', 'Helix', props)} />
