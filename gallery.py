@@ -62,7 +62,7 @@ WORKBENCH_PROP_PRIORITY = [
     "thickness", "stroke", "stroke_width", "stroke_width_secondary",
     "stroke_length", "bg_opacity", "secondary_color", "margin",
     "play_state", "paused", "loading", "enabled", "visible", "still",
-    "reverse", "dense", "variant", "contained",
+    "reverse", "dense", "variant", "rotate", "mirror", "contained",
     "container_color", "size_ratio", "radius", "bar_count", "dot_count",
     "dot_size", "ring_count", "ring_gap", "alternate", "orbit_radius", "stagger",
     "text", "text_color", "aria_label", "className",
@@ -117,6 +117,8 @@ PROP_SECTION_TITLES = {
     "off_color": "Off color",
     "off_opacity": "Off opacity",
     "on_opacity": "On opacity",
+    "rotate": "Rotate",
+    "mirror": "Mirror",
 }
 
 PROP_SECTION_COPY = {
@@ -177,6 +179,8 @@ PROP_SECTION_COPY = {
     "off_color": "Color of the unlit dots, drawn at the off opacity. Empty uses the on color.",
     "off_opacity": "Opacity of the unlit dots, from 0 to 1. At 0 only the lit dots show; at 1 the off color is solid.",
     "on_opacity": "Opacity of the lit dots, from 0 to 1.",
+    "rotate": "Turns the animation clockwise: 90° makes a loop that grows upward grow to the right.",
+    "mirror": "Mirrors the animation left to right, before any rotation.",
 }
 
 # Upstream tempo and pause props, replaced on the page by the contract's
@@ -284,6 +288,9 @@ PROP_SPECS: dict[str, dict[str, Any]] = {
     "off_color": {"kind": "color", "default": ""},
     "off_opacity": {"kind": "slider", "min": 0.0, "max": 1.0, "step": 0.02, "default": 0.16},
     "on_opacity": {"kind": "slider", "min": 0.0, "max": 1.0, "step": 0.02, "default": 1.0},
+    "rotate": {"kind": "enum", "options": [0, 90, 180, 270],
+               "labels": {0: "0°", 90: "90°", 180: "180°", 270: "270°"}, "default": 0},
+    "mirror": {"kind": "bool", "default": False},
 }
 
 RATE_SPEC: dict[str, Any] = {"kind": "slider", "min": 0.5, "max": 3.0, "step": 0.1, "default": 1.0}
@@ -374,6 +381,18 @@ IGNORED_PROPS: dict[tuple[str, str], frozenset[str]] = {
            frozenset({"variant"})),
 }
 
+def _flicker_no_ops(name: str) -> frozenset[str]:
+    """Orientation controls that would change nothing: a loop symmetric left
+    to right ignores mirror, one symmetric under a quarter turn ignores rotate."""
+    frames = dlc.flicker.PRESETS[name].frames
+    mirrored = tuple(tuple(row[::-1] for row in f) for f in frames)
+    turned = tuple(tuple("".join(f[6 - c][r] for c in range(7)) for r in range(7)) for f in frames)
+    return frozenset({"mirror"} if mirrored == frames else set()) | ({"rotate"} if turned == frames else set())
+
+
+IGNORED_PROPS.update({("flicker", name): _flicker_no_ops(name) for name in dlc.flicker.PRESETS})
+
+
 # Where a spinner's own default differs from the family-wide PROP_SPECS one.
 # Controls start here, so the page shows what `dlc.<family>.<Name>()` renders;
 # tests/test_gallery_controls.py renders both and compares.
@@ -420,7 +439,7 @@ FAMILY_PROP_ORDER = {
     "indicators": ["size", "color", "rate", "playing", "easing", "text", "text_color", "variant", "dense", "className"],
     "m3": ["size", "color", "rate", "playing", "contained", "container_color", "size_ratio", "className"],
     "epic": ["size", "color", "rate", "playing", "className"],
-    "flicker": ["size", "color", "on_opacity", "off_color", "off_opacity", "rate", "playing", "variant", "reverse", "aria_label", "className"],
+    "flicker": ["size", "color", "on_opacity", "off_color", "off_opacity", "rate", "playing", "variant", "rotate", "mirror", "reverse", "aria_label", "className"],
 }
 
 
@@ -1170,7 +1189,8 @@ def workbench_control(prop: str, value: Any, family: str, props: list[str], name
     if kind == "enum":
         opts = spec["options"]
         labels = spec.get("labels") or {o: o for o in opts}
-        return segmented([(labels[o], o) for o in opts], value if value in opts else spec["default"])
+        # SegmentedControl only carries strings; _coerce_control_value maps them back.
+        return segmented([(labels[o], str(o)) for o in opts], str(value if value in opts else spec["default"]))
     if kind == "dropdown":
         return dmc.Stack(
             [dmc.Text(label, size="sm", fw=500),
@@ -1520,6 +1540,8 @@ def _coerce_control_value(prop: str, raw: Any, family: str, name: str) -> Any:
         return int(raw) if float(spec["step"]).is_integer() else float(raw)
     if spec and spec["kind"] in ("text", "color"):
         return (raw or "").strip()
+    if spec and spec["kind"] == "enum":
+        return next((o for o in spec["options"] if str(o) == str(raw)), spec["default"])
     return raw
 
 
@@ -1535,6 +1557,8 @@ def _control_values(family: str, name: str, props: list[str]) -> tuple[dict, dic
             values[prop] = str(v)
         elif spec and spec["kind"] in ("text", "color"):
             values[prop] = v or ""
+        elif spec and spec["kind"] == "enum":
+            values[prop] = str(v)
         else:
             values[prop] = v
     return values, switches

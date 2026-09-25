@@ -96,7 +96,8 @@ dlc.flicker.Spinner(grids=[blink, [row.replace("#", ".") for row in blink]])
 ```
 
 `dlc.flicker.PRESETS` holds every preset's frames, a starting point for your own.
-`variant` picks the grid: `"7x7"`, its inner `"5x5"` (bigger dots) or `"9x9"`,
+`rotate` (0, 90, 180 or 270, clockwise) and `mirror` orient any preset, so
+`dlc.flicker.Cladogram(rotate=90)` grows left to right. `variant` picks the grid: `"7x7"`, its inner `"5x5"` (bigger dots) or `"9x9"`,
 the 7x7 padded with a ring of unlit dots (smaller dots at the same size).
 Lit dots are `color` at `on_opacity` (default `1`). Unlit dots are `off_color`
 (default: `color`) at `off_opacity` (default `0.16`)

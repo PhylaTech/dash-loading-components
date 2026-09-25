@@ -19,6 +19,24 @@ function withOpacity(base, opacity) {
     return alpha === 1 ? base : `color-mix(in srgb, ${base} ${Number((alpha * 100).toFixed(1))}%, transparent)`;
 }
 
+const QUARTER_TURN = 90;
+const TURNS = 4;
+
+/**
+ * One frame of 49 cells, mirrored left to right if asked, then turned
+ * `rotate` degrees clockwise. Every preset and every custom grid goes
+ * through here, so the whole family shares one notion of orientation.
+ */
+function orient(cells, rotate, mirror) {
+    const at = (i) => [Math.floor(i / ROWS), i % ROWS];
+    let out = mirror ? cells.map((_, i) => { const [r, c] = at(i); return cells[r * ROWS + (ROWS - 1 - c)]; }) : cells;
+    for (let t = 0; t < ((rotate || 0) / QUARTER_TURN) % TURNS; t++) {
+        const src = out;
+        out = src.map((_, i) => { const [r, c] = at(i); return src[(ROWS - 1 - c) * ROWS + r]; });
+    }
+    return out;
+}
+
 function toFrames(grids) {
     if (!Array.isArray(grids) || !grids.length) {
         return null;
@@ -52,9 +70,10 @@ for (let r = 0; r < ROWS + 2; r++) {
  * in dlc.flicker are this component with their frames filled in.
  */
 const FlickerSpinner = (props) => {
-    const {id, className, style, grids, size, color, on_opacity, off_color, off_opacity, variant, reverse, speed, aria_label, playing} = props;
-    const frames = toFrames(grids);
-    if (!frames) {
+    const {id, className, style, grids, size, color, on_opacity, off_color, off_opacity, variant, rotate, mirror, reverse, speed, aria_label, playing} = props;
+    const parsed = toFrames(grids);
+    const frames = parsed && parsed.map((cells) => orient(cells, rotate, mirror));
+    if (!parsed) {
         // eslint-disable-next-line no-console
         console.error('dlc.flicker.Spinner: grids must be a non-empty list of frames, each 49 values, 7 rows of 7, or 7 strings of 7.');
     }
@@ -135,6 +154,17 @@ FlickerSpinner.propTypes = {
      * to 9x9 with a ring of unlit dots (smaller dots).
      */
     variant: PropTypes.oneOf(['7x7', '5x5', '9x9']),
+    /**
+     * Turn the animation clockwise, in degrees: 90 makes a loop that grows
+     * upward grow to the right.
+     */
+    // Literal values, so the generated Python signature lists them.
+    // eslint-disable-next-line no-magic-numbers
+    rotate: PropTypes.oneOf([0, 90, 180, 270]),
+    /**
+     * Mirror the animation left to right (before any rotation).
+     */
+    mirror: PropTypes.bool,
     /**
      * Play the frames backwards.
      */

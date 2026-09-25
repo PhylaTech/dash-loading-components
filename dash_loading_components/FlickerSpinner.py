@@ -46,6 +46,9 @@ Keyword arguments:
     strings of 7 characters where '#' is a lit dot. The named presets
     fill this in.
 
+- mirror (boolean; optional):
+    Mirror the animation left to right (before any rotation).
+
 - off_color (string; optional):
     Color of an unlit dot, drawn at `off_opacity` (default `color`).
 
@@ -65,6 +68,10 @@ Keyword arguments:
 
 - reverse (boolean; optional):
     Play the frames backwards.
+
+- rotate (a value equal to: 0, 90, 180, 270; optional):
+    Turn the animation clockwise, in degrees: 90 makes a loop that
+    grows upward grow to the right.
 
 - size (number; optional):
     CSS pixel size (default 28, or 16 for the 5x5 variant).
@@ -93,6 +100,8 @@ Keyword arguments:
         off_color: typing.Optional[str] = None,
         off_opacity: typing.Optional[NumberType] = None,
         variant: typing.Optional[Literal["7x7", "5x5", "9x9"]] = None,
+        rotate: typing.Optional[Literal[0, 90, 180, 270]] = None,
+        mirror: typing.Optional[bool] = None,
         reverse: typing.Optional[bool] = None,
         speed: typing.Optional[NumberType] = None,
         aria_label: typing.Optional[str] = None,
@@ -100,9 +109,9 @@ Keyword arguments:
         playing: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'aria_label', 'className', 'color', 'grids', 'off_color', 'off_opacity', 'on_opacity', 'playing', 'rate', 'reverse', 'size', 'speed', 'style', 'variant']
+        self._prop_names = ['id', 'aria_label', 'className', 'color', 'grids', 'mirror', 'off_color', 'off_opacity', 'on_opacity', 'playing', 'rate', 'reverse', 'rotate', 'size', 'speed', 'style', 'variant']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'aria_label', 'className', 'color', 'grids', 'off_color', 'off_opacity', 'on_opacity', 'playing', 'rate', 'reverse', 'size', 'speed', 'style', 'variant']
+        self.available_properties = ['id', 'aria_label', 'className', 'color', 'grids', 'mirror', 'off_color', 'off_opacity', 'on_opacity', 'playing', 'rate', 'reverse', 'rotate', 'size', 'speed', 'style', 'variant']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()
