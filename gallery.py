@@ -788,13 +788,22 @@ def build_namespaced_values(
     return _omit_empty_strings(native)
 
 
-def format_python_snippet(source: str) -> str:
+# Every snippet the gallery renders goes through Black. The workbench pair sits
+# in a two-up grid roughly 46 characters wide at the narrowest layout that still
+# shows it, so those are formatted to fit: the panels do not soft-wrap, and a
+# line laid out for 88 columns would otherwise break at the panel edge with no
+# indent and read as though it had never been formatted at all.
+SNIPPET_LINE_LENGTH = 88
+WORKBENCH_LINE_LENGTH = 46
+
+
+def format_python_snippet(source: str, line_length: int = SNIPPET_LINE_LENGTH) -> str:
     """Format displayed Python with Black without making the gallery fragile."""
     if black is None:
         logger.warning("Black is unavailable; displaying an unformatted snippet")
         return source
     try:
-        return black.format_str(source, mode=black.Mode(line_length=88))
+        return black.format_str(source, mode=black.Mode(line_length=line_length))
     except Exception:
         logger.warning("Black failed to format gallery snippet; using raw source", exc_info=True)
         return source
@@ -806,7 +815,9 @@ def build_snippet(family: str, name: str, values: dict[str, Any]) -> str:
     for k, v in values.items():
         parts.append(f"{k}={format_py_value(v)}")
     call = f"dlc.{family}.{name}({', '.join(parts)})"
-    return format_python_snippet(f"import dash_loading_components as dlc\n\n{call}\n")
+    return format_python_snippet(
+        f"import dash_loading_components as dlc\n\n{call}\n", WORKBENCH_LINE_LENGTH
+    )
 
 
 def _derive_playing(family: str, values: dict[str, Any]) -> bool:
@@ -867,7 +878,9 @@ def build_common_snippet(family: str, name: str, values: dict[str, Any]) -> str:
             continue
         parts.append(f"{k}={format_py_value(v)}")
     call = f"dlc.Loading({', '.join(parts)})"
-    return format_python_snippet(f"import dash_loading_components as dlc\n\n{call}\n")
+    return format_python_snippet(
+        f"import dash_loading_components as dlc\n\n{call}\n", WORKBENCH_LINE_LENGTH
+    )
 
 
 def instantiate(family: str, name: str, values: dict[str, Any]):
@@ -1122,7 +1135,7 @@ def build_overview() -> html.Div:
                 ],
                 className="dlc-hero",
             ),
-            html.P(id="overview-empty", className="dlc-empty",
+            html.P(id={"type": "overview-empty", "index": 0}, className="dlc-empty",
                    style={"display": "none"}),
             *sections,
             build_site_footer(),
@@ -1155,60 +1168,6 @@ def section_copy(family: str, prop: str, name: str | None = None) -> str:
     if spec and spec.get("doc"):
         return spec["doc"]
     return f"Configurable `{prop}` for this wrapper."
-
-
-def build_prop_example_snippet(family: str, name: str, prop: str) -> str:
-    """Short namespaced examples for the prop docs section (not live-synced)."""
-    lines = ["import dash_loading_components as dlc", ""]
-    if prop == "size" and family != "indicators":
-        for label, px in SIZE_PRESETS:
-            lines.append(f"dlc.{family}.{name}(size={px})  # {label}")
-    elif family == "indicators" and prop == "size":
-        for tok in ("small", "medium", "large"):
-            lines.append(f'dlc.{family}.{name}(size="{tok}")')
-    elif prop == "color":
-        lines.append(f'dlc.{family}.{name}(color="#f97316", size={DEFAULT_SIZE})')
-    elif prop == "speed" and supports_relative_speed(family):
-        lines.append(
-            f'dlc.Loading(library="{family}", spinner="{name}", '
-            f"size={DEFAULT_SIZE}, speed=1.5)"
-        )
-        native = translate_relative_speed(family, 1.5, name)
-        kw = ", ".join(f"{k}={format_py_value(v)}" for k, v in native.items())
-        lines.append(f"# namespaced ≈ dlc.{family}.{name}({kw})")
-    elif prop == "easing":
-        lines.append(f'dlc.{family}.{name}(easing="ease-in-out", size={DEFAULT_SIZE})')
-    elif prop == "cap":
-        lines.append(f'dlc.{family}.{name}(cap="flat", size={DEFAULT_SIZE})')
-    elif prop == "playState":
-        lines.append(f'dlc.{family}.{name}(playState="paused", size={DEFAULT_SIZE})')
-    elif prop == "sweep":
-        for opt in ("diagonal", "rows", "columns"):
-            lines.append(
-                f'dlc.{family}.{name}(sweep="{opt}", size={DEFAULT_SIZE})'
-            )
-    elif prop == "direction":
-        for opt in ("out", "in"):
-            lines.append(
-                f'dlc.{family}.{name}(direction="{opt}", size={DEFAULT_SIZE})'
-            )
-    elif prop == "origin":
-        for opt in ("center", "bottom"):
-            lines.append(
-                f'dlc.{family}.{name}(origin="{opt}", size={DEFAULT_SIZE})'
-            )
-    elif prop == "className":
-        lines.append(f'dlc.{family}.{name}(className="opacity-40", size={DEFAULT_SIZE})')
-    else:
-        spec = prop_spec(family, prop, name)
-        demo = spec["default"] if spec else None
-        if demo is None:
-            lines.append(f"dlc.{family}.{name}(...)  # set {prop}=...")
-        else:
-            lines.append(
-                f"dlc.{family}.{name}({prop}={format_py_value(demo)}, size={DEFAULT_SIZE})"
-            )
-    return format_python_snippet("\n".join(lines) + "\n")
 
 
 def workbench_control(prop: str, value: Any, family: str, props: list[str], name: str | None = None) -> html.Div:
@@ -1338,15 +1297,16 @@ def workbench_control(prop: str, value: Any, family: str, props: list[str], name
 
 
 def build_prop_doc_section(family: str, name: str, prop: str) -> html.Section:
-    title = section_title(prop)
+    """Prose only.
+
+    The Common API and Namespaced snippets above are the page's code, and they
+    track the workbench controls. A second set of hand-written examples per
+    prop said the same thing in a form that could drift from the live preview.
+    """
     return html.Section(
         [
-            html.H2(title),
+            html.H2(section_title(prop)),
             html.P(section_copy(family, prop, name), className="dlc-prop-doc-copy"),
-            html.Pre(
-                build_prop_example_snippet(family, name, prop),
-                className="dlc-snippet dlc-snippet-doc",
-            ),
         ],
         id=f"section-{prop}",
         className="dlc-prop-doc",
@@ -1805,21 +1765,25 @@ def _matches(query: str, family: str, name: str) -> bool:
     Output({"type": "overview-family", "family": ALL}, "style"),
     Output("nav-search-empty", "children"),
     Output("nav-search-empty", "style"),
-    Output("overview-empty", "children"),
-    Output("overview-empty", "style"),
+    Output({"type": "overview-empty", "index": ALL}, "children"),
+    Output({"type": "overview-empty", "index": ALL}, "style"),
     Input("nav-search", "value"),
     State({"type": "nav-comp", "family": ALL, "name": ALL}, "id"),
     State({"type": "nav-family", "family": ALL}, "id"),
     State({"type": "card-wrap", "family": ALL, "name": ALL}, "id"),
     State({"type": "overview-family", "family": ALL}, "id"),
+    State({"type": "overview-empty", "index": ALL}, "id"),
 )
-def filter_nav_search(query, nav_ids, nav_family_ids, card_ids, section_ids):
+def filter_nav_search(query, nav_ids, nav_family_ids, card_ids, section_ids, empty_ids):
     """Filter the nav and the overview to what the query matches.
 
     Non-matches are hidden rather than dimmed. Dimmed cards kept animating
     behind the filter and stayed in the tab order, and a query that matched
     nothing left an empty sidebar beside a full page of them with no
     explanation.
+
+    The overview-only outputs use pattern ids so this still runs, and the
+    sidebar still filters, on a detail page where they do not exist.
     """
     q = (query or "").strip().lower()
 
@@ -1858,6 +1822,7 @@ def filter_nav_search(query, nav_ids, nav_family_ids, card_ids, section_ids):
     else:
         nav_empty, page_empty, shown = "", "", HIDDEN
 
+    overview_present = len(empty_ids or [])
     return (
         nav_styles,
         family_styles(nav_family_ids),
@@ -1865,8 +1830,8 @@ def filter_nav_search(query, nav_ids, nav_family_ids, card_ids, section_ids):
         family_styles(section_ids),
         nav_empty,
         shown,
-        page_empty,
-        shown,
+        [page_empty] * overview_present,
+        [shown] * overview_present,
     )
 
 

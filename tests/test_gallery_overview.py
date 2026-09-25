@@ -108,3 +108,55 @@ def test_no_overview_card_clips_its_spinner(dash_duo):
         "overview cards clip their spinner (px past top/left/bottom/right): "
         f"{clipped}. Give them an OVERVIEW_SCALE entry or a smaller preview size."
     )
+
+
+def _nav_matches(dash_duo):
+    return dash_duo.driver.execute_script(
+        """
+        return [...document.querySelectorAll('.dlc-nav-comp')]
+          .filter((e) => getComputedStyle(e).display !== 'none').length;
+        """
+    )
+
+
+def test_search_filters_from_a_detail_page(dash_duo):
+    """The search callback has to survive pages that lack its outputs.
+
+    Its overview-only outputs are pattern ids for this reason. As plain string
+    ids, Dash aborted the whole callback on any detail page: the console filled
+    with `A nonexistent object was used in an Output`, and typing in the
+    sidebar search did nothing at all.
+    """
+    app = import_app('gallery')
+    dash_duo.start_server(app)
+    dash_duo.driver.set_window_size(1440, 1200)
+
+    dash_duo.driver.get(dash_duo.server_url + '/c/ldrs/Mirage')
+    dash_duo.wait_for_element('#detail-preview')
+    before = _nav_matches(dash_duo)
+    assert before > 50, before
+
+    dash_duo.find_element('#nav-search').send_keys('orbit')
+    dash_duo.wait_for_element('.dlc-nav-comp')
+    for _ in range(40):
+        if _nav_matches(dash_duo) < before:
+            break
+        time.sleep(0.1)
+    assert _nav_matches(dash_duo) == 6, _nav_matches(dash_duo)
+
+    assert dash_duo.get_logs() == []
+
+
+def test_pages_load_without_console_errors(dash_duo):
+    app = import_app('gallery')
+    dash_duo.start_server(app)
+    dash_duo.driver.set_window_size(1440, 1200)
+
+    for path, marker in (
+        ('/', '.dlc-card'),
+        ('/c/loading_dev/Arc', '#detail-preview'),
+        ('/credits', '.dlc-credits-table'),
+    ):
+        dash_duo.driver.get(dash_duo.server_url + path)
+        dash_duo.wait_for_element(marker)
+        assert dash_duo.get_logs() == [], path
