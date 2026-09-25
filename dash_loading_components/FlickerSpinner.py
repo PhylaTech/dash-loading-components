@@ -47,7 +47,11 @@ Keyword arguments:
     fill this in.
 
 - off_color (string; optional):
-    Color of an unlit dot (default a faint tint of `color`).
+    Color of an unlit dot, drawn at `off_opacity` (default `color`).
+
+- off_opacity (number; optional):
+    Opacity of the unlit dots, 0 to 1 (default 0.16). 0 leaves only
+    the lit dots; 1 paints `off_color` solid.
 
 - playing (boolean; optional):
     Set to False to pause the animation.
@@ -83,6 +87,7 @@ Keyword arguments:
         size: typing.Optional[NumberType] = None,
         color: typing.Optional[str] = None,
         off_color: typing.Optional[str] = None,
+        off_opacity: typing.Optional[NumberType] = None,
         variant: typing.Optional[Literal["7x7", "5x5", "9x9"]] = None,
         reverse: typing.Optional[bool] = None,
         speed: typing.Optional[NumberType] = None,
@@ -91,9 +96,9 @@ Keyword arguments:
         playing: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'aria_label', 'className', 'color', 'grids', 'off_color', 'playing', 'rate', 'reverse', 'size', 'speed', 'style', 'variant']
+        self._prop_names = ['id', 'aria_label', 'className', 'color', 'grids', 'off_color', 'off_opacity', 'playing', 'rate', 'reverse', 'size', 'speed', 'style', 'variant']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'aria_label', 'className', 'color', 'grids', 'off_color', 'playing', 'rate', 'reverse', 'size', 'speed', 'style', 'variant']
+        self.available_properties = ['id', 'aria_label', 'className', 'color', 'grids', 'off_color', 'off_opacity', 'playing', 'rate', 'reverse', 'size', 'speed', 'style', 'variant']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

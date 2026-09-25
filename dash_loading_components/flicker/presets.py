@@ -379,13 +379,15 @@ def rain():
 
 
 def stack():
-    # Blocks dropping into a row; the full row clears as the next falls.
+    # Rows dropping one at a time, gathering speed as they fall, each landing
+    # on the last until the panel is full; then it empties and starts over.
     frames, landed = [], set()
-    for col in range(1, 6):
-        for r in (1, 3, 5):
-            frames.append(landed | {(r, col)})
-        landed = landed | {(5, col)}
-    return frames
+    for floor in range(N - 1, -1, -1):
+        drop = sorted({min(floor, n * (n + 1) // 2) for n in range(N)})
+        for r in drop:
+            frames.append(landed | {(r, c) for c in range(N)})
+        landed = landed | {(floor, c) for c in range(N)}
+    return frames + [landed]
 
 
 # ---------------------------------------------------------------------------
@@ -483,7 +485,7 @@ _DESIGNS = [
     ("Equalizer", "board", equalizer, "Five level meters, each on its own beat."),
     ("Typewriter", "board", typewriter, "Lines typed out a character at a time before the carriage returns."),
     ("Rain", "board", rain, "Streaks of rain falling at two speeds."),
-    ("Stack", "board", stack, "Blocks dropping into a row that clears as the next one falls."),
+    ("Stack", "board", stack, "Rows dropping one at a time and stacking up until the panel is full."),
     ("Orbit", "geometry", orbit, "A moon with a short tail circling its planet."),
     ("Pinwheel", "geometry", pinwheel, "A bar turning about its middle."),
     ("Beacon", "geometry", beacon, "A lighthouse throwing its beam out to sea on either side."),

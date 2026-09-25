@@ -4,6 +4,8 @@ import {contract, wrapperClass} from '../../contract';
 import { FlickerSpinner as Upstream, DOT_R, OFFSET, PITCH, SIZE_FULL, VIEWBOX_FULL } from 'flicker-dot';
 
 const ROWS = 7;
+// Unlit dots are the on color at this opacity unless told otherwise.
+const OFF_OPACITY = 0.16;
 const CELLS = ROWS * ROWS;
 
 /**
@@ -44,16 +46,18 @@ for (let r = 0; r < ROWS + 2; r++) {
  * in dlc.flicker are this component with their frames filled in.
  */
 const FlickerSpinner = (props) => {
-    const {id, className, style, grids, size, color, off_color, variant, reverse, speed, aria_label, playing} = props;
+    const {id, className, style, grids, size, color, off_color, off_opacity, variant, reverse, speed, aria_label, playing} = props;
     const frames = toFrames(grids);
     if (!frames) {
         // eslint-disable-next-line no-console
         console.error('dlc.flicker.Spinner: grids must be a non-empty list of frames, each 49 values, 7 rows of 7, or 7 strings of 7.');
     }
-    // Off dots default to a faint tint of the on color rather than upstream's
-    // fixed light grey, so one `color` reads on light and dark pages alike.
+    // Unlit dots are off_color (default the on color) at off_opacity, rather
+    // than upstream's fixed light grey, so one `color` reads on light and dark
+    // pages alike.
     const on = color || 'currentColor';
-    const off = off_color || `color-mix(in srgb, ${on} 16%, transparent)`;
+    const alpha = Math.min(1, Math.max(0, off_opacity ?? OFF_OPACITY));
+    const off = `color-mix(in srgb, ${off_color || on} ${Number((alpha * 100).toFixed(1))}%, transparent)`;
     const padded = variant === '9x9';
     const player = frames && (
         <Upstream grids={frames} size={padded ? VIEWBOX_FULL : size} onColor={on} offColor={off}
@@ -108,9 +112,14 @@ FlickerSpinner.propTypes = {
      */
     color: PropTypes.string,
     /**
-     * Color of an unlit dot (default a faint tint of `color`).
+     * Color of an unlit dot, drawn at `off_opacity` (default `color`).
      */
     off_color: PropTypes.string,
+    /**
+     * Opacity of the unlit dots, 0 to 1 (default 0.16). 0 leaves only the
+     * lit dots; 1 paints `off_color` solid.
+     */
+    off_opacity: PropTypes.number,
     /**
      * The grid: the full 7x7, its inner 5x5 (bigger dots), or the 7x7 padded
      * to 9x9 with a ring of unlit dots (smaller dots).

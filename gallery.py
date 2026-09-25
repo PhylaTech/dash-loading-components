@@ -57,7 +57,7 @@ SIZE_PRESET_DEFAULT = 48
 
 # Workbench control order (props not listed follow in family order)
 WORKBENCH_PROP_PRIORITY = [
-    "size", "height", "width", "color", "off_color", "rate", "playing",
+    "size", "height", "width", "color", "off_color", "off_opacity", "rate", "playing",
     "easing", "cap", "sweep", "direction", "origin",
     "thickness", "stroke", "stroke_width", "stroke_width_secondary",
     "stroke_length", "bg_opacity", "secondary_color", "margin",
@@ -115,6 +115,7 @@ PROP_SECTION_TITLES = {
     "dot_count": "Dot count",
     "dot_size": "Dot size",
     "off_color": "Off color",
+    "off_opacity": "Off opacity",
 }
 
 PROP_SECTION_COPY = {
@@ -172,7 +173,8 @@ PROP_SECTION_COPY = {
     "alternate": "Turns every other ring the opposite way.",
     "orbit_radius": "Radius of the orbit relative to the size.",
     "stagger": "Offsets each dot’s pulse from the last.",
-    "off_color": "Color of the unlit dots. Empty keeps the spinner’s own, a faint tint of the on color.",
+    "off_color": "Color of the unlit dots, drawn at the off opacity. Empty uses the on color.",
+    "off_opacity": "Opacity of the unlit dots, from 0 to 1. At 0 only the lit dots show; at 1 the off color is solid.",
 }
 
 # Upstream tempo and pause props, replaced on the page by the contract's
@@ -278,6 +280,7 @@ PROP_SPECS: dict[str, dict[str, Any]] = {
     "orbit_radius": {"kind": "slider", "min": 0.2, "max": 1.0, "step": 0.05, "default": 0.5},
     "stagger": {"kind": "bool", "default": True},
     "off_color": {"kind": "color", "default": ""},
+    "off_opacity": {"kind": "slider", "min": 0.0, "max": 1.0, "step": 0.02, "default": 0.16},
 }
 
 RATE_SPEC: dict[str, Any] = {"kind": "slider", "min": 0.5, "max": 3.0, "step": 0.1, "default": 1.0}
@@ -414,7 +417,7 @@ FAMILY_PROP_ORDER = {
     "indicators": ["size", "color", "rate", "playing", "easing", "text", "text_color", "variant", "dense", "className"],
     "m3": ["size", "color", "rate", "playing", "contained", "container_color", "size_ratio", "className"],
     "epic": ["size", "color", "rate", "playing", "className"],
-    "flicker": ["size", "color", "off_color", "rate", "playing", "variant", "reverse", "aria_label", "className"],
+    "flicker": ["size", "color", "off_color", "off_opacity", "rate", "playing", "variant", "reverse", "aria_label", "className"],
 }
 
 

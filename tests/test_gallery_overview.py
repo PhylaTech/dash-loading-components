@@ -171,11 +171,11 @@ def test_header_search_jumps_to_a_component(dash_duo):
     search.send_keys('orbit')
     for _ in range(40):
         options = dash_duo.driver.find_elements('css selector', '.dlc-search-option .dlc-search-title')
-        if len(options) == 6:
+        if len(options) == 7:
             break
         time.sleep(0.1)
     names = [o.text for o in options]
-    assert names == ['Orbit', 'Orbit', 'OrbitDots', 'OrbitRings', 'OrbitProgress', 'OrbitSpinner'], names
+    assert names == ['Orbit', 'Orbit', 'OrbitDots', 'OrbitRings', 'OrbitProgress', 'OrbitSpinner', 'Orbit'], names
 
     search.send_keys(Keys.ARROW_DOWN, Keys.ENTER)
     dash_duo.wait_for_text_to_equal('h1', 'Orbit')

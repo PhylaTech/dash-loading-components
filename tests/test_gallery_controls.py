@@ -65,8 +65,9 @@ const state = (probe) => {
     [...e.childNodes].forEach((n) => { if (n.nodeType === 3 && n.textContent.trim()) s += '"' + n.textContent.trim() + '"'; });
     out.push(s);
   });
-  // React useId values differ per instance and surface in url(#id) fills.
-  return out.join('\n').replace(/«r[0-9a-z]+»|_r_[0-9a-z]+_|:r[0-9a-z]+:/g, '');
+  // React useId values differ per instance and surface in url(#id) fills,
+  // and flicker-dot folds them into keyframe names (fkr9_0101...).
+  return out.join('\n').replace(/«r[0-9a-z]+»|_r_[0-9a-z]+_|:r[0-9a-z]+:|\bfkr[0-9a-z]+(?=_)/g, '');
 };
 return Object.fromEntries([...document.querySelectorAll('[data-probe]')].map((e) => [e.dataset.probe, state(e)]));
 """

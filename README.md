@@ -83,7 +83,7 @@ Geometry. Each is the player with its frames filled in:
 
 ```python
 dlc.flicker.Mycelium(size=48, color="#f97316")
-dlc.flicker.Helix(size=48, variant="5x5", off_color="#e5e5e5")
+dlc.flicker.Helix(size=48, variant="5x5", off_color="#e5e5e5", off_opacity=1)
 ```
 
 To play frames of your own, give `dlc.flicker.Spinner` a list of frames. A frame
@@ -98,8 +98,9 @@ dlc.flicker.Spinner(grids=[blink, [row.replace("#", ".") for row in blink]])
 `dlc.flicker.PRESETS` holds every preset's frames, a starting point for your own.
 `variant` picks the grid: `"7x7"`, its inner `"5x5"` (bigger dots) or `"9x9"`,
 the 7x7 padded with a ring of unlit dots (smaller dots at the same size).
-Dots off default to a faint tint of `color` rather than upstream's light grey, so
-one `color` reads on light and dark pages.
+Unlit dots are `off_color` (default: `color`) at `off_opacity` (default `0.16`)
+rather than upstream's fixed light grey, so one `color` reads on light and dark
+pages; `off_opacity=0` shows only the lit dots.
 
 Every component is also exported prefixed at the top level
 (`dlc.LoadingDevArc`, `dlc.LdrsRing`) for Dash callbacks that want a flat name.
