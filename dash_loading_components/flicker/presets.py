@@ -18,6 +18,7 @@ another.
 """
 from __future__ import annotations
 
+import itertools
 import math
 from typing import Iterable, NamedTuple
 
@@ -466,16 +467,30 @@ def download():
     return [tray | {(r, c) for r, c in shift(arrow, f) | shift(arrow, f - 5) if 0 <= r < 5} for f in range(5)]
 
 
-def crosswalk():
-    # A pedestrian signal: the figure stands, then walks. Head and shoulders
-    # never move; only the limbs do, through a four-pose cycle (stride,
-    # closing, passing, closing), so the legs open and close instead of the
-    # whole figure jumping between two shapes.
-    stand = art("...#...", "..###..", ".#.#.#.", ".#.#.#.", "...#...", "..#.#..", "..#.#..")
+def walker():
+    # A figure walking on the spot. Head and shoulders never move; only the
+    # limbs do, through a four-pose cycle (stride, closing, passing, closing),
+    # so the legs open and close instead of the whole figure jumping between
+    # two shapes.
     stride = art("...#...", "..###..", ".#.#.#.", "...#...", "..#.#..", ".#...#.", ".#...#.")
     closing = art("...#...", "..###..", ".#.#.#.", "...#...", "..#.#..", "..#.#..", ".#...#.")
     passing = art("...#...", "..###..", "..###..", "...#...", "...#...", "...##..", "...#...")
-    return [stand] * 5 + [stride, closing, passing, closing] * 3
+    return [stride, closing, passing, closing]
+
+
+def runner():
+    # A figure running on the spot, leaning into it. As with Walker the head
+    # and torso hold still; the arms pump bent at the elbow and the legs run
+    # a four-pose cycle: flight (both feet up, full split), landing, passing
+    # (knee driven high) and toe-off.
+    body = {(0, 4), (1, 3), (1, 4), (2, 3), (3, 3)}
+    poses = [
+        ({(2, 2), (3, 1), (2, 4), (1, 5)}, {(4, 2), (5, 1), (4, 4), (4, 5), (5, 6)}),
+        ({(2, 2), (3, 2), (2, 4), (3, 5)}, {(4, 2), (5, 2), (6, 1), (4, 4), (5, 4), (6, 4)}),
+        ({(2, 2), (2, 4)}, {(4, 3), (5, 3), (6, 3), (4, 4), (4, 5), (5, 5)}),
+        ({(2, 4), (3, 5), (2, 2), (1, 1)}, {(4, 3), (5, 2), (6, 1), (4, 4), (3, 5)}),
+    ]
+    return [body | arms | legs for arms, legs in poses]
 
 
 def mail():
@@ -737,6 +752,58 @@ def lemniscate():
     return [{path[(f - k) % 12] for k in range(3)} for f in range(12)]
 
 
+# ---------------------------------------------------------------------------
+# Solids: the five Platonic solids turning in space
+# ---------------------------------------------------------------------------
+
+PHI = (1 + 5 ** 0.5) / 2
+_SIGNS = (-1, 1)
+SOLID_VERTICES = {
+    "tetrahedron": [(1, 1, 1), (1, -1, -1), (-1, 1, -1), (-1, -1, 1)],
+    "cube": list(itertools.product(_SIGNS, repeat=3)),
+    "octahedron": [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)],
+    "icosahedron": [p for a in _SIGNS for b in _SIGNS
+                    for p in ((0, a, b * PHI), (a, b * PHI, 0), (b * PHI, 0, a))],
+    "dodecahedron": list(itertools.product(_SIGNS, repeat=3))
+    + [p for a in _SIGNS for b in _SIGNS for p in ((0, a / PHI, b * PHI), (a / PHI, b * PHI, 0), (b * PHI, 0, a / PHI))],
+}
+
+
+def solid(name: str, symmetry: float, wire: bool):
+    """A Platonic solid spinning about the vertical, tipped toward the viewer,
+    projected flat. A 7x7 grid cannot draw a full wireframe without it
+    filling in, so the simpler solids show their vertices and edge midpoints
+    (a dotted wireframe) and the icosahedron and dodecahedron their vertices.
+    Each loop turns only as far as the solid's own symmetry (`symmetry`
+    radians), where it looks as it started, at 11.25 degrees a frame."""
+    raw = SOLID_VERTICES[name]
+    size = max(math.dist(v, (0, 0, 0)) for v in raw)
+    unit = [tuple(x / size for x in v) for v in raw]
+    shortest = min(math.dist(a, b) for a, b in itertools.combinations(unit, 2))
+    edges = [(a, b) for a, b in itertools.combinations(unit, 2) if math.isclose(math.dist(a, b), shortest)]
+    tilt = 0.45 if wire else 0.35
+
+    def turn(v, spin):
+        x, y, z = v
+        x, z = x * math.cos(spin) + z * math.sin(spin), -x * math.sin(spin) + z * math.cos(spin)
+        return x, y * math.cos(tilt) - z * math.sin(tilt)
+
+    def dot(x, y):
+        return round(MID - MID * y), round(MID + MID * x)
+
+    steps = round(math.degrees(symmetry) / 11.25)
+    frames = []
+    for f in range(steps):
+        spin = symmetry * f / steps
+        cells = {dot(*turn(v, spin)) for v in unit}
+        if wire:
+            for a, b in edges:
+                (ax, ay), (bx, by) = turn(a, spin), turn(b, spin)
+                cells.add(dot((ax + bx) / 2, (ay + by) / 2))
+        frames.append(cells)
+    return frames
+
+
 _DESIGNS = [
     ("Mycelium", "field", mycelium, "Hyphae branching out from a spore, then the colony hollowing from its old center."),
     ("SporeRing", "field", spore_ring, "Spores thrown off in rings, two rings in flight at once."),
@@ -768,7 +835,8 @@ _DESIGNS = [
     ("Upload", "everyday", upload, "Arrows streaming up out of a tray."),
     ("Magnifier", "everyday", magnifier, "A magnifying glass circling as it searches."),
     ("Download", "everyday", download, "Arrows streaming down into a tray."),
-    ("Crosswalk", "everyday", crosswalk, "A pedestrian signal: the figure stands, then strides across."),
+    ("Walker", "everyday", walker, "A figure walking on the spot, its legs opening and closing through each stride."),
+    ("Runner", "everyday", runner, "A figure running on the spot, leaning in, arms pumping and knees driving high."),
     ("Mail", "everyday", mail, "A letter dropping into its envelope and the flap folding shut."),
     ("Wifi", "everyday", wifi, "A signal finding its bars, arc by arc, then searching again."),
     ("Battery", "everyday", battery, "A battery charging, one cell at a time."),
@@ -795,6 +863,11 @@ _DESIGNS = [
     ("Sandglass", "geometry", sandglass, "Sand running from the top bulb to the bottom, one grain at a time."),
     ("Sweep", "geometry", sweep, "A radar arm turning round its scope."),
     ("Lemniscate", "geometry", lemniscate, "A dot running a figure of eight, trailing two more."),
+    ("Tetrahedron", "solids", lambda: solid("tetrahedron", math.pi, True), "A tetrahedron turning, four faces, drawn as a dotted wireframe."),
+    ("Cube", "solids", lambda: solid("cube", math.pi / 2, True), "A cube turning, six faces, drawn as a dotted wireframe."),
+    ("Octahedron", "solids", lambda: solid("octahedron", math.pi / 2, True), "An octahedron turning, eight faces, drawn as a dotted wireframe."),
+    ("Dodecahedron", "solids", lambda: solid("dodecahedron", math.pi, False), "A dodecahedron turning, its twenty vertices wheeling past."),
+    ("Icosahedron", "solids", lambda: solid("icosahedron", math.pi, False), "An icosahedron turning, its twelve vertices wheeling past."),
 ]
 
 # category key -> (title, note), in gallery order.
@@ -804,6 +877,7 @@ CATEGORIES = {
     "everyday": ("Everyday", "the waits people meet in any app"),
     "board": ("Board", "what flip-dot panels do in stations and stadiums"),
     "geometry": ("Geometry", "shapes in motion"),
+    "solids": ("Solids", "the five Platonic solids, turning"),
 }
 
 PRESETS: dict[str, Preset] = {
