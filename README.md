@@ -123,5 +123,5 @@ under `src/`.
 
 ## License
 
-MIT, Copyright (c) 2026 Evan Roy Rees. See [LICENSE](LICENSE). Wrapped
+MIT, Copyright (c) 2026 Phyla Technologies. See [LICENSE](LICENSE). Wrapped
 third-party libraries remain under their own licenses, listed in the inventory.

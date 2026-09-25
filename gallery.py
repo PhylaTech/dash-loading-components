@@ -1637,7 +1637,7 @@ def build_credits() -> html.Div:
             ),
             html.P(
                 [
-                    html.Span("Copyright © 2026 Evan Roy Rees / "),
+                    html.Span("Copyright © 2026 "),
                     html.A("Phyla Technologies", href="https://github.com/PhylaTech", target="_blank", rel="noopener noreferrer"),
                 ],
                 className="dlc-credits-note",
