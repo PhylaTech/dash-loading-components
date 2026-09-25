@@ -7,7 +7,7 @@ import { Wave as Upstream } from 'loading-dev';
  * LoadingDevWave — Dash wrapper for upstream spinner.
  */
 const LoadingDevWave = (props) => {
-    const {id, className, style, size, color, duration, play_state, origin, rate, playing} = props;
+    const {id, className, style, size, color, duration, play_state, origin, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream size={size} color={color} duration={duration} playState={play_state} origin={origin} className={wrapperClass(className, playing)} {...contract('loading_dev', 'Wave', props)} />

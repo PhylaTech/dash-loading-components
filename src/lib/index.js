@@ -106,6 +106,7 @@ import EpicRadarSpinner from './components/epic/EpicRadarSpinner.react';
 import EpicSemipolarSpinner from './components/epic/EpicSemipolarSpinner.react';
 import EpicSpringSpinner from './components/epic/EpicSpringSpinner.react';
 import EpicTrinityRingsSpinner from './components/epic/EpicTrinityRingsSpinner.react';
+import FlickerSpinner from './components/flicker/FlickerSpinner.react';
 
 export {
     LoadingDevArc,
@@ -214,5 +215,6 @@ export {
     EpicRadarSpinner,
     EpicSemipolarSpinner,
     EpicSpringSpinner,
-    EpicTrinityRingsSpinner
+    EpicTrinityRingsSpinner,
+    FlickerSpinner
 };

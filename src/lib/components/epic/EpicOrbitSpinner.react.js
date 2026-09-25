@@ -7,7 +7,7 @@ import { OrbitSpinner as Upstream } from 'react-epic-spinners';
  * EpicOrbitSpinner — Dash wrapper for upstream spinner.
  */
 const EpicOrbitSpinner = (props) => {
-    const {id, className, style, size, color, animation_duration, rate, playing} = props;
+    const {id, className, style, size, color, animation_duration, playing} = props;
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
             <Upstream size={size} color={color} animationDuration={animation_duration} {...contract('epic', 'OrbitSpinner', props)} />

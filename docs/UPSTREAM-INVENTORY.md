@@ -19,6 +19,7 @@ Update this table when a family is added, version-pinned, or wrap status changes
 | `svg_spinners` | [react-svg-spinners](https://www.npmjs.com/package/react-svg-spinners) **0.3.1** | MIT | [npm](https://www.npmjs.com/package/react-svg-spinners) · [theme-park/react-svg-spinners](https://github.com/theme-park/react-svg-spinners) | **^18.2 only** | `gated` | Do not merge until React 19 peer resolved (override/fork) or deferred |
 | `m3` | [@alerix/m3-loading-indicator](https://www.npmjs.com/package/@alerix/m3-loading-indicator) **1.0.5** | Apache-2.0 | [npm](https://www.npmjs.com/package/@alerix/m3-loading-indicator) | ≥18 | `wrapped` | Day-one (LARGER): include with `epic`; Apache-2.0 OK with MIT wrapper + NOTICE |
 | `epic` | [react-epic-spinners](https://www.npmjs.com/package/react-epic-spinners) **0.6.0** | MIT | [npm](https://www.npmjs.com/package/react-epic-spinners) · [bondz/react-epic-spinners](https://github.com/bondz/react-epic-spinners) | ≥16.8 | `wrapped` | Day-one (LARGER): include with `m3`; styled-components friction |
+| `flicker` | [flicker-dot](https://www.npmjs.com/package/flicker-dot) **0.1.4** | MIT | [flicker.laurie.fyi](https://flicker.laurie.fyi) · [laurieesc/flicker-dot](https://github.com/laurieesc/flicker-dot) | ≥18 | `wrapped` | Player only; the 61 presets are PhylaTech originals (MIT, this repo). The flicker.laurie.fyi gallery patterns are not open source and are not redistributed |
 
 ## Hard skips (license: do not wrap)
 

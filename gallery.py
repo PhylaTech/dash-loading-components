@@ -57,12 +57,12 @@ SIZE_PRESET_DEFAULT = 48
 
 # Workbench control order (props not listed follow in family order)
 WORKBENCH_PROP_PRIORITY = [
-    "size", "height", "width", "color", "rate", "playing",
+    "size", "height", "width", "color", "on_opacity", "off_color", "off_opacity", "rate", "playing",
     "easing", "cap", "sweep", "direction", "origin",
     "thickness", "stroke", "stroke_width", "stroke_width_secondary",
     "stroke_length", "bg_opacity", "secondary_color", "margin",
     "play_state", "paused", "loading", "enabled", "visible", "still",
-    "reverse", "dense", "variant", "contained",
+    "reverse", "dense", "variant", "rotate", "mirror", "contained",
     "container_color", "size_ratio", "radius", "bar_count", "dot_count",
     "dot_size", "ring_count", "ring_gap", "alternate", "orbit_radius", "stagger",
     "text", "text_color", "aria_label", "className",
@@ -114,6 +114,11 @@ PROP_SECTION_TITLES = {
     "bar_count": "Bar count",
     "dot_count": "Dot count",
     "dot_size": "Dot size",
+    "off_color": "Off color",
+    "off_opacity": "Off opacity",
+    "on_opacity": "On opacity",
+    "rotate": "Rotate",
+    "mirror": "Mirror",
 }
 
 PROP_SECTION_COPY = {
@@ -171,6 +176,11 @@ PROP_SECTION_COPY = {
     "alternate": "Turns every other ring the opposite way.",
     "orbit_radius": "Radius of the orbit relative to the size.",
     "stagger": "Offsets each dot’s pulse from the last.",
+    "off_color": "Color of the unlit dots, drawn at the off opacity. Empty uses the on color.",
+    "off_opacity": "Opacity of the unlit dots, from 0 to 1. At 0 only the lit dots show; at 1 the off color is solid.",
+    "on_opacity": "Opacity of the lit dots, from 0 to 1.",
+    "rotate": "Turns the animation clockwise: 90° makes a loop that grows upward grow to the right.",
+    "mirror": "Mirrors the animation left to right, before any rotation.",
 }
 
 # Upstream tempo and pause props, replaced on the page by the contract's
@@ -217,7 +227,8 @@ LOADING_DEV_EASING = {
 }
 LOADING_DEV_CAP = {"Arc", "Cascade", "Dual", "Ring", "Snake", "Trace"}
 
-SKIP_UI_PROPS = {"id", "style", "setProps"}
+# grids is the frame data a flicker preset fills in, not a knob.
+SKIP_UI_PROPS = {"id", "style", "setProps", "grids"}
 
 # Control definitions. `default` is what the control starts at; per-spinner
 # corrections live in UPSTREAM_DEFAULTS. A color default of "" means "leave
@@ -274,6 +285,12 @@ PROP_SPECS: dict[str, dict[str, Any]] = {
     "alternate": {"kind": "bool", "default": True},
     "orbit_radius": {"kind": "slider", "min": 0.2, "max": 1.0, "step": 0.05, "default": 0.5},
     "stagger": {"kind": "bool", "default": True},
+    "off_color": {"kind": "color", "default": ""},
+    "off_opacity": {"kind": "slider", "min": 0.0, "max": 1.0, "step": 0.02, "default": 0.16},
+    "on_opacity": {"kind": "slider", "min": 0.0, "max": 1.0, "step": 0.02, "default": 1.0},
+    "rotate": {"kind": "enum", "options": [0, 90, 180, 270],
+               "labels": {0: "0°", 90: "90°", 180: "180°", 270: "270°"}, "default": 0},
+    "mirror": {"kind": "bool", "default": False},
 }
 
 RATE_SPEC: dict[str, Any] = {"kind": "slider", "min": 0.5, "max": 3.0, "step": 0.1, "default": 1.0}
@@ -302,6 +319,9 @@ INDICATORS_VARIANT = {
 
 PREMIUM_THICKNESS_SPEC = {"kind": "slider", "min": 1, "max": 12, "step": 1, "default": 2}
 
+FLICKER_VARIANT_SPEC = {"kind": "enum", "options": ["5x5", "7x7", "9x9"],
+                        "labels": {"5x5": "5×5", "7x7": "7×7", "9x9": "9×9"}, "default": "7x7"}
+
 
 def prop_spec(family: str, prop: str, name: str | None = None) -> dict[str, Any] | None:
     """Resolve control metadata for one prop of one spinner."""
@@ -313,6 +333,8 @@ def prop_spec(family: str, prop: str, name: str | None = None) -> dict[str, Any]
         return INDICATORS_VARIANT[name]
     if prop == "thickness" and family == "premium":
         return PREMIUM_THICKNESS_SPEC
+    if prop == "variant" and family == "flicker":
+        return FLICKER_VARIANT_SPEC
     return PROP_SPECS.get(prop)
 
 
@@ -358,6 +380,18 @@ IGNORED_PROPS: dict[tuple[str, str], frozenset[str]] = {
     **_for("indicators", "Atom BlinkBlur Commet FourSquare LifeLine Mosaic Riple Slab TrophySpin",
            frozenset({"variant"})),
 }
+
+def _flicker_no_ops(name: str) -> frozenset[str]:
+    """Orientation controls that would change nothing: a loop symmetric left
+    to right ignores mirror, one symmetric under a quarter turn ignores rotate."""
+    frames = dlc.flicker.PRESETS[name].frames
+    mirrored = tuple(tuple(row[::-1] for row in f) for f in frames)
+    turned = tuple(tuple("".join(f[6 - c][r] for c in range(7)) for r in range(7)) for f in frames)
+    return frozenset({"mirror"} if mirrored == frames else set()) | ({"rotate"} if turned == frames else set())
+
+
+IGNORED_PROPS.update({("flicker", name): _flicker_no_ops(name) for name in dlc.flicker.PRESETS})
+
 
 # Where a spinner's own default differs from the family-wide PROP_SPECS one.
 # Controls start here, so the page shows what `dlc.<family>.<Name>()` renders;
@@ -405,6 +439,7 @@ FAMILY_PROP_ORDER = {
     "indicators": ["size", "color", "rate", "playing", "easing", "text", "text_color", "variant", "dense", "className"],
     "m3": ["size", "color", "rate", "playing", "contained", "container_color", "size_ratio", "className"],
     "epic": ["size", "color", "rate", "playing", "className"],
+    "flicker": ["size", "color", "on_opacity", "off_color", "off_opacity", "rate", "playing", "variant", "rotate", "mirror", "reverse", "aria_label", "className"],
 }
 
 
@@ -474,6 +509,15 @@ UPSTREAM_CREDITS = [
         "status": "mvp",
     },
     {
+        "family": "flicker", "npm": "flicker-dot", "version": "0.1.4", "spdx": "MIT",
+        "homepage": "https://flicker.laurie.fyi", "repo": "https://github.com/laurieesc/flicker-dot",
+        "blurb": (
+            f"Laura Escobar's flip-dot player, on {len(dlc.flicker.PRESETS)} original presets drawn by PhylaTech. "
+            "dlc.flicker.Spinner(grids=...) plays frames of your own."
+        ),
+        "status": "mvp",
+    },
+    {
         "family": "svg_spinners", "npm": "react-svg-spinners", "version": "0.3.1", "spdx": "MIT",
         "homepage": "https://www.npmjs.com/package/react-svg-spinners",
         "repo": "https://github.com/theme-park/react-svg-spinners",
@@ -496,6 +540,8 @@ CATALOG: list[tuple[str, str]] = [
 def description_for(family: str, name: str, upstream: str) -> str:
     if family == "loading_dev" and name in LOADING_DEV_BLURBS:
         return LOADING_DEV_BLURBS[name]
+    if family == "flicker":
+        return dlc.flicker.PRESETS[name].blurb
     return f"The {name} loader from {upstream}, as a Dash component."
 
 
@@ -735,7 +781,7 @@ def build_brand_mark() -> html.Span:
 
 
 # Hero carousel: one slide per featured loader, snippet beside the loader.
-# A curated dozen, not the catalog: 107 highlighted snippets is a lot of DOM.
+# A curated handful, not the catalog: every highlighted snippet is DOM.
 FEATURED: list[tuple[str, str, dict[str, Any]]] = [
     ("loading_dev", "Dual", {"rate": 1.5}),
     ("ldrs", "Helix", {}),
@@ -749,6 +795,7 @@ FEATURED: list[tuple[str, str, dict[str, Any]]] = [
     ("epic", "TrinityRingsSpinner", {}),
     ("loader_spinner", "DNA", {}),
     ("ldrs", "Mirage", {}),
+    ("flicker", "Mycelium", {}),
 ]
 
 
@@ -992,6 +1039,21 @@ def make_overview_card(family: str, name: str) -> dmc.Anchor:
     )
 
 
+def family_grids(key: str, items: list[tuple[str, Callable]]) -> list:
+    """One grid of cards, or, for flicker's presets, one per category."""
+    if key != "flicker":
+        return [html.Div([make_overview_card(key, n) for n, _c in items], className="dlc-grid")]
+    grids = []
+    for i, (category, (title, note)) in enumerate(dlc.flicker.CATEGORIES.items()):
+        names = [n for n, _c in items if dlc.flicker.PRESETS[n].category == category]
+        grids += [
+            dmc.Group([dmc.Text(title, size="sm", fw=600), dmc.Text(note, size="sm", c="dimmed")],
+                      gap=6, className="dlc-subfamily is-first" if i == 0 else "dlc-subfamily"),
+            html.Div([make_overview_card(key, n) for n in names], className="dlc-grid"),
+        ]
+    return grids
+
+
 def build_overview() -> html.Div:
     sections = []
     for key, label, items in FAMILIES:
@@ -1012,7 +1074,7 @@ def build_overview() -> html.Div:
                         align="center",
                     ),
                     dmc.Text(credit["blurb"], c="dimmed", size="sm", mt=6, mb="md"),
-                    html.Div([make_overview_card(key, n) for n, _c in items], className="dlc-grid"),
+                    *family_grids(key, items),
                 ],
                 id=f"family-{key}",
                 className="dlc-family",
@@ -1051,6 +1113,9 @@ def section_copy(family: str, prop: str) -> str:
         return "A size token: small, medium or large."
     if family == "indicators" and prop == "easing":
         return "The CSS easing of each cycle. Empty keeps the curve each indicator is designed with."
+    if family == "flicker" and prop == "variant":
+        return ("The grid the loop plays on: the full 7×7, only its inner 5×5 for bigger dots, "
+                "or padded out to 9×9 with a ring of unlit dots for smaller ones.")
     return PROP_SECTION_COPY.get(prop, f"Configurable `{prop}` for this wrapper.")
 
 
@@ -1124,7 +1189,8 @@ def workbench_control(prop: str, value: Any, family: str, props: list[str], name
     if kind == "enum":
         opts = spec["options"]
         labels = spec.get("labels") or {o: o for o in opts}
-        return segmented([(labels[o], o) for o in opts], value if value in opts else spec["default"])
+        # SegmentedControl only carries strings; _coerce_control_value maps them back.
+        return segmented([(labels[o], str(o)) for o in opts], str(value if value in opts else spec["default"]))
     if kind == "dropdown":
         return dmc.Stack(
             [dmc.Text(label, size="sm", fw=500),
@@ -1474,6 +1540,8 @@ def _coerce_control_value(prop: str, raw: Any, family: str, name: str) -> Any:
         return int(raw) if float(spec["step"]).is_integer() else float(raw)
     if spec and spec["kind"] in ("text", "color"):
         return (raw or "").strip()
+    if spec and spec["kind"] == "enum":
+        return next((o for o in spec["options"] if str(o) == str(raw)), spec["default"])
     return raw
 
 
@@ -1489,6 +1557,8 @@ def _control_values(family: str, name: str, props: list[str]) -> tuple[dict, dic
             values[prop] = str(v)
         elif spec and spec["kind"] in ("text", "color"):
             values[prop] = v or ""
+        elif spec and spec["kind"] == "enum":
+            values[prop] = str(v)
         else:
             values[prop] = v
     return values, switches

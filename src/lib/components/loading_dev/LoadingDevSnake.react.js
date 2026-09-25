@@ -7,7 +7,7 @@ import { Snake as Upstream } from 'loading-dev';
  * LoadingDevSnake — Dash wrapper for upstream spinner.
  */
 const LoadingDevSnake = (props) => {
-    const {id, className, style, size, color, duration, play_state, easing, cap, rate, playing} = props;
+    const {id, className, style, size, color, duration, play_state, easing, cap, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream size={size} color={color} duration={duration} playState={play_state} easing={easing} cap={cap} className={wrapperClass(className, playing)} {...contract('loading_dev', 'Snake', props)} />

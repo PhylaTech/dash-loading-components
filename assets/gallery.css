@@ -38,6 +38,7 @@ p { text-wrap: pretty; }
 .dlc-icon-indicators { --dlc-icon: url(icons/indicators.svg); }
 .dlc-icon-m3 { --dlc-icon: url(icons/m3.svg); }
 .dlc-icon-epic { --dlc-icon: url(icons/epic.svg); }
+.dlc-icon-flicker { --dlc-icon: url(icons/flicker.svg); }
 .dlc-icon-overview { --dlc-icon: url(icons/overview.svg); }
 .dlc-icon-credits { --dlc-icon: url(icons/credits.svg); }
 .dlc-icon-request { --dlc-icon: url(icons/request.svg); }
@@ -205,6 +206,10 @@ html[data-mac] .dlc-mod-other, html:not([data-mac]) .dlc-mod-mac { display: none
 }
 .dlc-family-title .dlc-icon { color: var(--dlc-accent); }
 .dlc-family-link { display: inline-flex; align-items: center; gap: 4px; }
+
+/* Sub-heads inside a family, e.g. flicker's Field / Board / Geometry. */
+.dlc-subfamily { margin: 20px 0 10px; }
+.dlc-subfamily.is-first { margin-top: 0; }
 
 .dlc-grid {
   display: grid; gap: 12px;

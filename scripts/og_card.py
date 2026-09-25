@@ -22,6 +22,9 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 import dash_loading_components as dlc
+from dash_loading_components.registry import FAMILIES
+
+CATALOG = [name for _key, _label, items in FAMILIES for name, _c in items]
 
 dash._dash_renderer._set_react_version("19.2.4")
 
@@ -78,7 +81,7 @@ app.layout = html.Div(
         html.Div(
             [
                 html.H1(["Loading,", html.Span("made beautiful for Dash.")]),
-                html.P([html.B("107 loading indicators"), " from 9 React libraries, as Dash components "
+                html.P([html.B(f"{len(CATALOG)} loading indicators"), f" from {len(FAMILIES)} React libraries, as Dash components "
                         "that all speak the same ", html.B("size"), ", ", html.B("color"), ", ",
                         html.B("rate"), " and ", html.B("playing"), "."], className="lede"),
                 html.Div([html.I("$"), "pip install dash-loading-components"], className="pip"),

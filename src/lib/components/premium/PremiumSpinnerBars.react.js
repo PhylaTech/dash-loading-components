@@ -8,7 +8,7 @@ import { SpinnerBars as Upstream } from 'premium-react-loaders';
  * PremiumSpinnerBars — Dash wrapper for upstream spinner.
  */
 const PremiumSpinnerBars = (props) => {
-    const {id, className, style, size, color, speed, reverse, secondary_color, visible, bar_count, rate, playing} = props;
+    const {id, className, style, size, color, speed, reverse, secondary_color, visible, bar_count, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream size={size} color={color} speed={speed} reverse={reverse} secondaryColor={secondary_color} visible={visible} barCount={bar_count} className={wrapperClass(className, playing)} {...contract('premium', 'SpinnerBars', props)} />

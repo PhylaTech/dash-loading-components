@@ -8,7 +8,7 @@ import 'ldrs/react/Infinity.css';
  * LdrsInfinity — Dash wrapper for upstream spinner.
  */
 const LdrsInfinity = (props) => {
-    const {id, className, style, size, color, speed, stroke, bg_opacity, stroke_length, rate, playing} = props;
+    const {id, className, style, size, color, speed, stroke, bg_opacity, stroke_length, playing} = props;
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
             <Upstream size={size} color={color} speed={speed} stroke={stroke} bgOpacity={bg_opacity} strokeLength={stroke_length} {...contract('ldrs', 'Infinity', props)} />

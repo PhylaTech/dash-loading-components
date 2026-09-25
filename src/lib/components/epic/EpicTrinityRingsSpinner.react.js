@@ -7,7 +7,7 @@ import { TrinityRingsSpinner as Upstream } from 'react-epic-spinners';
  * EpicTrinityRingsSpinner — Dash wrapper for upstream spinner.
  */
 const EpicTrinityRingsSpinner = (props) => {
-    const {id, className, style, size, color, animation_duration, rate, playing} = props;
+    const {id, className, style, size, color, animation_duration, playing} = props;
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
             <Upstream size={size} color={color} animationDuration={animation_duration} {...contract('epic', 'TrinityRingsSpinner', props)} />

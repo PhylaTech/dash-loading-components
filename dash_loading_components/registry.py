@@ -10,6 +10,7 @@ from typing import Callable
 
 from . import (
     epic,
+    flicker,
     indicators,
     ldrs,
     loader_spinner,
@@ -179,6 +180,12 @@ FAMILIES: list[tuple[str, str, list[tuple[str, Callable]]]] = [
             ("SemipolarSpinner", epic.SemipolarSpinner),
             ("RadarSpinner", epic.RadarSpinner),
         ],
+    ),
+    (
+        "flicker",
+        "flicker-dot",
+        # The presets, not the player: dlc.flicker.Spinner needs grids.
+        [(name, getattr(flicker, name)) for name in flicker.PRESETS],
     ),
 ]
 

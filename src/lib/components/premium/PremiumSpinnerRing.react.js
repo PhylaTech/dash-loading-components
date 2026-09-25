@@ -8,7 +8,7 @@ import { SpinnerRing as Upstream } from 'premium-react-loaders';
  * PremiumSpinnerRing — Dash wrapper for upstream spinner.
  */
 const PremiumSpinnerRing = (props) => {
-    const {id, className, style, size, color, speed, reverse, secondary_color, visible, thickness, rate, playing} = props;
+    const {id, className, style, size, color, speed, reverse, secondary_color, visible, thickness, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream size={size} color={color} speed={speed} reverse={reverse} secondaryColor={secondary_color} visible={visible} thickness={thickness} className={wrapperClass(className, playing)} {...contract('premium', 'SpinnerRing', props)} />

@@ -10,6 +10,7 @@ Comparing the generated Python against `metadata.json` would not catch it:
 both come out of the same build, so they go stale together. The React sources
 are the only independent truth here.
 """
+import inspect
 import json
 import pathlib
 import re
@@ -52,7 +53,7 @@ CASES = [react_prop_names(s) for s in SOURCES]
 
 
 def test_every_source_was_parsed():
-    assert len(CASES) == 107, len(CASES)
+    assert len(CASES) == 108, len(CASES)
 
 
 @pytest.mark.parametrize("display_name,react_props", CASES)
@@ -61,7 +62,9 @@ def test_generated_wrapper_exposes_every_react_prop(display_name, react_props):
 
     assert react_props, display_name
     component = getattr(dlc, display_name)
-    exposed = set(component().available_properties)
+    # The constructor's signature, not an instance: a wrapper with a required
+    # prop (flicker's grids) cannot be built bare.
+    exposed = set(inspect.signature(component.__init__).parameters) - {"self", "kwargs"}
     missing = {p for p in react_props if p not in NOT_A_PROPERTY} - exposed
     assert not missing, (
         f"{display_name} was generated from an older version of "

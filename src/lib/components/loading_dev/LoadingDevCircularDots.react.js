@@ -7,7 +7,7 @@ import { CircularDots as Upstream } from 'loading-dev';
  * LoadingDevCircularDots — Dash wrapper for upstream spinner.
  */
 const LoadingDevCircularDots = (props) => {
-    const {id, className, style, size, color, duration, play_state, rate, playing} = props;
+    const {id, className, style, size, color, duration, play_state, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream size={size} color={color} duration={duration} playState={play_state} className={wrapperClass(className, playing)} {...contract('loading_dev', 'CircularDots', props)} />

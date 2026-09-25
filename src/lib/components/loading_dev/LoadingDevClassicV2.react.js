@@ -7,7 +7,7 @@ import { ClassicV2 as Upstream } from 'loading-dev';
  * LoadingDevClassicV2 — Dash wrapper for upstream spinner.
  */
 const LoadingDevClassicV2 = (props) => {
-    const {id, className, style, size, color, duration, play_state, rate, playing} = props;
+    const {id, className, style, size, color, duration, play_state, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream size={size} color={color} duration={duration} playState={play_state} className={wrapperClass(className, playing)} {...contract('loading_dev', 'ClassicV2', props)} />

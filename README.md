@@ -1,7 +1,7 @@
 # dash-loading-components (`dlc`)
 
-Loading indicators for [Plotly Dash](https://dash.plotly.com), wrapping nine
-React spinner libraries as one install. 107 components under stable namespaces,
+Loading indicators for [Plotly Dash](https://dash.plotly.com), wrapping ten
+React spinner libraries as one install. 168 components under stable namespaces,
 with a common factory over the top so you can switch families without
 relearning each one's props.
 
@@ -71,6 +71,41 @@ resolve it; it will accept the final 4.5 release once published.
 | `spinners_react` | [spinners-react](https://www.npmjs.com/package/spinners-react) | 9 |
 | `epic` | [react-epic-spinners](https://www.npmjs.com/package/react-epic-spinners) | 8 |
 | `m3` | [@alerix/m3-loading-indicator](https://www.npmjs.com/package/@alerix/m3-loading-indicator) | 1 |
+| `flicker` | [flicker-dot](https://www.npmjs.com/package/flicker-dot) | 61 |
+
+## Flip-dot presets
+
+flicker-dot is a player: it animates whatever 7x7 frames it is given. `dlc.flicker`
+ships 61 original presets for it, drawn by PhylaTech and MIT licensed with this
+package, in six sets: Field (the naturalist set: `Mycelium`, `Diatom`,
+`Cladogram`, `Chromatogram`, `MassSpec`, `TestTube`, `Jellyfish`, ...), Data
+(`Scatter`, `Histogram`, `LineChart`, `PieChart`, `Heatmap`, `Database`),
+Everyday (`Cart`, `Upload`, `Download`, `Mail`, `Wifi`, `Heart`, `Lock`, ...),
+Board (flip-dot panel classics), Geometry, and Solids (the five Platonic
+solids). Each is the player with its frames filled in:
+
+```python
+dlc.flicker.Mycelium(size=48, color="#f97316")
+dlc.flicker.Helix(size=48, variant="5x5", off_color="#e5e5e5", off_opacity=1)
+```
+
+To play frames of your own, give `dlc.flicker.Spinner` a list of frames. A frame
+is 7 strings of 7 characters, `#` lit and `.` dark (or upstream's 49 booleans,
+or 7 lists of 7):
+
+```python
+blink = ["...#...", "..###..", ".#####.", "#######", ".#####.", "..###..", "...#..."]
+dlc.flicker.Spinner(grids=[blink, [row.replace("#", ".") for row in blink]])
+```
+
+`dlc.flicker.PRESETS` holds every preset's frames, a starting point for your own.
+`rotate` (0, 90, 180 or 270, clockwise) and `mirror` orient any preset, so
+`dlc.flicker.Cladogram(rotate=90)` grows left to right. `variant` picks the grid: `"7x7"`, its inner `"5x5"` (bigger dots) or `"9x9"`,
+the 7x7 padded with a ring of unlit dots (smaller dots at the same size).
+Lit dots are `color` at `on_opacity` (default `1`). Unlit dots are `off_color`
+(default: `color`) at `off_opacity` (default `0.16`)
+rather than upstream's fixed light grey, so one `color` reads on light and dark
+pages; `off_opacity=0` shows only the lit dots.
 
 Every component is also exported prefixed at the top level
 (`dlc.LoadingDevArc`, `dlc.LdrsRing`) for Dash callbacks that want a flat name.
@@ -84,7 +119,7 @@ Version pins, SPDX licenses, upstream URLs and React peers:
 `rate` is a rate, not a duration. `1.0` reproduces the tempo the upstream
 component runs at on its own, and the value is translated per family in the
 wrappers: a duration in milliseconds for loading-dev, epic and premium,
-seconds per loop for ldrs, a multiplier for react-spinners and m3, a
+seconds per loop for ldrs, a multiplier for react-spinners, m3 and flicker, a
 percentage for spinners-react, an offset for react-loading-indicators.
 
 That baseline is per spinner, not per family. `loading_dev.Compass` is normally

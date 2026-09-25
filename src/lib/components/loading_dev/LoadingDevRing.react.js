@@ -7,7 +7,7 @@ import { Ring as Upstream } from 'loading-dev';
  * LoadingDevRing — Dash wrapper for upstream spinner.
  */
 const LoadingDevRing = (props) => {
-    const {id, className, style, size, color, duration, play_state, easing, cap, rate, playing} = props;
+    const {id, className, style, size, color, duration, play_state, easing, cap, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream size={size} color={color} duration={duration} playState={play_state} easing={easing} cap={cap} className={wrapperClass(className, playing)} {...contract('loading_dev', 'Ring', props)} />

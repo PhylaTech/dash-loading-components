@@ -8,7 +8,7 @@ import 'ldrs/react/DotPulse.css';
  * LdrsDotPulse — Dash wrapper for upstream spinner.
  */
 const LdrsDotPulse = (props) => {
-    const {id, className, style, size, color, speed, stroke, rate, playing} = props;
+    const {id, className, style, size, color, speed, stroke, playing} = props;
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
             <Upstream size={size} color={color} speed={speed} stroke={stroke} {...contract('ldrs', 'DotPulse', props)} />

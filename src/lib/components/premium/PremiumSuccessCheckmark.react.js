@@ -8,7 +8,7 @@ import { SuccessCheckmark as Upstream } from 'premium-react-loaders';
  * PremiumSuccessCheckmark — Dash wrapper for upstream spinner.
  */
 const PremiumSuccessCheckmark = (props) => {
-    const {id, className, style, size, color, speed, secondary_color, visible, rate, playing} = props;
+    const {id, className, style, size, color, speed, secondary_color, visible, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream size={size} color={color} speed={speed}  secondaryColor={secondary_color} visible={visible} className={wrapperClass(className, playing)} {...contract('premium', 'SuccessCheckmark', props)} />

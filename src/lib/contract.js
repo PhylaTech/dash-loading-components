@@ -45,7 +45,10 @@ const PERIOD = {
 };
 const PREMIUM_PERIOD = 1000;
 // The one premium loader without `speed`: a one-shot draw timed by `duration`.
-const CHECKMARK = {prop: 'duration', of: (rate) => 500 / rate};
+const CHECKMARK_MS = 500;
+const CHECKMARK = {prop: 'duration', of: (rate) => CHECKMARK_MS / rate};
+// react-loading-indicators' speedPlus is an integer offset in [-5, 5].
+const SPEED_PLUS_LIMIT = 5;
 
 // How each family spells tempo, and how `rate` maps onto it.
 const TEMPO = {
@@ -54,10 +57,14 @@ const TEMPO = {
     epic: {prop: 'animationDuration', of: (rate, spinner) => PERIOD.epic[spinner] / rate},
     premium: {prop: 'speed', of: (rate) => PREMIUM_PERIOD / rate},
     m3: {prop: 'speed', of: (rate) => rate},
+    flicker: {prop: 'speed', of: (rate) => rate},
     spinners: {prop: 'speedMultiplier', of: (rate) => rate},
     spinners_react: {prop: 'speed', of: (rate) => 100 * rate},
-    // speedPlus is an integer offset in [-5, 5], 0 = normal.
-    indicators: {prop: 'speedPlus', of: (rate) => Math.max(-5, Math.min(5, Math.round((rate - 1) * 5)))},
+    // speedPlus: 0 = normal, one step per fifth of the rate either way.
+    indicators: {
+        prop: 'speedPlus',
+        of: (rate) => Math.max(-SPEED_PLUS_LIMIT, Math.min(SPEED_PLUS_LIMIT, Math.round((rate - 1) * SPEED_PLUS_LIMIT))),
+    },
     loader_spinner: null,
 };
 
@@ -115,9 +122,15 @@ export function contract(family, spinner, props) {
  */
 export function usePlaying(ref, playing) {
     useEffect(() => {
-        if (!ref.current) return;
+        if (!ref.current) {
+            return;
+        }
         ref.current.querySelectorAll('svg').forEach((svg) => {
-            if (playing === false) svg.pauseAnimations(); else svg.unpauseAnimations();
+            if (playing === false) {
+                svg.pauseAnimations();
+            } else {
+                svg.unpauseAnimations();
+            }
         });
     });
 }

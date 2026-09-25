@@ -7,7 +7,7 @@ import Upstream from 'react-spinners/HashLoader';
  * SpinnersHashLoader — Dash wrapper for upstream spinner.
  */
 const SpinnersHashLoader = (props) => {
-    const {id, className, style, size, color, loading, speed_multiplier, height, width, margin, rate, playing} = props;
+    const {id, className, style, size, color, loading, speed_multiplier, height, width, margin, playing} = props;
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
             <Upstream size={size} color={color} loading={loading} speedMultiplier={speed_multiplier} height={height} width={width} margin={margin} {...contract('spinners', 'HashLoader', props)} />

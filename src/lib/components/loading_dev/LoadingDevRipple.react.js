@@ -7,7 +7,7 @@ import { Ripple as Upstream } from 'loading-dev';
  * LoadingDevRipple — Dash wrapper for upstream spinner.
  */
 const LoadingDevRipple = (props) => {
-    const {id, className, style, size, color, duration, play_state, direction, rate, playing} = props;
+    const {id, className, style, size, color, duration, play_state, direction, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream size={size} color={color} duration={duration} playState={play_state} direction={direction} className={wrapperClass(className, playing)} {...contract('loading_dev', 'Ripple', props)} />

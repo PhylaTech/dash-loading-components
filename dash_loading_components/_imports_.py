@@ -6,6 +6,7 @@ from .EpicRadarSpinner import EpicRadarSpinner
 from .EpicSemipolarSpinner import EpicSemipolarSpinner
 from .EpicSpringSpinner import EpicSpringSpinner
 from .EpicTrinityRingsSpinner import EpicTrinityRingsSpinner
+from .FlickerSpinner import FlickerSpinner
 from .IndicatorsAtom import IndicatorsAtom
 from .IndicatorsBlinkBlur import IndicatorsBlinkBlur
 from .IndicatorsCommet import IndicatorsCommet
@@ -115,6 +116,7 @@ __all__ = [
     "EpicSemipolarSpinner",
     "EpicSpringSpinner",
     "EpicTrinityRingsSpinner",
+    "FlickerSpinner",
     "IndicatorsAtom",
     "IndicatorsBlinkBlur",
     "IndicatorsCommet",

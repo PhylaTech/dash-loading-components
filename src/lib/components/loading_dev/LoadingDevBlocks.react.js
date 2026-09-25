@@ -7,7 +7,7 @@ import { Blocks as Upstream } from 'loading-dev';
  * LoadingDevBlocks — Dash wrapper for upstream spinner.
  */
 const LoadingDevBlocks = (props) => {
-    const {id, className, style, size, color, duration, play_state, sweep, rate, playing} = props;
+    const {id, className, style, size, color, duration, play_state, sweep, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream size={size} color={color} duration={duration} playState={play_state} sweep={sweep} className={wrapperClass(className, playing)} {...contract('loading_dev', 'Blocks', props)} />
