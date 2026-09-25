@@ -7,6 +7,30 @@
   --muted: #64748b;
   --nav-w: 248px;
   --toc-w: 168px;
+  /* Depth as shadow, not a solid border: transparency works on any surface,
+     a border colour only works on the one it was picked for. */
+  --shadow-border:
+    0px 0px 0px 1px oklch(0 0 0 / 0.06),
+    0px 1px 2px -1px oklch(0 0 0 / 0.06),
+    0px 2px 4px 0px oklch(0 0 0 / 0.04);
+  --shadow-border-hover:
+    0px 0px 0px 1px oklch(0 0 0 / 0.08),
+    0px 1px 2px -1px oklch(0 0 0 / 0.08),
+    0px 2px 4px 0px oklch(0 0 0 / 0.06);
+  --ring-accent: 0 0 0 1px var(--accent), 0 0 0 4px rgb(249 115 22 / 0.15);
+}
+html {
+  /* macOS renders text heavier than intended without this. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+h1, h2, h3 { text-wrap: balance; }
+p, li, figcaption { text-wrap: pretty; }
+/* One visible focus treatment for every control, instead of nine UA defaults. */
+:where(a, button, input, select, summary):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 * { box-sizing: border-box; }
 body {
@@ -20,7 +44,9 @@ a:hover { color: var(--accent); }
 .dlc-shell { display: flex; min-height: 100vh; }
 .dlc-sidenav {
   position: sticky; top: 0; align-self: flex-start;
-  width: var(--nav-w); max-height: 100vh;
+  /* min == max so a short (filtered) list still paints a full-height panel
+     instead of stopping mid-viewport. */
+  width: var(--nav-w); min-height: 100vh; max-height: 100vh;
   display: flex; flex-direction: column;
   background: var(--panel); border-right: 1px solid var(--border);
   padding: 18px 12px 12px; flex-shrink: 0;
@@ -39,7 +65,7 @@ a:hover { color: var(--accent); }
   margin: 2px 0 0; font-weight: 500;
 }
 .dlc-nav-home {
-  font-weight: 600; margin-bottom: 10px !important;
+  font-weight: 600; margin-bottom: 8px !important;
 }
 .dlc-nav-search {
   width: 100%; margin: 0 0 12px;
@@ -52,30 +78,40 @@ a:hover { color: var(--accent); }
 }
 .dlc-nav-search .dash-input-element,
 #nav-search {
-  width: 100%; margin: 0; padding: 8px 10px;
+  width: 100%; margin: 0; padding: 11px 10px; min-height: 40px;
   border: none; outline: none; background: transparent;
   font-size: 13px; color: var(--text);
   box-shadow: none !important;
 }
 .dlc-nav-family { margin: 14px 0 4px; font-size: 11px; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+/* Rows were 24px tall. 32px is as much as the list can take without halving
+   how many of the 107 components are visible at once; the 2px gaps are folded
+   into the row so no two hit areas sit apart or overlap. */
 .dlc-nav-item {
-  display: block; padding: 4px 8px; border-radius: 6px;
-  font-size: 13px; color: #334155; margin: 1px 0;
+  display: flex; align-items: center; min-height: 32px;
+  padding: 4px 8px; border-radius: 6px;
+  font-size: 13px; color: #334155; margin: 0;
+  transition-property: background-color, color;
+  transition-duration: .1s; transition-timing-function: ease-out;
 }
 .dlc-nav-item:hover { background: #fff7ed; color: var(--accent); }
 .dlc-nav-active {
   background: #fff7ed; color: var(--accent); font-weight: 600;
 }
 .dlc-nav-footer {
-  flex-shrink: 0; padding: 12px 8px 4px;
+  flex-shrink: 0; padding: 8px 8px 4px;
   border-top: 1px solid var(--border);
   margin-top: 4px;
+  /* The links are inline-flex so their hit areas can reach 32px; the column
+     keeps them one per row. */
+  display: flex; flex-direction: column; align-items: flex-start;
 }
 .dlc-nav-github {
   font-size: 12px; color: var(--muted); font-weight: 500;
   text-decoration: underline; text-underline-offset: 2px;
   display: inline-flex; align-items: center; gap: 5px;
+  min-height: 32px;
 }
 .dlc-nav-github::before {
   content: "";
@@ -89,8 +125,8 @@ a:hover { color: var(--accent); }
 }
 .dlc-nav-github:hover { color: var(--accent); }
 .dlc-nav-credits {
-  display: block; font-size: 12px; color: var(--muted); font-weight: 500;
-  margin-top: 6px;
+  display: inline-flex; align-items: center; min-height: 32px;
+  font-size: 12px; color: var(--muted); font-weight: 500;
 }
 .dlc-nav-credits:hover { color: var(--accent); }
 .dlc-main { flex: 1; min-width: 0; padding: 28px 36px 48px; }
@@ -108,21 +144,36 @@ a:hover { color: var(--accent); }
   border-bottom: 1px solid var(--border); margin-bottom: 8px; }
 .dlc-family h2 { font-size: 18px; margin: 0 0 4px; }
 .dlc-family .meta { font-size: 13px; color: var(--muted); margin: 0 0 14px; }
+.dlc-detail-desc, .dlc-prop-doc-copy, .dlc-credits-intro, .dlc-credits-note,
+.dlc-credits-table td { text-wrap: pretty; }
 .dlc-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 12px;
 }
-.dlc-card-wrap { min-width: 0; transition: opacity .15s ease, filter .15s ease; }
+.dlc-card-wrap { min-width: 0; }
+/* Search with no matches used to leave a wall of dimmed, still-animating
+   cards that were also still in the tab order. */
+.dlc-empty {
+  color: var(--muted); font-size: 14px; line-height: 1.55;
+  padding: 28px 0 8px;
+}
+.dlc-empty strong { color: var(--text); font-weight: 600; }
+.dlc-nav-empty {
+  font-size: 12.5px; color: var(--muted); line-height: 1.5;
+  padding: 10px 8px;
+}
 .dlc-card {
-  display: block; border: 1px solid var(--border); border-radius: 12px;
+  display: block; border-radius: 12px;
   background: var(--panel); padding: 14px 12px; scroll-margin-top: 24px;
-  transition: border-color .12s ease, box-shadow .12s ease, transform .12s ease;
+  box-shadow: var(--shadow-border);
+  transition-property: box-shadow, transform;
+  transition-duration: .12s; transition-timing-function: ease-out;
   height: 100%;
 }
 .dlc-card:hover {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(249,115,22,.15);
+  box-shadow: var(--ring-accent);
   transform: translateY(-1px);
 }
+.dlc-card:focus-visible { outline-offset: 3px; }
 .dlc-card .name { font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 10px; }
 .dlc-card .preview {
   display: flex; align-items: center; justify-content: center;
@@ -162,14 +213,14 @@ a:hover { color: var(--accent); }
   scroll-margin-top: 24px;
 }
 .dlc-preview-panel {
-  background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+  background: var(--panel); box-shadow: var(--shadow-border); border-radius: 16px;
   min-height: 320px; display: flex; align-items: center; justify-content: center;
   padding: 40px;
   /* Contain expanding animations (shimmer sweep, propagate, orbit rings, etc.) */
   overflow: hidden; position: relative;
 }
 .dlc-workbench-controls {
-  background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+  background: var(--panel); box-shadow: var(--shadow-border); border-radius: 16px;
   padding: 16px 16px 14px;
   display: flex; flex-direction: column; gap: 4px;
 }
@@ -192,12 +243,14 @@ a:hover { color: var(--accent); }
 }
 .dlc-size-presets label {
   display: inline-flex !important; align-items: center; justify-content: center;
-  margin: 0 !important; padding: 6px 12px;
+  margin: 0 !important; padding: 8px 14px; min-height: 36px;
   border: 1px solid var(--border); border-radius: 8px;
   font-size: 12px; font-weight: 600; color: #334155;
   background: var(--bg); cursor: pointer;
-  transition: border-color .12s ease, background .12s ease, color .12s ease;
+  transition-property: border-color, background-color, color, scale;
+  transition-duration: .12s; transition-timing-function: ease-out;
 }
+.dlc-size-presets label:active { scale: 0.96; }
 .dlc-size-presets label:has(input:checked),
 .dlc-size-presets input:checked + label {
   border-color: var(--accent);
@@ -208,30 +261,39 @@ a:hover { color: var(--accent); }
   position: absolute; opacity: 0; pointer-events: none;
 }
 .dlc-ctrl-color {
-  width: 56px; height: 36px; padding: 2px;
+  width: 56px; height: 40px; padding: 2px;
   border: 1px solid var(--border); border-radius: 8px; background: #fff;
   cursor: pointer;
 }
+/* Concentric: 8px outer radius minus 2px padding leaves 6px for the swatch,
+   which browsers otherwise draw square inside a rounded well. */
+.dlc-ctrl-color::-webkit-color-swatch { border: none; border-radius: 6px; }
+.dlc-ctrl-color::-moz-color-swatch { border: none; border-radius: 6px; }
 .dlc-ctrl-input {
-  width: 100%; padding: 8px 10px; border-radius: 8px;
+  width: 100%; padding: 11px 10px; border-radius: 8px;
   border: 1px solid var(--border); font-size: 13px;
 }
 .dlc-ctrl-dropdown { font-size: 13px; }
 .dlc-ctrl-check { font-size: 13px; }
 /* Dash ships a violet slider; retint it to the gallery accent. */
 .dlc-ctrl-slider { padding: 0 4px; --Dash-Fill-Interactive-Strong: var(--accent); }
+/* The value box tracks the handle, so its digits must not change width. */
+.dlc-ctrl-slider input { font-variant-numeric: tabular-nums; }
 /* The always-visible slider value box sits below the rail, outside layout
    flow, so a slider row needs room for it or it lands on the next label. */
 .dlc-ctrl-row:has(.dlc-ctrl-slider) { margin-bottom: 34px; }
 .dlc-reset-btn {
   margin-top: 8px; align-self: flex-start;
-  padding: 8px 12px; border-radius: 8px;
+  padding: 10px 14px; min-height: 40px; border-radius: 8px;
   border: 1px solid var(--border); background: var(--bg);
   font-size: 12px; font-weight: 600; color: #334155; cursor: pointer;
+  transition-property: border-color, background-color, color, scale;
+  transition-duration: .12s; transition-timing-function: ease-out;
 }
 .dlc-reset-btn:hover {
   border-color: var(--accent); color: var(--accent); background: #fff7ed;
 }
+.dlc-reset-btn:active { scale: 0.96; }
 
 /* Live dual snippets under workbench */
 .dlc-snippets-row {
@@ -278,8 +340,9 @@ a:hover { color: var(--accent); }
   text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
 }
 .dlc-toc-link {
-  display: block; font-size: 12.5px; color: #475569;
-  padding: 3px 0; line-height: 1.35;
+  display: flex; align-items: center; min-height: 32px;
+  font-size: 12.5px; color: #475569;
+  padding: 4px 0; line-height: 1.35;
 }
 .dlc-toc-link:hover { color: var(--accent); }
 
@@ -354,4 +417,20 @@ a:hover { color: var(--accent); }
 /* loading.dev Custom Classes demo (className passthrough) */
 .opacity-40 {
   opacity: 0.4;
+}
+
+/* Switch off the motion the gallery itself adds. The spinners are left alone:
+   they are the subject matter, and each upstream library decides for itself
+   what reduced motion means (loading-dev, for one, already freezes). */
+@media (prefers-reduced-motion: reduce) {
+  .dlc-card,
+  .dlc-nav-item,
+  .dlc-toc-link,
+  .dlc-reset-btn,
+  .dlc-size-presets label {
+    transition-duration: 1ms;
+  }
+  .dlc-card:hover { transform: none; }
+  .dlc-reset-btn:active,
+  .dlc-size-presets label:active { scale: 1; }
 }

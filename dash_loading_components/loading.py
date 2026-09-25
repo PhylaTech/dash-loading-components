@@ -1,4 +1,4 @@
-"""``dlc.Loading`` — thin factory over registered family spinners.
+"""``dlc.Loading``: thin factory over registered family spinners.
 
 Day-one: registry lookup + common props with relative ``speed`` translation.
 Namespaced ``dlc.<family>.<Name>(...)`` remains the fidelity / power path.
@@ -82,7 +82,7 @@ def Loading(
     conflicts = NATIVE_TEMPO_CONFLICT_KEYS.intersection(kwargs)
     # Also: if relative speed is set and kwargs already contains the native
     # tempo prop name for this family when that name is NOT "speed"
-    # (when native IS "speed", the Loading kwarg `speed` is the relative one —
+    # (when native IS "speed", the Loading kwarg `speed` is the relative one,
     # there is no separate escape hatch via the same name; use namespaced API).
     from .registry import native_tempo_prop
 

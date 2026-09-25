@@ -19,7 +19,7 @@ from . import (
 )
 
 # ---------------------------------------------------------------------------
-# Catalog — same IDs the gallery uses
+# Catalog: same IDs the gallery uses
 # ---------------------------------------------------------------------------
 
 FAMILIES: list[tuple[str, str, list[tuple[str, Callable]]]] = [

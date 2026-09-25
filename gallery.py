@@ -1,8 +1,8 @@
 """Local gallery explorer for dash-loading-components.
 
 loading.dev-style UX:
-  /                      overview — left sticky nav + component cards
-  /c/<family>/<Name>     component detail — split workbench, dual snippets,
+  /                      overview: left sticky nav + component cards
+  /c/<family>/<Name>     component detail: split workbench, dual snippets,
                          right TOC, per-prop docs
 
 Run:
@@ -41,7 +41,7 @@ DEFAULT_COLOR = "#f97316"
 DEFAULT_SIZE = 48
 ACCENT = "#f97316"
 
-# Size presets for workbench (px) — loading.dev-style Small / Medium / Large
+# Size presets for workbench (px), loading.dev-style Small / Medium / Large
 SIZE_PRESETS = [("Small", 24), ("Medium", 48), ("Large", 96)]
 SIZE_PRESET_VALUES = {v for _, v in SIZE_PRESETS}
 SIZE_PRESET_DEFAULT = 48
@@ -179,7 +179,7 @@ PROP_SECTION_COPY = {
 }
 
 # ---------------------------------------------------------------------------
-# Catalog — shared with dlc.Loading (dash_loading_components.registry)
+# Catalog, shared with dlc.Loading (dash_loading_components.registry)
 # ---------------------------------------------------------------------------
 
 from dash_loading_components.registry import (
@@ -226,7 +226,7 @@ LOADING_DEV_BLURBS = {
     "LinearDots": "Three dots lighting up in turn from left to right.",
 }
 
-# From loading-dev d.ts — which wrappers expose easing / cap
+# From loading-dev d.ts: which wrappers expose easing / cap
 LOADING_DEV_EASING = {
     "Arc", "Atom", "Clock", "Comet", "Dual", "Orbit", "Radar", "Ring", "Snake", "Trace"
 }
@@ -734,14 +734,14 @@ def default_values(family: str, name: str, props: list[str]) -> dict[str, Any]:
             values[p] = "medium"
             continue
         if p == "className":
-            # omit empty by default — not "set"
+            # omit empty by default, not "set"
             continue
         if p == "text":
             continue
         if p == "ariaLabel":
             continue
         if family == "premium" and p == "secondaryColor":
-            # omit — light default washes out alternating OrbitRings on white
+            # omit: light default washes out alternating OrbitRings on white
             continue
         spec = prop_spec(family, p, name)
         if spec is not None:
@@ -823,7 +823,7 @@ def _derive_playing(family: str, values: dict[str, Any]) -> bool:
     return True
 
 
-# Props Loading maps itself — strip from common extras
+# Props Loading maps itself, strip from common extras
 _LOADING_MANAGED = frozenset(
     {
         "speed",
@@ -982,7 +982,7 @@ def build_site_footer() -> html.Footer:
                 className="dlc-site-footer-brand",
             ),
             html.P(
-                "svg_spinners gated (React ^18.2 peer). Gallery preview — package in development.",
+                "svg_spinners gated (React ^18.2 peer). Gallery preview, package in development.",
                 className="dlc-footer-note",
             ),
         ],
@@ -1009,6 +1009,8 @@ def build_sidenav(active_family: Optional[str] = None, active_name: Optional[str
             className="dlc-nav-search",
             n_submit=0,
         ),
+        html.P(id="nav-search-empty", className="dlc-nav-empty",
+               style={"display": "none"}),
     ]
     for key, label, items in FAMILIES:
         nav_items.append(
@@ -1095,7 +1097,7 @@ def build_overview() -> html.Div:
                         className="dlc-grid",
                     ),
                 ],
-                id=f"family-{key}",
+                id={"type": "overview-family", "family": key},
                 className="dlc-family",
             )
         )
@@ -1105,7 +1107,7 @@ def build_overview() -> html.Div:
                 [
                     html.H1("Loading, made beautiful for Dash."),
                     html.P(
-                        "Dash wrappers for modern React loading libraries — loading-dev, ldrs, "
+                        "Dash wrappers for modern React loading libraries: loading-dev, ldrs, "
                         "react-spinners, and more. Requires Dash ≥4.5 / React 19."
                     ),
                     html.Pre(
@@ -1120,6 +1122,8 @@ def build_overview() -> html.Div:
                 ],
                 className="dlc-hero",
             ),
+            html.P(id="overview-empty", className="dlc-empty",
+                   style={"display": "none"}),
             *sections,
             build_site_footer(),
         ],
@@ -1579,7 +1583,7 @@ UPSTREAM_CREDITS = [
         "spdx": "MIT",
         "homepage": "https://www.npmjs.com/package/react-svg-spinners",
         "repo": "https://github.com/theme-park/react-svg-spinners",
-        "note": "Gated — React ^18.2 peer dependency not yet resolved for React 19.",
+        "note": "Gated: React ^18.2 peer dependency not yet resolved for React 19.",
         "status": "gated",
     },
 ]
@@ -1722,7 +1726,7 @@ app = Dash(
         {"property": "og:url", "content": "https://dash-loading-components.phylatech.com/"},
         {"property": "og:site_name", "content": "PhylaTech"},
         {"property": "og:image", "content": _OG_IMAGE},
-        {"property": "og:image:alt", "content": "dash-loading-components — Interactive Dash loading spinner gallery"},
+        {"property": "og:image:alt", "content": "dash-loading-components: Interactive Dash loading spinner gallery"},
         {"name": "twitter:card", "content": "summary_large_image"},
         {"name": "twitter:title", "content": "dash-loading-components"},
         {"name": "twitter:description", "content": _OG_DESCRIPTION},
@@ -1760,7 +1764,7 @@ def _coerce_control_value(prop: str, raw: Any, family: str, name: str | None = N
     spec = prop_spec(family, prop, name)
     if family == "indicators" and prop == "size":
         return raw
-    # Size presets (RadioItems) — keep concrete px ints
+    # Size presets (RadioItems), keep concrete px ints
     if prop == "size" and family != "indicators" and isinstance(raw, (int, float)):
         return int(raw)
     if spec and spec["kind"] == "bool":
@@ -1787,46 +1791,83 @@ def _coerce_control_value(prop: str, raw: Any, family: str, name: str | None = N
     return raw
 
 
+HIDDEN = {"display": "none"}
+
+
+def _matches(query: str, family: str, name: str) -> bool:
+    return not query or query in f"{family} {name}".lower()
+
+
 @callback(
     Output({"type": "nav-comp", "family": ALL, "name": ALL}, "style"),
     Output({"type": "nav-family", "family": ALL}, "style"),
     Output({"type": "card-wrap", "family": ALL, "name": ALL}, "style"),
+    Output({"type": "overview-family", "family": ALL}, "style"),
+    Output("nav-search-empty", "children"),
+    Output("nav-search-empty", "style"),
+    Output("overview-empty", "children"),
+    Output("overview-empty", "style"),
     Input("nav-search", "value"),
     State({"type": "nav-comp", "family": ALL, "name": ALL}, "id"),
     State({"type": "nav-family", "family": ALL}, "id"),
     State({"type": "card-wrap", "family": ALL, "name": ALL}, "id"),
+    State({"type": "overview-family", "family": ALL}, "id"),
 )
-def filter_nav_search(query, nav_ids, family_ids, card_ids):
-    q = (query or "").strip().lower()
-    nav_styles = []
-    visible_by_family: dict[str, bool] = {}
-    for id_dict in nav_ids or []:
-        family = id_dict.get("family", "")
-        name = id_dict.get("name", "")
-        hay = f"{family} {name}".lower()
-        match = (not q) or (q in hay) or (q in name.lower()) or (q in family.lower())
-        visible_by_family[family] = visible_by_family.get(family, False) or match
-        nav_styles.append({} if match else {"display": "none"})
+def filter_nav_search(query, nav_ids, nav_family_ids, card_ids, section_ids):
+    """Filter the nav and the overview to what the query matches.
 
-    family_styles = []
-    for id_dict in family_ids or []:
-        family = id_dict.get("family", "")
-        show = (not q) or visible_by_family.get(family, False)
-        family_styles.append({} if show else {"display": "none"})
+    Non-matches are hidden rather than dimmed. Dimmed cards kept animating
+    behind the filter and stayed in the tab order, and a query that matched
+    nothing left an empty sidebar beside a full page of them with no
+    explanation.
+    """
+    q = (query or "").strip().lower()
+
+    matched_by_family: dict[str, bool] = {}
+    nav_styles = []
+    for id_dict in nav_ids or []:
+        match = _matches(q, id_dict.get("family", ""), id_dict.get("name", ""))
+        matched_by_family[id_dict.get("family", "")] = (
+            matched_by_family.get(id_dict.get("family", ""), False) or match
+        )
+        nav_styles.append({} if match else HIDDEN)
+
+    def family_styles(ids):
+        return [
+            {} if matched_by_family.get(i.get("family", ""), False) else HIDDEN
+            for i in ids or []
+        ]
 
     card_styles = []
+    total = 0
     for id_dict in card_ids or []:
-        family = id_dict.get("family", "")
-        name = id_dict.get("name", "")
-        hay = f"{family} {name}".lower()
-        match = (not q) or (q in hay) or (q in name.lower()) or (q in family.lower())
-        if match:
+        if _matches(q, id_dict.get("family", ""), id_dict.get("name", "")):
             card_styles.append({})
+            total += 1
         else:
-            card_styles.append({"opacity": "0.22", "pointerEvents": "none", "filter": "grayscale(0.35)"})
+            card_styles.append(HIDDEN)
 
-    return nav_styles, family_styles, card_styles
+    if q and not total:
+        nav_empty = f"No components match “{query}”."
+        page_empty = [
+            "No components match ",
+            html.Strong(f"“{query}”"),
+            ". Try a library name (ldrs, premium) or part of a spinner name.",
+        ]
+        shown = {}
+    else:
+        nav_empty, page_empty, shown = "", "", HIDDEN
 
+    return (
+        nav_styles,
+        family_styles(nav_family_ids),
+        card_styles,
+        family_styles(section_ids),
+        nav_empty,
+        shown,
+        page_empty,
+        shown,
+    )
 
 
 @callback(
@@ -1906,5 +1947,5 @@ def update_detail(values, ids, meta):
 
 if __name__ == "__main__":
     _port = int(os.environ.get("PORT", "8050"))
-    print("dlc gallery — http://127.0.0.1:%d/  (REACT_VERSION=%s)" % (_port, os.environ.get("REACT_VERSION")))
+    print("dlc gallery: http://127.0.0.1:%d/  (REACT_VERSION=%s)" % (_port, os.environ.get("REACT_VERSION")))
     app.run(host="0.0.0.0", port=_port, debug=False)
