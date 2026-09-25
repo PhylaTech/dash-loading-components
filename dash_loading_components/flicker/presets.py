@@ -390,6 +390,18 @@ def stack():
     return frames + [landed]
 
 
+def bricklayer():
+    # Blocks dropped in one at a time, two rows a frame, laying each course
+    # left to right before starting the next, until the wall is built.
+    frames, landed = [], set()
+    for floor in range(5, 0, -1):
+        for col in range(1, 6):
+            for r in range(floor % 2, floor + 1, 2):
+                frames.append(landed | {(r, col)})
+            landed = landed | {(floor, col)}
+    return frames + [landed, landed]
+
+
 # ---------------------------------------------------------------------------
 # Geometry: loaders that are shapes first
 # ---------------------------------------------------------------------------
@@ -486,6 +498,7 @@ _DESIGNS = [
     ("Typewriter", "board", typewriter, "Lines typed out a character at a time before the carriage returns."),
     ("Rain", "board", rain, "Streaks of rain falling at two speeds."),
     ("Stack", "board", stack, "Rows dropping one at a time and stacking up until the panel is full."),
+    ("Bricklayer", "board", bricklayer, "Blocks dropped in one at a time, laying each row before the next, until the wall is built."),
     ("Orbit", "geometry", orbit, "A moon with a short tail circling its planet."),
     ("Pinwheel", "geometry", pinwheel, "A bar turning about its middle."),
     ("Beacon", "geometry", beacon, "A lighthouse throwing its beam out to sea on either side."),

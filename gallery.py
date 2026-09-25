@@ -490,7 +490,7 @@ UPSTREAM_CREDITS = [
         "family": "flicker", "npm": "flicker-dot", "version": "0.1.4", "spdx": "MIT",
         "homepage": "https://flicker.laurie.fyi", "repo": "https://github.com/laurieesc/flicker-dot",
         "blurb": (
-            "Laura Escobar's flip-dot player, on 30 original presets drawn by PhylaTech. "
+            f"Laura Escobar's flip-dot player, on {len(dlc.flicker.PRESETS)} original presets drawn by PhylaTech. "
             "dlc.flicker.Spinner(grids=...) plays frames of your own."
         ),
         "status": "mvp",
