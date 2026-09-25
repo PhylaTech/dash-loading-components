@@ -13,6 +13,12 @@ const CELLS = ROWS * ROWS;
  * so a frame may also be 7 lists of 7 or 7 strings with '#' for a lit dot.
  * Anything else returns null: upstream would throw on it.
  */
+/** `base` at `opacity` (clamped to 0-1), as a CSS color. */
+function withOpacity(base, opacity) {
+    const alpha = Math.min(1, Math.max(0, opacity));
+    return alpha === 1 ? base : `color-mix(in srgb, ${base} ${Number((alpha * 100).toFixed(1))}%, transparent)`;
+}
+
 function toFrames(grids) {
     if (!Array.isArray(grids) || !grids.length) {
         return null;
@@ -46,18 +52,18 @@ for (let r = 0; r < ROWS + 2; r++) {
  * in dlc.flicker are this component with their frames filled in.
  */
 const FlickerSpinner = (props) => {
-    const {id, className, style, grids, size, color, off_color, off_opacity, variant, reverse, speed, aria_label, playing} = props;
+    const {id, className, style, grids, size, color, on_opacity, off_color, off_opacity, variant, reverse, speed, aria_label, playing} = props;
     const frames = toFrames(grids);
     if (!frames) {
         // eslint-disable-next-line no-console
         console.error('dlc.flicker.Spinner: grids must be a non-empty list of frames, each 49 values, 7 rows of 7, or 7 strings of 7.');
     }
-    // Unlit dots are off_color (default the on color) at off_opacity, rather
-    // than upstream's fixed light grey, so one `color` reads on light and dark
-    // pages alike.
-    const on = color || 'currentColor';
-    const alpha = Math.min(1, Math.max(0, off_opacity ?? OFF_OPACITY));
-    const off = `color-mix(in srgb, ${off_color || on} ${Number((alpha * 100).toFixed(1))}%, transparent)`;
+    // Lit dots are `color` at on_opacity; unlit dots are off_color (default
+    // `color`) at off_opacity rather than upstream's fixed light grey, so one
+    // `color` reads on light and dark pages alike.
+    const base = color || 'currentColor';
+    const on = withOpacity(base, on_opacity ?? 1);
+    const off = withOpacity(off_color || base, off_opacity ?? OFF_OPACITY);
     const padded = variant === '9x9';
     const player = frames && (
         <Upstream grids={frames} size={padded ? VIEWBOX_FULL : size} onColor={on} offColor={off}
@@ -111,6 +117,10 @@ FlickerSpinner.propTypes = {
      * Color of a lit dot (default currentColor).
      */
     color: PropTypes.string,
+    /**
+     * Opacity of the lit dots, 0 to 1 (default 1).
+     */
+    on_opacity: PropTypes.number,
     /**
      * Color of an unlit dot, drawn at `off_opacity` (default `color`).
      */
