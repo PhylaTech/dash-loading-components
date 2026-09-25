@@ -8,7 +8,9 @@ motion, so this samples every card over a couple of animation cycles and
 measures the ink that actually paints.
 """
 import time
+from pathlib import Path
 
+from dash import Dash, html
 from dash.testing.application_runners import import_app
 
 # Returns {"family/Name": [overTop, overLeft, overBottom, overRight]} in px,
@@ -81,14 +83,10 @@ return out;
 TOLERANCE_PX = 2.0
 
 
-def test_no_overview_card_clips_its_spinner(dash_duo):
-    app = import_app('gallery')
-    dash_duo.start_server(app)
-    dash_duo.driver.set_window_size(1440, 1200)
-    dash_duo.wait_for_element('.dlc-card')
-
+def _worst_overflow(dash_duo, seconds: float) -> dict[str, list[float]]:
+    """Sample CLIP_SCAN for `seconds` and keep each card's widest overflow."""
     worst: dict[str, list[float]] = {}
-    deadline = time.time() + 3.0
+    deadline = time.time() + seconds
     while time.time() < deadline:
         for key, over in dash_duo.driver.execute_script(CLIP_SCAN).items():
             prev = worst.setdefault(key, [0.0, 0.0, 0.0, 0.0])
@@ -97,8 +95,17 @@ def test_no_overview_card_clips_its_spinner(dash_duo):
             prev[2] = max(prev[2], over[2])
             prev[3] = max(prev[3], over[3])
         time.sleep(0.05)
-
     assert worst, "no cards were measured"
+    return worst
+
+
+def test_no_overview_card_clips_its_spinner(dash_duo):
+    app = import_app('gallery')
+    dash_duo.start_server(app)
+    dash_duo.driver.set_window_size(1440, 1200)
+    dash_duo.wait_for_element('.dlc-card')
+
+    worst = _worst_overflow(dash_duo, seconds=3.0)
     clipped = {
         key: [round(v, 1) for v in over]
         for key, over in worst.items()
@@ -108,6 +115,40 @@ def test_no_overview_card_clips_its_spinner(dash_duo):
         "overview cards clip their spinner (px past top/left/bottom/right): "
         f"{clipped}. Give them an OVERVIEW_SCALE entry or a smaller preview size."
     )
+
+
+def test_brand_marks_do_not_clip(dash_duo):
+    """The header mark cycles through every loader in a 22px slot with
+    overflow hidden (the slide needs it). A loader whose motion spills past
+    20px is scaled by gallery.MARK_SCALE; this measures each one's ink over a
+    couple of cycles the way the card test does, and names any that clip."""
+    import gallery
+
+    app = Dash(__name__, assets_folder=str(Path(gallery.__file__).parent / 'assets'))
+    cards = []
+    for family, name in gallery.CATALOG:
+        if (family, name) in gallery.MARK_SKIP:
+            continue
+        scale = gallery.MARK_SCALE.get(f'{family}/{name}')
+        node = gallery.instantiate(family, name, gallery.brand_mark_values(family, name))
+        scaled = html.Div(node, style={'display': 'flex', 'transform': f'scale({scale})' if scale else None})
+        slot = html.Div(scaled, className='preview', style={
+            'width': 22, 'height': 22, 'minHeight': 0, 'padding': 0, 'overflow': 'visible',
+            'display': 'flex', 'alignItems': 'center', 'justifyContent': 'center'})
+        cards.append(html.Div(html.Div(slot, className='dlc-card', **{'data-family': family, 'data-name': name}),
+                              style={'width': 60, 'height': 60, 'display': 'inline-block', 'margin': 20}))
+    app.layout = html.Div(cards)
+    dash_duo.start_server(app)
+    dash_duo.wait_for_element('.dlc-card')
+
+    worst = _worst_overflow(dash_duo, seconds=3.0)
+    needed = {}
+    for key, over in worst.items():
+        extent = max(22 - over[0] + over[2], 22 - over[1] + over[3])
+        if extent > 22 + TOLERANCE_PX:
+            current = gallery.MARK_SCALE.get(key, 1.0)
+            needed[key] = round(current * 22 / extent * 0.97, 2)
+    assert not needed, f'brand marks clip; set these in gallery.MARK_SCALE: {needed}'
 
 
 def test_header_search_jumps_to_a_component(dash_duo):

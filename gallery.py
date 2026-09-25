@@ -642,14 +642,57 @@ OVERVIEW_SIZE: dict[tuple[str, str], dict[str, Any]] = {
 
 # Card values scaled to the 20px brand mark. Loaders that size by token or
 # aspect (indicators, ShimmerBox, BarLoader) get their own numbers; the rest
-# take size=20 and, where their motion spills past the box, a scale.
+# take size=20 and, where their motion spills past the slot, a scale.
 MARK_SIZE = 20
 MARK_VALUES: dict[tuple[str, str], dict[str, Any]] = {
     ("premium", "ShimmerBox"): {"size": 10},
     ("spinners", "BarLoader"): {"width": 40, "height": 3},
 }
-MARK_SCALE: dict[str, float] = {"indicators": 0.32, "epic": 0.55}
-MARK_SCALE.update({f"spinners/{n}": 0.5 for n in ("PropagateLoader", "GridLoader")})
+# Measured: 22px over the widest ink each loader paints across a full cycle,
+# so the mark never clips mid-animation. tests/test_gallery_overview.py::
+# test_brand_marks_do_not_clip re-measures and names any that need a value.
+MARK_SCALE: dict[str, float] = {
+    "epic/HollowDotsSpinner": 0.21,
+    "epic/OrbitSpinner": 0.77,
+    "epic/RadarSpinner": 0.83,
+    "epic/SemipolarSpinner": 0.79,
+    "indicators/Atom": 0.3,
+    "indicators/BlinkBlur": 0.15,
+    "indicators/Commet": 0.26,
+    "indicators/FourSquare": 0.34,
+    "indicators/LifeLine": 0.13,
+    "indicators/Mosaic": 0.36,
+    "indicators/OrbitProgress": 0.25,
+    "indicators/Riple": 0.36,
+    "indicators/Slab": 0.27,
+    "indicators/ThreeDot": 0.41,
+    "indicators/TrophySpin": 0.45,
+    "ldrs/Ring": 0.76,
+    "loader_spinner/Hourglass": 0.76,
+    "loading_dev/Atom": 0.79,
+    "loading_dev/Comet": 0.76,
+    "loading_dev/Gather": 0.9,
+    "loading_dev/Orbit": 0.9,
+    "premium/AtomLoader": 0.85,
+    "premium/BouncingDots": 0.47,
+    "premium/ButtonSpinner": 0.76,
+    "premium/OrbitDots": 0.54,
+    "premium/OrbitRings": 0.76,
+    "premium/PulseDots": 0.47,
+    "premium/SpinnerBars": 0.82,
+    "premium/SpinnerCircle": 0.76,
+    "premium/SpinnerRing": 0.76,
+    "spinners/BarLoader": 0.53,
+    "spinners/BeatLoader": 0.49,
+    "spinners/ClipLoader": 0.8,
+    "spinners/GridLoader": 0.31,
+    "spinners/MoonLoader": 0.58,
+    "spinners/PropagateLoader": 0.12,
+    "spinners/PulseLoader": 0.48,
+    "spinners/RingLoader": 0.81,
+    "spinners/ScaleLoader": 0.24,
+    "spinners/SyncLoader": 0.34
+}
 
 
 def brand_mark_values(family: str, name: str) -> dict[str, Any]:
@@ -662,11 +705,24 @@ def brand_mark_values(family: str, name: str) -> dict[str, Any]:
     return values
 
 
+# Loaders whose motion sweeps many times their own body (dots propagating
+# sideways, a heartbeat trace). Fitted to the slot they are a few pixels of
+# smear, so the mark skips them.
+MARK_SKIP = {
+    ("spinners", "PropagateLoader"),
+    ("indicators", "LifeLine"),
+    ("indicators", "BlinkBlur"),
+    ("epic", "HollowDotsSpinner"),
+}
+
+
 def build_brand_mark() -> html.Span:
-    """Every loader, stacked; assets/gallery.js shows a random one at a time."""
+    """Every loader that fits, stacked; assets/gallery.js shows a random one at a time."""
     marks = []
     for family, name in CATALOG:
-        scale = MARK_SCALE.get(f"{family}/{name}", MARK_SCALE.get(family))
+        if (family, name) in MARK_SKIP:
+            continue
+        scale = MARK_SCALE.get(f"{family}/{name}")
         node = instantiate(family, name, brand_mark_values(family, name))
         marks.append(html.Span(
             node, className="dlc-mark", title=f"dlc.{family}.{name}", hidden=True,
