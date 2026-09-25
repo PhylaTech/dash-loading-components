@@ -1,0 +1,40 @@
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: prefix-dev/setup-pixi@v0.10.2
+        with:
+          pixi-version: v0.72.1
+          cache: true
+
+      - name: Install npm packages
+        run: pixi run npm ci
+
+      # The bundle and the generated Python wrappers are committed, and the
+      # gallery and the published wheel serve them as-is. Rebuild from source
+      # and fail if anything differs, so a PR cannot ship a stale build.
+      - name: Check the committed build is current
+        run: |
+          pixi run build
+          git diff --stat --exit-code -- dash_loading_components/ \
+            || { echo "::error::Committed build is stale: run 'pixi run build' and commit the result."; exit 1; }
+
+      # ubuntu-latest ships Chrome; Selenium resolves the matching driver.
+      - name: Test
+        run: pixi run test --headless

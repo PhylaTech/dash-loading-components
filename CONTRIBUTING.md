@@ -16,6 +16,10 @@ pixi run build
 pixi run test
 ```
 
+Every pull request runs `.github/workflows/tests.yml`: it rebuilds from
+source, fails if the committed build differs, then runs the suite headless.
+Locally, `pixi run test` is the same suite.
+
 `pixi run build` compiles the JS bundle and regenerates the Python wrappers from
 the React components. Use `pixi run build-js` when you have only changed React
 or CSS under `src/`.
