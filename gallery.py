@@ -20,6 +20,7 @@ os.environ.setdefault("REACT_VERSION", "19.2.4")
 
 import dash
 import dash_mantine_components as dmc
+from dash_iconify import DashIconify
 from dash import (
     ALL, MATCH, ClientsideFunction, Dash, Input, Output, State, callback, clientside_callback, dcc, html, no_update,
 )
@@ -840,13 +841,16 @@ def build_header() -> dmc.AppShellHeader:
                             className="dlc-search",
                         ),
                         external_link(
-                            dmc.ActionIcon(icon("github"), variant="default", size="lg",
+                            # Iconify's line-md set: the octocat draws itself in, the
+                            # theme icon morphs sun <-> moon on every switch.
+                            dmc.ActionIcon(DashIconify(icon="line-md:github-loop", width=20),
+                                           variant="default", size="lg",
                                            **{"aria-label": "Source on GitHub"}),
                             REPO_URL,
                         ),
                         dmc.ColorSchemeToggle(
-                            lightIcon=icon("moon"),
-                            darkIcon=icon("sun"),
+                            lightIcon=DashIconify(icon="line-md:sunny-outline-to-moon-alt-loop-transition", width=20),
+                            darkIcon=DashIconify(icon="line-md:moon-alt-to-sunny-outline-loop-transition", width=20),
                             variant="default",
                             size="lg",
                             **{"aria-label": "Toggle color scheme"},
@@ -1327,9 +1331,13 @@ _COLOR_SCHEME_BOOTSTRAP = (
     "if(/Mac|iPhone|iPad/.test(navigator.platform))document.documentElement.dataset.mac=''</script>"
 )
 app.index_string = app.index_string.replace("<head>", "<head>" + _COLOR_SCHEME_BOOTSTRAP, 1)
-# Our mark instead of Dash's default favicon.
+# Our mark instead of Dash's default favicon: the SVG, with the ICO first
+# for clients that ignore SVG icons (browsers take the last suitable link).
 app.index_string = app.index_string.replace(
-    "{%favicon%}", '<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">', 1
+    "{%favicon%}",
+    '<link rel="icon" href="/assets/favicon.ico" sizes="any">'
+    '<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">',
+    1,
 )
 
 app.layout = dmc.MantineProvider(
