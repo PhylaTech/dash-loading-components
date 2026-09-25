@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: "Tag or ref to build and publish (e.g. v0.1.0). Defaults to the branch this runs on."
+        description: "Tag or ref to build and publish (e.g. 0.1.1). Defaults to the branch this runs on."
         required: false
         default: ""
 
