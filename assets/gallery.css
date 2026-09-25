@@ -40,6 +40,8 @@ p { text-wrap: pretty; }
 .dlc-icon-epic { --dlc-icon: url(icons/epic.svg); }
 .dlc-icon-overview { --dlc-icon: url(icons/overview.svg); }
 .dlc-icon-credits { --dlc-icon: url(icons/credits.svg); }
+.dlc-icon-request { --dlc-icon: url(icons/request.svg); }
+.dlc-nav-ext { width: 0.85em; height: 0.85em; opacity: 0.6; }
 .dlc-icon-search { --dlc-icon: url(icons/search.svg); }
 .dlc-icon-sun { --dlc-icon: url(icons/sun.svg); }
 .dlc-icon-moon { --dlc-icon: url(icons/moon.svg); }

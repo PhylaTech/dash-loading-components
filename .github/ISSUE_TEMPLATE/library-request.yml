@@ -1,0 +1,51 @@
+name: Request a loading library
+description: Ask for a React loading-indicator library to be wrapped, your own or one you use.
+title: "Wrap <npm package>: <one-line pitch>"
+labels: [upstream-candidate]
+body:
+  - type: input
+    id: package
+    attributes:
+      label: npm package
+      placeholder: "@scope/react-cool-loaders"
+    validations:
+      required: true
+  - type: input
+    id: links
+    attributes:
+      label: Links
+      description: Repository, docs or demo.
+      placeholder: https://github.com/you/react-cool-loaders
+    validations:
+      required: true
+  - type: dropdown
+    id: license
+    attributes:
+      label: License
+      description: The package is redistributed under its own license inside an MIT package, so it has to be MIT-compatible.
+      options: [MIT, BSD, Apache-2.0, ISC, Other (say which below)]
+    validations:
+      required: true
+  - type: input
+    id: react
+    attributes:
+      label: React peer dependency
+      description: Must admit React 19; Dash 4.5 ships React 19.
+      placeholder: "^18 || ^19"
+    validations:
+      required: true
+  - type: textarea
+    id: pitch
+    attributes:
+      label: What does it add?
+      description: The loaders it has that the current families do not, and anything about how it renders (CSS, SVG, canvas, web components).
+    validations:
+      required: true
+  - type: checkboxes
+    id: role
+    attributes:
+      label: Your relation to it
+      options:
+        - label: I maintain this library
+        - label: I use it and would like it in Dash
+        - label: I can help write the wrappers

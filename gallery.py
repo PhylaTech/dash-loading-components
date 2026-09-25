@@ -40,6 +40,7 @@ except Exception as exc:  # pragma: no cover
     print("warn: could not set React version via _set_react_version:", exc)
 
 REPO_URL = "https://github.com/PhylaTech/dash-loading-components"
+ISSUE_REQUEST_URL = f"{REPO_URL}/issues/new?template=library-request.yml"
 SITE_URL = "https://dash-loading-components.phylatech.com"
 
 DEFAULT_COLOR = "#f97316"
@@ -687,7 +688,7 @@ FEATURED: list[tuple[str, str, dict[str, Any]]] = [
     ("spinners_react", "SpinnerDiamond", {"thickness": 140}),
     ("epic", "TrinityRingsSpinner", {}),
     ("loader_spinner", "DNA", {}),
-    ("premium", "MobiusLoader", {"playing": False}),
+    ("ldrs", "Mirage", {}),
 ]
 
 
@@ -867,6 +868,11 @@ def build_navbar() -> dmc.AppShellNavbar:
     """Static navbar; NavLink `active="exact"` follows the URL on its own."""
     sections = [
         dmc.NavLink(label="Overview", href="/", leftSection=icon("overview"), active="exact"),
+        # Straight to the GitHub issue form: the template asks for the package,
+        # license and React peer range, which is what deciding a wrap needs.
+        dmc.NavLink(label="Request a library", href=ISSUE_REQUEST_URL, target="_blank",
+                    leftSection=icon("request"), rightSection=icon("external", "dlc-nav-ext"),
+                    description="Yours, or one you use"),
         dmc.NavLink(label="Credits & Licenses", href="/credits", leftSection=icon("credits"),
                     active="exact"),
     ]
