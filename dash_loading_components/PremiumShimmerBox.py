@@ -24,6 +24,10 @@ class PremiumShimmerBox(Component):
     """A PremiumShimmerBox component.
 PremiumShimmerBox — Dash wrapper for upstream spinner.
 
+Upstream ShimmerBox uses width/height (defaults 200×100) and baseColor,
+not the Common API `size`/`color`. Map those so gallery + dlc.Loading
+size presets produce a box that fits preview frames.
+
 Keyword arguments:
 
 - id (string; optional):
@@ -33,22 +37,32 @@ Keyword arguments:
     CSS class applied to the outer wrapper.
 
 - color (string; optional):
-    Color.
+    Mapped to upstream baseColor (fill behind the shimmer).
+
+- height (string | number; optional):
+    Explicit box height (px or CSS length). Overrides size-derived
+    height.
 
 - reverse (boolean; optional):
-    Reverse animation direction.
+    Reverse animation direction (reserved; upstream uses direction
+    enum).
 
 - secondaryColor (string; optional):
-    Secondary color for multi-color loaders.
+    Mapped to upstream highlightColor (shimmer highlight).
 
 - size (string | number; optional):
-    Size (sm/md/lg or number).
+    Common API size. Mapped to width≈2×size and height≈size when
+    width/height are not set (upstream defaults are 200×100).
 
 - speed (string | number; optional):
-    Speed (slow/normal/fast).
+    Speed (slow/normal/fast or duration token).
 
 - visible (boolean; optional):
-    Whether the loader is visible."""
+    Whether the loader is visible.
+
+- width (string | number; optional):
+    Explicit box width (px or CSS length). Overrides size-derived
+    width."""
     _children_props: typing.List[str] = []
     _base_nodes = ['children']
     _namespace = 'dash_loading_components'
@@ -61,6 +75,8 @@ Keyword arguments:
         className: typing.Optional[str] = None,
         style: typing.Optional[typing.Any] = None,
         size: typing.Optional[typing.Union[str, NumberType]] = None,
+        width: typing.Optional[typing.Union[str, NumberType]] = None,
+        height: typing.Optional[typing.Union[str, NumberType]] = None,
         color: typing.Optional[str] = None,
         speed: typing.Optional[typing.Union[str, NumberType]] = None,
         reverse: typing.Optional[bool] = None,
@@ -68,9 +84,9 @@ Keyword arguments:
         visible: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'reverse', 'secondaryColor', 'size', 'speed', 'style', 'visible']
+        self._prop_names = ['id', 'className', 'color', 'height', 'reverse', 'secondaryColor', 'size', 'speed', 'style', 'visible', 'width']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'reverse', 'secondaryColor', 'size', 'speed', 'style', 'visible']
+        self.available_properties = ['id', 'className', 'color', 'height', 'reverse', 'secondaryColor', 'size', 'speed', 'style', 'visible', 'width']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

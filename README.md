@@ -1,129 +1,127 @@
 # dash-loading-components (`dlc`)
 
-Dash loading-indicators **umbrella** for Plotly Dash. Namespaced families of React loaders under one install:
+Loading indicators for [Plotly Dash](https://dash.plotly.com), wrapping nine
+React spinner libraries as one install. 107 components under stable namespaces,
+with a common factory over the top so you can switch families without
+relearning each one's props.
+
+Browse them all in the live gallery: **<https://dash-loading-components.phylatech.com>**
+
+```bash
+pip install dash-loading-components
+```
+
+## Two APIs
 
 ```python
 import dash_loading_components as dlc
 
-# Common factory (relative speed=1.0 = that family's normal)
+# Common factory. `speed` is relative: 1.0 is this spinner's normal tempo,
+# translated to whatever native unit its family uses.
 dlc.Loading(library="loading_dev", spinner="Dual", size=48, color="#f97316", speed=1.0)
 
-# Namespaced power path (native prop names / units)
+# Namespaced. Upstream prop names and units, and every exotic prop a family has.
 dlc.loading_dev.Dual(size=48, color="#f97316", duration=1000)
 dlc.spinners.ClipLoader(size=24, color="#f97316")
 dlc.ldrs.Ring()
 ```
 
-**Hard requirement:** **React ≥19** and **Dash ≥4.5**. The day-one tent-pole family `loading_dev` ([loading-dev](https://www.npmjs.com/package/loading-dev) / [loading.dev](https://loading.dev/)) needs React 19. This package will not claim Dash 4.4 / React 18 compatibility.
+`dlc.Loading` covers the props every family shares (`size`, `color`, `speed`,
+`playing`, `class_name`) and forwards anything else through. Reach for the
+namespaced form when you want a family's own vocabulary.
 
-## Status (PR1 scaffold)
+Discover what is available at runtime:
 
-This repository is bootstrapped from [plotly/dash-component-boilerplate](https://github.com/plotly/dash-component-boilerplate). The cookiecutter seed component is a placeholder `Arc`. **No upstream families are wrapped yet.**
+```python
+dlc.list_libraries()          # ['loading_dev', 'ldrs', 'spinners', ...]
+dlc.list_spinners("ldrs")     # ['Ring', 'Helix', 'DotPulse', ...]
+```
 
-Day-one planned namespaces (both Material 3 and epic-spinners included):
+## Requirements
 
-| Namespace | Upstream | Status |
-|-----------|----------|--------|
-| `loading_dev` | loading-dev 0.3.4 | planned |
-| `ldrs` | ldrs 1.1.9 | planned |
-| `spinners` | react-spinners 0.17.1 | planned |
-| `spinners_react` | spinners-react 1.0.11 | planned |
-| `loader_spinner` | react-loader-spinner 8.0.2 | planned |
-| `premium` | premium-react-loaders 4.2.0 | planned |
-| `indicators` | react-loading-indicators 1.0.1 | planned |
-| `svg_spinners` | react-svg-spinners 0.3.1 | **gated** (React ^18.2 peer) |
-| `m3` | @alerix/m3-loading-indicator 1.0.5 (Apache-2.0) | planned |
-| `epic` | react-epic-spinners 0.6.0 | planned |
+**React ≥19 and Dash ≥4.5**, both hard requirements. The `loading_dev` family
+needs React 19, and this package will not claim Dash 4.4 / React 18
+compatibility.
 
-Full pins, SPDX licenses, URLs, and peers: **[docs/UPSTREAM-INVENTORY.md](docs/UPSTREAM-INVENTORY.md)**. Attribution: root **[NOTICE](NOTICE)**.
+Dash 4.5 is not on PyPI as a stable release yet, so the dependency is pinned as
+`dash>=4.5.0rc0`. That specifier names the pre-release, which is what lets pip
+resolve it; it will accept the final 4.5 release once published.
 
-## vs dash-loading-spinners
+## Families
 
-[dash-loading-spinners](https://github.com/sidneykung/dash-loading-spinners) is a valuable, focused package built largely around react-spinners-era indicators. **`dlc` is not a rename or silent re-export of that project.** Goals differ:
+| Namespace | Upstream | Components |
+|-----------|----------|-----------:|
+| `loading_dev` | [loading-dev](https://www.npmjs.com/package/loading-dev) | 29 |
+| `premium` | [premium-react-loaders](https://www.npmjs.com/package/premium-react-loaders) | 15 |
+| `ldrs` | [ldrs](https://www.npmjs.com/package/ldrs) | 12 |
+| `spinners` | [react-spinners](https://www.npmjs.com/package/react-spinners) | 12 |
+| `indicators` | [react-loading-indicators](https://www.npmjs.com/package/react-loading-indicators) | 11 |
+| `loader_spinner` | [react-loader-spinner](https://www.npmjs.com/package/react-loader-spinner) | 10 |
+| `spinners_react` | [spinners-react](https://www.npmjs.com/package/spinners-react) | 9 |
+| `epic` | [react-epic-spinners](https://www.npmjs.com/package/react-epic-spinners) | 8 |
+| `m3` | [@alerix/m3-loading-indicator](https://www.npmjs.com/package/@alerix/m3-loading-indicator) | 1 |
 
-- Broader multi-upstream umbrella with **stable namespaces** (`dlc.<family>.<Component>`)
-- Explicit React 19 / Dash ≥4.5 floor (loading-dev)
-- In-repo license inventory and NOTICE for every wrapped family
-- Expansion path for ldrs, loading-dev, m3, epic, and more — without flattening name collisions
+Every component is also exported prefixed at the top level
+(`dlc.LoadingDevArc`, `dlc.LdrsRing`) for Dash callbacks that want a flat name.
 
-Where APIs overlap (e.g. react-spinners), credit upstream and prefer honest coexistence over claiming drop-in replacement.
+Version pins, SPDX licenses, upstream URLs and React peers:
+[docs/UPSTREAM-INVENTORY.md](docs/UPSTREAM-INVENTORY.md). Attribution:
+[NOTICE](NOTICE).
 
-## Releases
+## Relative speed
 
-Releases are cut automatically by [release-please](https://github.com/googleapis/release-please) from [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, etc.) merged to `main`.
+`speed` on `dlc.Loading` is a rate, not a duration. `1.0` reproduces the tempo
+the upstream component runs at on its own, and the value is translated per
+family: a duration in milliseconds for loading-dev and epic, seconds per loop
+for ldrs, a multiplier for react-spinners, a percentage for spinners-react, an
+offset for react-loading-indicators.
 
-## License
+That baseline is per spinner, not per family. `loading_dev.Compass` is normally
+500ms and `loading_dev.Slide` is 2400ms, so `speed=1.0` gives each of them its
+own tempo and `speed=2.0` runs either at twice its own rate.
 
-MIT — Copyright (c) 2026 Evan Roy Rees. See [LICENSE](LICENSE). Third-party works remain under their own licenses listed in the inventory.
+To set a native unit directly, use the namespaced form. Passing both a relative
+`speed` and a native tempo prop raises `ValueError` rather than silently
+picking one.
+
+## Compared with dash-loading-spinners
+
+[dash-loading-spinners](https://github.com/sidneykung/dash-loading-spinners) is
+a focused package built largely around react-spinners-era indicators. `dlc` is
+not a rename or a silent re-export of it. The goals differ:
+
+- A multi-upstream umbrella with stable namespaces, `dlc.<family>.<Component>`
+- An explicit React 19 / Dash ≥4.5 floor, driven by loading-dev
+- A license inventory and NOTICE covering every wrapped family
+- Room to add families without flattening name collisions
+
+Where the APIs overlap, credit upstream; this is honest coexistence, not a
+drop-in replacement.
 
 ## Contributing
 
-**PR-only to `main`.** Open a draft against `main` via compare URL; do not push commits to `main` and do not expect agents to open or merge GitHub PRs. Family wrappers should land as focused follow-up PRs (one family or small batch per PR).
+Pull requests only, against `main`. Family wrappers land as focused follow-up
+PRs, one family or a small batch per PR. Releases are cut by
+[release-please](https://github.com/googleapis/release-please) from
+[Conventional Commits](https://www.conventionalcommits.org/) merged to `main`,
+so commit subjects need a `feat:` / `fix:` / `chore:` prefix.
 
-### Local develop (after dependencies)
+Local setup:
 
 ```bash
 python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-npm install   # when ready to build JS
-npm run build
-python usage.py
+pip install -r requirements.txt -r tests/requirements.txt
+npm install
+npm run build          # JS bundle + generated Python wrappers
+python usage.py        # minimal demo app
+python gallery.py      # the full gallery, http://127.0.0.1:8050/
+pytest
 ```
 
-`install_dependencies` was left false at cookiecutter time so the scaffold commit stays lean.
+`npm run build:js` alone is enough when you have only changed React or CSS
+under `src/`.
 
+## License
 
-## Local gallery (MVP)
-
-```bash
-source /workspace/dash-loading/.venv/bin/activate
-cd /workspace/dash-loading/dash-loading-components
-REACT_VERSION=19.2.4 python gallery.py
-# http://127.0.0.1:8050/
-```
-
-Both APIs work in the local gallery (detail pages show dual live snippets):
-
-```python
-import dash_loading_components as dlc
-dlc.Loading(library="loading_dev", spinner="Arc", size=48, color="#f97316", speed=1.0)
-dlc.loading_dev.Arc(size=48, color="#f97316")  # namespaced
-# or prefixed: dlc.LoadingDevArc(...)
-```
-
-See `docs/UPSTREAM-INVENTORY.md` for full upstream inventory.
-
-## Demo hosting
-
-The **live gallery** is at:
-**<https://dash-loading-components.phylatech.com>** (canonical public URL)
-
-The Render service hostname is `dash-loading-components.onrender.com`; the custom domain `dash-loading-components.phylatech.com` is a Namecheap CNAME pointing to Render.
-
-The **GitHub Pages front door** at **<https://phylatech.github.io/dash-loading-components>** is a thin HTML redirect to the canonical URL above, deployed via the `gh-pages` branch.
-
-### Pre-release pin
-
-The gallery runtime pins `dash>=4.5.0rc0` because Dash 4.5 stable is not yet published to PyPI; the pin will also accept the final 4.5 release once available.
-
-### Cold-start note
-
-Render Free services sleep after ~15 minutes of inactivity. The first request after idle takes roughly 30–60 seconds while the container wakes.
-
-### Cloud Economics watch items
-
-| Item | Free-tier value |
-|------|----------------|
-| RAM | 512 MB |
-| CPU | 0.1 vCPU |
-| Instance-hours | 750 h/month |
-| Egress | 5 GB included, then $0.15/GB (Hobby) |
-| Build minutes | 500 min/month (Node build runs inside Docker layers) |
-| Postgres | **not included on Free** — do not attach |
-
-### Setup steps (maintainer)
-
-1. **Render:** Create a new **Web Service** at <https://dashboard.render.com/>, connect this repo, and select **Blueprint (render.yaml)**. The service name should be `dash-loading-components` (producing the `*.onrender.com` hostname). Add the custom domain `dash-loading-components.phylatech.com` in the Render dashboard; CNAME it from Namecheap to the Render hostname. Render auto-deploys on push to `main`.
-2. **GitHub Pages:** Go to repo **Settings → Pages** and set Source to the `gh-pages` branch (root). The `docs.yml` workflow pushes `site/` there on every merge to `main`.
-3. **Repo homepage (optional):** In repo **Settings → General**, set the Website field to `https://dash-loading-components.phylatech.com`.
-4. `site/index.html` should redirect to the canonical URL `https://dash-loading-components.phylatech.com`.
+MIT, Copyright (c) 2026 Phyla Technologies. See [LICENSE](LICENSE). Wrapped
+third-party libraries remain under their own licenses, listed in the inventory.

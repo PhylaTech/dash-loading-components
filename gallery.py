@@ -1,8 +1,8 @@
 """Local gallery explorer for dash-loading-components.
 
 loading.dev-style UX:
-  /                      overview — left sticky nav + component cards
-  /c/<family>/<Name>     component detail — split workbench, dual snippets,
+  /                      overview: left sticky nav + component cards
+  /c/<family>/<Name>     component detail: split workbench, dual snippets,
                          right TOC, per-prop docs
 
 Run:
@@ -41,7 +41,7 @@ DEFAULT_COLOR = "#f97316"
 DEFAULT_SIZE = 48
 ACCENT = "#f97316"
 
-# Size presets for workbench (px) — loading.dev-style Small / Medium / Large
+# Size presets for workbench (px), loading.dev-style Small / Medium / Large
 SIZE_PRESETS = [("Small", 24), ("Medium", 48), ("Large", 96)]
 SIZE_PRESET_VALUES = {v for _, v in SIZE_PRESETS}
 SIZE_PRESET_DEFAULT = 48
@@ -179,7 +179,7 @@ PROP_SECTION_COPY = {
 }
 
 # ---------------------------------------------------------------------------
-# Catalog — shared with dlc.Loading (dash_loading_components.registry)
+# Catalog, shared with dlc.Loading (dash_loading_components.registry)
 # ---------------------------------------------------------------------------
 
 from dash_loading_components.registry import (
@@ -226,7 +226,7 @@ LOADING_DEV_BLURBS = {
     "LinearDots": "Three dots lighting up in turn from left to right.",
 }
 
-# From loading-dev d.ts — which wrappers expose easing / cap
+# From loading-dev d.ts: which wrappers expose easing / cap
 LOADING_DEV_EASING = {
     "Arc", "Atom", "Clock", "Comet", "Dual", "Orbit", "Radar", "Ring", "Snake", "Trace"
 }
@@ -734,14 +734,14 @@ def default_values(family: str, name: str, props: list[str]) -> dict[str, Any]:
             values[p] = "medium"
             continue
         if p == "className":
-            # omit empty by default — not "set"
+            # omit empty by default, not "set"
             continue
         if p == "text":
             continue
         if p == "ariaLabel":
             continue
         if family == "premium" and p == "secondaryColor":
-            # omit — light default washes out alternating OrbitRings on white
+            # omit: light default washes out alternating OrbitRings on white
             continue
         spec = prop_spec(family, p, name)
         if spec is not None:
@@ -788,13 +788,22 @@ def build_namespaced_values(
     return _omit_empty_strings(native)
 
 
-def format_python_snippet(source: str) -> str:
+# Every snippet the gallery renders goes through Black. The workbench pair sits
+# in a two-up grid roughly 46 characters wide at the narrowest layout that still
+# shows it, so those are formatted to fit: the panels do not soft-wrap, and a
+# line laid out for 88 columns would otherwise break at the panel edge with no
+# indent and read as though it had never been formatted at all.
+SNIPPET_LINE_LENGTH = 88
+WORKBENCH_LINE_LENGTH = 46
+
+
+def format_python_snippet(source: str, line_length: int = SNIPPET_LINE_LENGTH) -> str:
     """Format displayed Python with Black without making the gallery fragile."""
     if black is None:
         logger.warning("Black is unavailable; displaying an unformatted snippet")
         return source
     try:
-        return black.format_str(source, mode=black.Mode(line_length=88))
+        return black.format_str(source, mode=black.Mode(line_length=line_length))
     except Exception:
         logger.warning("Black failed to format gallery snippet; using raw source", exc_info=True)
         return source
@@ -806,7 +815,9 @@ def build_snippet(family: str, name: str, values: dict[str, Any]) -> str:
     for k, v in values.items():
         parts.append(f"{k}={format_py_value(v)}")
     call = f"dlc.{family}.{name}({', '.join(parts)})"
-    return format_python_snippet(f"import dash_loading_components as dlc\n\n{call}\n")
+    return format_python_snippet(
+        f"import dash_loading_components as dlc\n\n{call}\n", WORKBENCH_LINE_LENGTH
+    )
 
 
 def _derive_playing(family: str, values: dict[str, Any]) -> bool:
@@ -823,7 +834,7 @@ def _derive_playing(family: str, values: dict[str, Any]) -> bool:
     return True
 
 
-# Props Loading maps itself — strip from common extras
+# Props Loading maps itself, strip from common extras
 _LOADING_MANAGED = frozenset(
     {
         "speed",
@@ -867,7 +878,9 @@ def build_common_snippet(family: str, name: str, values: dict[str, Any]) -> str:
             continue
         parts.append(f"{k}={format_py_value(v)}")
     call = f"dlc.Loading({', '.join(parts)})"
-    return format_python_snippet(f"import dash_loading_components as dlc\n\n{call}\n")
+    return format_python_snippet(
+        f"import dash_loading_components as dlc\n\n{call}\n", WORKBENCH_LINE_LENGTH
+    )
 
 
 def instantiate(family: str, name: str, values: dict[str, Any]):
@@ -889,6 +902,19 @@ def instantiate(family: str, name: str, values: dict[str, Any]):
         return dlc.Loading(library=family, spinner=name, **kwargs)
     except Exception as exc:
         return html.Div(f"error: {exc}", style={"color": "crimson", "fontSize": 13})
+
+
+# Loaders whose animation sweeps well past its own box. Shrinking `size`
+# either does not help (react-loading-indicators takes size tokens, not
+# pixels) or leaves the loader too small to read, so scale the whole preview
+# down instead: same proportions, just fitted to the card slot. Values are
+# the measured ink extent over a full cycle divided by the slot width; the
+# clipping test in tests/test_gallery_overview.py keeps them honest.
+OVERVIEW_SCALE: dict[tuple[str, str], float] = {
+    ("spinners", "PropagateLoader"): 0.56,
+    ("indicators", "LifeLine"): 0.68,
+    ("indicators", "BlinkBlur"): 0.8,
+}
 
 
 def overview_preview_kwargs(family: str, name: str | None = None) -> dict[str, Any]:
@@ -969,7 +995,7 @@ def build_site_footer() -> html.Footer:
                 className="dlc-site-footer-brand",
             ),
             html.P(
-                "svg_spinners gated (React ^18.2 peer). Gallery preview — package in development.",
+                "svg_spinners gated (React ^18.2 peer). Gallery preview, package in development.",
                 className="dlc-footer-note",
             ),
         ],
@@ -996,6 +1022,8 @@ def build_sidenav(active_family: Optional[str] = None, active_name: Optional[str
             className="dlc-nav-search",
             n_submit=0,
         ),
+        html.P(id="nav-search-empty", className="dlc-nav-empty",
+               style={"display": "none"}),
     ]
     for key, label, items in FAMILIES:
         nav_items.append(
@@ -1044,6 +1072,9 @@ def make_overview_card(family: str, name: str, component: Callable) -> html.Div:
         node = component(**kwargs)
     except Exception as exc:
         node = html.Div("err", title=str(exc), style={"color": "crimson", "fontSize": 11})
+    scale = OVERVIEW_SCALE.get((family, name))
+    if scale is not None:
+        node = html.Div(node, style={"transform": f"scale({scale})"})
     card = html.A(
         [
             html.Div(name, className="name"),
@@ -1079,7 +1110,7 @@ def build_overview() -> html.Div:
                         className="dlc-grid",
                     ),
                 ],
-                id=f"family-{key}",
+                id={"type": "overview-family", "family": key},
                 className="dlc-family",
             )
         )
@@ -1089,7 +1120,7 @@ def build_overview() -> html.Div:
                 [
                     html.H1("Loading, made beautiful for Dash."),
                     html.P(
-                        "Dash wrappers for modern React loading libraries — loading-dev, ldrs, "
+                        "Dash wrappers for modern React loading libraries: loading-dev, ldrs, "
                         "react-spinners, and more. Requires Dash ≥4.5 / React 19."
                     ),
                     html.Pre(
@@ -1104,6 +1135,8 @@ def build_overview() -> html.Div:
                 ],
                 className="dlc-hero",
             ),
+            html.P(id={"type": "overview-empty", "index": 0}, className="dlc-empty",
+                   style={"display": "none"}),
             *sections,
             build_site_footer(),
         ],
@@ -1135,60 +1168,6 @@ def section_copy(family: str, prop: str, name: str | None = None) -> str:
     if spec and spec.get("doc"):
         return spec["doc"]
     return f"Configurable `{prop}` for this wrapper."
-
-
-def build_prop_example_snippet(family: str, name: str, prop: str) -> str:
-    """Short namespaced examples for the prop docs section (not live-synced)."""
-    lines = ["import dash_loading_components as dlc", ""]
-    if prop == "size" and family != "indicators":
-        for label, px in SIZE_PRESETS:
-            lines.append(f"dlc.{family}.{name}(size={px})  # {label}")
-    elif family == "indicators" and prop == "size":
-        for tok in ("small", "medium", "large"):
-            lines.append(f'dlc.{family}.{name}(size="{tok}")')
-    elif prop == "color":
-        lines.append(f'dlc.{family}.{name}(color="#f97316", size={DEFAULT_SIZE})')
-    elif prop == "speed" and supports_relative_speed(family):
-        lines.append(
-            f'dlc.Loading(library="{family}", spinner="{name}", '
-            f"size={DEFAULT_SIZE}, speed=1.5)"
-        )
-        native = translate_relative_speed(family, 1.5, name)
-        kw = ", ".join(f"{k}={format_py_value(v)}" for k, v in native.items())
-        lines.append(f"# namespaced ≈ dlc.{family}.{name}({kw})")
-    elif prop == "easing":
-        lines.append(f'dlc.{family}.{name}(easing="ease-in-out", size={DEFAULT_SIZE})')
-    elif prop == "cap":
-        lines.append(f'dlc.{family}.{name}(cap="flat", size={DEFAULT_SIZE})')
-    elif prop == "playState":
-        lines.append(f'dlc.{family}.{name}(playState="paused", size={DEFAULT_SIZE})')
-    elif prop == "sweep":
-        for opt in ("diagonal", "rows", "columns"):
-            lines.append(
-                f'dlc.{family}.{name}(sweep="{opt}", size={DEFAULT_SIZE})'
-            )
-    elif prop == "direction":
-        for opt in ("out", "in"):
-            lines.append(
-                f'dlc.{family}.{name}(direction="{opt}", size={DEFAULT_SIZE})'
-            )
-    elif prop == "origin":
-        for opt in ("center", "bottom"):
-            lines.append(
-                f'dlc.{family}.{name}(origin="{opt}", size={DEFAULT_SIZE})'
-            )
-    elif prop == "className":
-        lines.append(f'dlc.{family}.{name}(className="opacity-40", size={DEFAULT_SIZE})')
-    else:
-        spec = prop_spec(family, prop, name)
-        demo = spec["default"] if spec else None
-        if demo is None:
-            lines.append(f"dlc.{family}.{name}(...)  # set {prop}=...")
-        else:
-            lines.append(
-                f"dlc.{family}.{name}({prop}={format_py_value(demo)}, size={DEFAULT_SIZE})"
-            )
-    return format_python_snippet("\n".join(lines) + "\n")
 
 
 def workbench_control(prop: str, value: Any, family: str, props: list[str], name: str | None = None) -> html.Div:
@@ -1318,15 +1297,16 @@ def workbench_control(prop: str, value: Any, family: str, props: list[str], name
 
 
 def build_prop_doc_section(family: str, name: str, prop: str) -> html.Section:
-    title = section_title(prop)
+    """Prose only.
+
+    The Common API and Namespaced snippets above are the page's code, and they
+    track the workbench controls. A second set of hand-written examples per
+    prop said the same thing in a form that could drift from the live preview.
+    """
     return html.Section(
         [
-            html.H2(title),
+            html.H2(section_title(prop)),
             html.P(section_copy(family, prop, name), className="dlc-prop-doc-copy"),
-            html.Pre(
-                build_prop_example_snippet(family, name, prop),
-                className="dlc-snippet dlc-snippet-doc",
-            ),
         ],
         id=f"section-{prop}",
         className="dlc-prop-doc",
@@ -1563,7 +1543,7 @@ UPSTREAM_CREDITS = [
         "spdx": "MIT",
         "homepage": "https://www.npmjs.com/package/react-svg-spinners",
         "repo": "https://github.com/theme-park/react-svg-spinners",
-        "note": "Gated — React ^18.2 peer dependency not yet resolved for React 19.",
+        "note": "Gated: React ^18.2 peer dependency not yet resolved for React 19.",
         "status": "gated",
     },
 ]
@@ -1657,7 +1637,7 @@ def build_credits() -> html.Div:
             ),
             html.P(
                 [
-                    html.Span("Copyright © 2026 Evan Roy Rees / "),
+                    html.Span("Copyright © 2026 "),
                     html.A("Phyla Technologies", href="https://github.com/PhylaTech", target="_blank", rel="noopener noreferrer"),
                 ],
                 className="dlc-credits-note",
@@ -1706,7 +1686,7 @@ app = Dash(
         {"property": "og:url", "content": "https://dash-loading-components.phylatech.com/"},
         {"property": "og:site_name", "content": "PhylaTech"},
         {"property": "og:image", "content": _OG_IMAGE},
-        {"property": "og:image:alt", "content": "dash-loading-components — Interactive Dash loading spinner gallery"},
+        {"property": "og:image:alt", "content": "dash-loading-components: Interactive Dash loading spinner gallery"},
         {"name": "twitter:card", "content": "summary_large_image"},
         {"name": "twitter:title", "content": "dash-loading-components"},
         {"name": "twitter:description", "content": _OG_DESCRIPTION},
@@ -1744,7 +1724,7 @@ def _coerce_control_value(prop: str, raw: Any, family: str, name: str | None = N
     spec = prop_spec(family, prop, name)
     if family == "indicators" and prop == "size":
         return raw
-    # Size presets (RadioItems) — keep concrete px ints
+    # Size presets (RadioItems), keep concrete px ints
     if prop == "size" and family != "indicators" and isinstance(raw, (int, float)):
         return int(raw)
     if spec and spec["kind"] == "bool":
@@ -1771,46 +1751,88 @@ def _coerce_control_value(prop: str, raw: Any, family: str, name: str | None = N
     return raw
 
 
+HIDDEN = {"display": "none"}
+
+
+def _matches(query: str, family: str, name: str) -> bool:
+    return not query or query in f"{family} {name}".lower()
+
+
 @callback(
     Output({"type": "nav-comp", "family": ALL, "name": ALL}, "style"),
     Output({"type": "nav-family", "family": ALL}, "style"),
     Output({"type": "card-wrap", "family": ALL, "name": ALL}, "style"),
+    Output({"type": "overview-family", "family": ALL}, "style"),
+    Output("nav-search-empty", "children"),
+    Output("nav-search-empty", "style"),
+    Output({"type": "overview-empty", "index": ALL}, "children"),
+    Output({"type": "overview-empty", "index": ALL}, "style"),
     Input("nav-search", "value"),
     State({"type": "nav-comp", "family": ALL, "name": ALL}, "id"),
     State({"type": "nav-family", "family": ALL}, "id"),
     State({"type": "card-wrap", "family": ALL, "name": ALL}, "id"),
+    State({"type": "overview-family", "family": ALL}, "id"),
+    State({"type": "overview-empty", "index": ALL}, "id"),
 )
-def filter_nav_search(query, nav_ids, family_ids, card_ids):
-    q = (query or "").strip().lower()
-    nav_styles = []
-    visible_by_family: dict[str, bool] = {}
-    for id_dict in nav_ids or []:
-        family = id_dict.get("family", "")
-        name = id_dict.get("name", "")
-        hay = f"{family} {name}".lower()
-        match = (not q) or (q in hay) or (q in name.lower()) or (q in family.lower())
-        visible_by_family[family] = visible_by_family.get(family, False) or match
-        nav_styles.append({} if match else {"display": "none"})
+def filter_nav_search(query, nav_ids, nav_family_ids, card_ids, section_ids, empty_ids):
+    """Filter the nav and the overview to what the query matches.
 
-    family_styles = []
-    for id_dict in family_ids or []:
-        family = id_dict.get("family", "")
-        show = (not q) or visible_by_family.get(family, False)
-        family_styles.append({} if show else {"display": "none"})
+    Non-matches are hidden rather than dimmed. Dimmed cards kept animating
+    behind the filter and stayed in the tab order, and a query that matched
+    nothing left an empty sidebar beside a full page of them with no
+    explanation.
+
+    The overview-only outputs use pattern ids so this still runs, and the
+    sidebar still filters, on a detail page where they do not exist.
+    """
+    q = (query or "").strip().lower()
+
+    matched_by_family: dict[str, bool] = {}
+    nav_styles = []
+    for id_dict in nav_ids or []:
+        match = _matches(q, id_dict.get("family", ""), id_dict.get("name", ""))
+        matched_by_family[id_dict.get("family", "")] = (
+            matched_by_family.get(id_dict.get("family", ""), False) or match
+        )
+        nav_styles.append({} if match else HIDDEN)
+
+    def family_styles(ids):
+        return [
+            {} if matched_by_family.get(i.get("family", ""), False) else HIDDEN
+            for i in ids or []
+        ]
 
     card_styles = []
+    total = 0
     for id_dict in card_ids or []:
-        family = id_dict.get("family", "")
-        name = id_dict.get("name", "")
-        hay = f"{family} {name}".lower()
-        match = (not q) or (q in hay) or (q in name.lower()) or (q in family.lower())
-        if match:
+        if _matches(q, id_dict.get("family", ""), id_dict.get("name", "")):
             card_styles.append({})
+            total += 1
         else:
-            card_styles.append({"opacity": "0.22", "pointerEvents": "none", "filter": "grayscale(0.35)"})
+            card_styles.append(HIDDEN)
 
-    return nav_styles, family_styles, card_styles
+    if q and not total:
+        nav_empty = f"No components match “{query}”."
+        page_empty = [
+            "No components match ",
+            html.Strong(f"“{query}”"),
+            ". Try a library name (ldrs, premium) or part of a spinner name.",
+        ]
+        shown = {}
+    else:
+        nav_empty, page_empty, shown = "", "", HIDDEN
 
+    overview_present = len(empty_ids or [])
+    return (
+        nav_styles,
+        family_styles(nav_family_ids),
+        card_styles,
+        family_styles(section_ids),
+        nav_empty,
+        shown,
+        [page_empty] * overview_present,
+        [shown] * overview_present,
+    )
 
 
 @callback(
@@ -1890,5 +1912,5 @@ def update_detail(values, ids, meta):
 
 if __name__ == "__main__":
     _port = int(os.environ.get("PORT", "8050"))
-    print("dlc gallery — http://127.0.0.1:%d/  (REACT_VERSION=%s)" % (_port, os.environ.get("REACT_VERSION")))
+    print("dlc gallery: http://127.0.0.1:%d/  (REACT_VERSION=%s)" % (_port, os.environ.get("REACT_VERSION")))
     app.run(host="0.0.0.0", port=_port, debug=False)

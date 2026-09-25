@@ -21,7 +21,7 @@
     "build": "npm run build:js && npm run build:backends",
     "build:activated": "npm run build:js && npm run build:backends-activated"
   },
-  "author": "Evan Rees <evanroyrees@phylatech.com>",
+  "author": "Phyla Technologies <hello@phylatech.com>",
   "license": "MIT",
   "dependencies": {
     "@alerix/m3-loading-indicator": "^1.0.5",

@@ -1,0 +1,77 @@
+/*
+ * Corrections for premium-react-loaders 4.2.0 keyframes.
+ *
+ * Three of its loaders animate `transform`, which replaces the static
+ * `transform` the component already set inline on the same element. The
+ * inline value carries the element's centering or its own rotation, so the
+ * animation silently throws that away and the loader renders wrong. Each
+ * override below restates the missing piece; nothing else changes.
+ *
+ * Loaded after `premium-react-loaders/styles`, so these win on name.
+ */
+
+/*
+ * OrbitRings: every ring is centered with an inline
+ * `transform: translate(-50%, -50%)` on an element positioned at
+ * left/top 50%. `orbit-rotate` animated bare `rotate()`, dropping the
+ * centering, so the rings swung around the container's top-left corner
+ * instead of spinning in place.
+ */
+@keyframes orbit-rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/*
+ * AtomLoader: each electron rides the top edge of a 100% x 60% box that
+ * `atom-orbit` rotated, so it traced a circle of that box's half-height
+ * while the orbit ring drawn behind it is an ellipse 100% x 60% wide. The
+ * electron cut across the inside of its own orbit for most of the cycle.
+ *
+ * Walk the box around the ellipse instead of rotating it. Percentages in
+ * `translate` resolve against the element's own box, so 50% of the width is
+ * the ellipse's x semi-axis and 50% of the height is its y semi-axis: the
+ * path is correct at every `size` without hard-coding pixels. Stepping it
+ * rather than scaling keeps the electron a circle; a scale would stretch it,
+ * since it is a child of the element being scaled.
+ */
+@keyframes atom-orbit {
+  0% { transform: translate(0.000%, 0.000%); }
+  4.16667% { transform: translate(12.941%, 1.704%); }
+  8.33333% { transform: translate(25.000%, 6.699%); }
+  12.5% { transform: translate(35.355%, 14.645%); }
+  16.6667% { transform: translate(43.301%, 25.000%); }
+  20.8333% { transform: translate(48.296%, 37.059%); }
+  25% { transform: translate(50.000%, 50.000%); }
+  29.1667% { transform: translate(48.296%, 62.941%); }
+  33.3333% { transform: translate(43.301%, 75.000%); }
+  37.5% { transform: translate(35.355%, 85.355%); }
+  41.6667% { transform: translate(25.000%, 93.301%); }
+  45.8333% { transform: translate(12.941%, 98.296%); }
+  50% { transform: translate(0.000%, 100.000%); }
+  54.1667% { transform: translate(-12.941%, 98.296%); }
+  58.3333% { transform: translate(-25.000%, 93.301%); }
+  62.5% { transform: translate(-35.355%, 85.355%); }
+  66.6667% { transform: translate(-43.301%, 75.000%); }
+  70.8333% { transform: translate(-48.296%, 62.941%); }
+  75% { transform: translate(-50.000%, 50.000%); }
+  79.1667% { transform: translate(-48.296%, 37.059%); }
+  83.3333% { transform: translate(-43.301%, 25.000%); }
+  87.5% { transform: translate(-35.355%, 14.645%); }
+  91.6667% { transform: translate(-25.000%, 6.699%); }
+  95.8333% { transform: translate(-12.941%, 1.704%); }
+  100% { transform: translate(-0.000%, 0.000%); }
+}
+
+/*
+ * MobiusLoader: each ribbon segment gets its own inline
+ * `transform: rotate(<twist>deg)`, and `mobius-segment` animated
+ * `rotate(var(--angle, 90deg))`. The component never sets `--angle`, so
+ * every segment snapped to the 90deg fallback and the ribbon collapsed
+ * into a row of parallel dashes. Animate `scale` instead: it is its own
+ * property, so the inline rotation survives.
+ */
+@keyframes mobius-segment {
+  0%, 100% { opacity: 0.3; scale: 1; }
+  50%      { opacity: 1;   scale: 1.2; }
+}
