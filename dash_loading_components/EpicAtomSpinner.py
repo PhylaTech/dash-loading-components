@@ -29,7 +29,7 @@ Keyword arguments:
 - id (string; optional):
     The ID used to identify this component in Dash callbacks.
 
-- animationDuration (number; optional):
+- animation_duration (number; optional):
     Animation duration in ms.
 
 - className (string; optional):
@@ -37,6 +37,13 @@ Keyword arguments:
 
 - color (string; optional):
     Color.
+
+- playing (boolean; optional):
+    Set to False to pause the animation.
+
+- rate (number; optional):
+    Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as
+    fast, 0.5 half. Leave unset to keep the upstream tempo.
 
 - size (number; optional):
     Size in pixels."""
@@ -53,12 +60,14 @@ Keyword arguments:
         style: typing.Optional[typing.Any] = None,
         size: typing.Optional[NumberType] = None,
         color: typing.Optional[str] = None,
-        animationDuration: typing.Optional[NumberType] = None,
+        animation_duration: typing.Optional[NumberType] = None,
+        rate: typing.Optional[NumberType] = None,
+        playing: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'animationDuration', 'className', 'color', 'size', 'style']
+        self._prop_names = ['id', 'animation_duration', 'className', 'color', 'playing', 'rate', 'size', 'style']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'animationDuration', 'className', 'color', 'size', 'style']
+        self.available_properties = ['id', 'animation_duration', 'className', 'color', 'playing', 'rate', 'size', 'style']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

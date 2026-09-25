@@ -11,9 +11,9 @@ app = Dash(__name__)
 
 app.layout = html.Div(
     [
-        # Common API: speed is relative, 1.0 = this spinner's normal tempo.
-        dlc.Loading(library="loading_dev", spinner="Arc", size=48, color="#f97316"),
-        # Namespaced API: upstream prop names and units.
+        # Every component takes size, color, rate (1.0 = its own tempo) and playing.
+        dlc.loading_dev.Arc(size=48, color="#f97316", rate=1.5),
+        # Upstream props are there too, in snake_case, in upstream units.
         dlc.ldrs.Mirage(id="mirage", size=60, color="#f97316", speed=2.5),
     ],
     id="demo",

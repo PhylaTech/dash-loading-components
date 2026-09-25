@@ -35,16 +35,23 @@ Keyword arguments:
 - color (string; optional):
     Color.
 
-- dotCount (number; optional):
+- dot_count (number; optional):
     Number of dots.
 
-- dotSize (number; optional):
+- dot_size (number; optional):
     Size of each dot.
+
+- playing (boolean; optional):
+    Set to False to pause the animation.
+
+- rate (number; optional):
+    Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as
+    fast, 0.5 half. Leave unset to keep the upstream tempo.
 
 - reverse (boolean; optional):
     Reverse animation direction.
 
-- secondaryColor (string; optional):
+- secondary_color (string; optional):
     Secondary color for multi-color loaders.
 
 - size (string | number; optional):
@@ -70,15 +77,17 @@ Keyword arguments:
         color: typing.Optional[str] = None,
         speed: typing.Optional[typing.Union[str, NumberType]] = None,
         reverse: typing.Optional[bool] = None,
-        secondaryColor: typing.Optional[str] = None,
+        secondary_color: typing.Optional[str] = None,
         visible: typing.Optional[bool] = None,
-        dotCount: typing.Optional[NumberType] = None,
-        dotSize: typing.Optional[NumberType] = None,
+        dot_count: typing.Optional[NumberType] = None,
+        dot_size: typing.Optional[NumberType] = None,
+        rate: typing.Optional[NumberType] = None,
+        playing: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'dotCount', 'dotSize', 'reverse', 'secondaryColor', 'size', 'speed', 'style', 'visible']
+        self._prop_names = ['id', 'className', 'color', 'dot_count', 'dot_size', 'playing', 'rate', 'reverse', 'secondary_color', 'size', 'speed', 'style', 'visible']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'dotCount', 'dotSize', 'reverse', 'secondaryColor', 'size', 'speed', 'style', 'visible']
+        self.available_properties = ['id', 'className', 'color', 'dot_count', 'dot_size', 'playing', 'rate', 'reverse', 'secondary_color', 'size', 'speed', 'style', 'visible']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

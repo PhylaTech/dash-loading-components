@@ -29,7 +29,7 @@ Keyword arguments:
 - id (string; optional):
     The ID used to identify this component in Dash callbacks.
 
-- barCount (number; optional):
+- bar_count (number; optional):
     Number of bars.
 
 - className (string; optional):
@@ -47,13 +47,20 @@ Keyword arguments:
 - margin (number | string; optional):
     Margin between elements.
 
+- playing (boolean; optional):
+    Set to False to pause the animation.
+
 - radius (number | string; optional):
     Bar corner radius.
+
+- rate (number; optional):
+    Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as
+    fast, 0.5 half. Leave unset to keep the upstream tempo.
 
 - size (number; optional):
     Size in pixels.
 
-- speedMultiplier (number; optional):
+- speed_multiplier (number; optional):
     Speed multiplier.
 
 - width (number | string; optional):
@@ -72,17 +79,19 @@ Keyword arguments:
         size: typing.Optional[NumberType] = None,
         color: typing.Optional[str] = None,
         loading: typing.Optional[bool] = None,
-        speedMultiplier: typing.Optional[NumberType] = None,
+        speed_multiplier: typing.Optional[NumberType] = None,
         height: typing.Optional[typing.Union[NumberType, str]] = None,
         width: typing.Optional[typing.Union[NumberType, str]] = None,
         margin: typing.Optional[typing.Union[NumberType, str]] = None,
         radius: typing.Optional[typing.Union[NumberType, str]] = None,
-        barCount: typing.Optional[NumberType] = None,
+        bar_count: typing.Optional[NumberType] = None,
+        rate: typing.Optional[NumberType] = None,
+        playing: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'barCount', 'className', 'color', 'height', 'loading', 'margin', 'radius', 'size', 'speedMultiplier', 'style', 'width']
+        self._prop_names = ['id', 'bar_count', 'className', 'color', 'height', 'loading', 'margin', 'playing', 'radius', 'rate', 'size', 'speed_multiplier', 'style', 'width']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'barCount', 'className', 'color', 'height', 'loading', 'margin', 'radius', 'size', 'speedMultiplier', 'style', 'width']
+        self.available_properties = ['id', 'bar_count', 'className', 'color', 'height', 'loading', 'margin', 'playing', 'radius', 'rate', 'size', 'speed_multiplier', 'style', 'width']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

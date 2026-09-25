@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {contract, wrapperClass} from '../../contract';
 import '../../premium-styles';
 import { SpinnerCircle as Upstream } from 'premium-react-loaders';
 
@@ -7,10 +8,10 @@ import { SpinnerCircle as Upstream } from 'premium-react-loaders';
  * PremiumSpinnerCircle — Dash wrapper for upstream spinner.
  */
 const PremiumSpinnerCircle = (props) => {
-    const {id, className, style, setProps, size, color, speed, reverse, secondaryColor, visible, thickness} = props;
+    const {id, className, style, size, color, speed, reverse, secondary_color, visible, thickness, rate, playing} = props;
     return (
         <div id={id} style={style}>
-            <Upstream size={size} color={color} speed={speed} reverse={reverse} secondaryColor={secondaryColor} visible={visible} thickness={thickness} className={className} />
+            <Upstream size={size} color={color} speed={speed} reverse={reverse} secondaryColor={secondary_color} visible={visible} thickness={thickness} className={wrapperClass(className, playing)} {...contract('premium', 'SpinnerCircle', props)} />
         </div>
     );
 };
@@ -31,10 +32,6 @@ PremiumSpinnerCircle.propTypes = {
      */
     style: PropTypes.object,
     /**
-     * Dash-assigned callback that should be called to report property changes.
-     */
-    setProps: PropTypes.func,
-    /**
      * Size (sm/md/lg or number).
      */
     size: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -53,7 +50,7 @@ PremiumSpinnerCircle.propTypes = {
     /**
      * Secondary color for multi-color loaders.
      */
-    secondaryColor: PropTypes.string,
+    secondary_color: PropTypes.string,
     /**
      * Whether the loader is visible.
      */
@@ -62,6 +59,15 @@ PremiumSpinnerCircle.propTypes = {
      * Stroke thickness.
      */
     thickness: PropTypes.number,
+    /**
+     * Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as fast,
+     * 0.5 half. Leave unset to keep the upstream tempo.
+     */
+    rate: PropTypes.number,
+    /**
+     * Set to False to pause the animation.
+     */
+    playing: PropTypes.bool,
 };
 
 export default PremiumSpinnerCircle;

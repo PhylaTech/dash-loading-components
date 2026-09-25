@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {contract, wrapperClass} from '../../contract';
 import '../../premium-styles';
 import { AtomLoader as Upstream } from 'premium-react-loaders';
 
@@ -7,10 +8,10 @@ import { AtomLoader as Upstream } from 'premium-react-loaders';
  * PremiumAtomLoader — Dash wrapper for upstream spinner.
  */
 const PremiumAtomLoader = (props) => {
-    const {id, className, style, setProps, size, color, speed, reverse, secondaryColor, visible} = props;
+    const {id, className, style, size, color, speed, reverse, secondary_color, visible, rate, playing} = props;
     return (
         <div id={id} style={style}>
-            <Upstream size={size} color={color} speed={speed} reverse={reverse} secondaryColor={secondaryColor} visible={visible} className={className} />
+            <Upstream size={size} color={color} speed={speed} reverse={reverse} secondaryColor={secondary_color} visible={visible} className={wrapperClass(className, playing)} {...contract('premium', 'AtomLoader', props)} />
         </div>
     );
 };
@@ -31,10 +32,6 @@ PremiumAtomLoader.propTypes = {
      */
     style: PropTypes.object,
     /**
-     * Dash-assigned callback that should be called to report property changes.
-     */
-    setProps: PropTypes.func,
-    /**
      * Size (sm/md/lg or number).
      */
     size: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -53,11 +50,20 @@ PremiumAtomLoader.propTypes = {
     /**
      * Secondary color for multi-color loaders.
      */
-    secondaryColor: PropTypes.string,
+    secondary_color: PropTypes.string,
     /**
      * Whether the loader is visible.
      */
     visible: PropTypes.bool,
+    /**
+     * Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as fast,
+     * 0.5 half. Leave unset to keep the upstream tempo.
+     */
+    rate: PropTypes.number,
+    /**
+     * Set to False to pause the animation.
+     */
+    playing: PropTypes.bool,
 };
 
 export default PremiumAtomLoader;

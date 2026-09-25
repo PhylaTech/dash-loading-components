@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {contract, wrapperClass} from '../../contract';
 import '../../premium-styles';
 import { OrbitDots as Upstream } from 'premium-react-loaders';
 
@@ -8,23 +9,7 @@ import { OrbitDots as Upstream } from 'premium-react-loaders';
  * Requires premium-react-loaders CSS (see ./styles).
  */
 const PremiumOrbitDots = (props) => {
-    const {
-        id,
-        className,
-        style,
-        setProps,
-        size,
-        color,
-        speed,
-        reverse,
-        secondaryColor,
-        visible,
-        thickness,
-        dotCount,
-        dotSize,
-        orbitRadius,
-        stagger,
-    } = props;
+    const {id, className, style, size, color, speed, reverse, secondary_color, visible, thickness, dot_count, dot_size, orbit_radius, stagger, rate, playing} = props;
     return (
         <div id={id} style={style}>
             <Upstream
@@ -32,15 +17,14 @@ const PremiumOrbitDots = (props) => {
                 color={color}
                 speed={speed}
                 reverse={reverse}
-                secondaryColor={secondaryColor}
+                secondaryColor={secondary_color}
                 visible={visible}
                 thickness={thickness}
-                dotCount={dotCount}
-                dotSize={dotSize}
-                orbitRadius={orbitRadius}
+                dotCount={dot_count}
+                dotSize={dot_size}
+                orbitRadius={orbit_radius}
                 stagger={stagger}
-                className={className}
-            />
+                className={wrapperClass(className, playing)} {...contract('premium', 'OrbitDots', props)} />
         </div>
     );
 };
@@ -61,10 +45,6 @@ PremiumOrbitDots.propTypes = {
      */
     style: PropTypes.object,
     /**
-     * Dash-assigned callback that should be called to report property changes.
-     */
-    setProps: PropTypes.func,
-    /**
      * Size (xs/sm/md/lg/xl or number px).
      */
     size: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -84,7 +64,7 @@ PremiumOrbitDots.propTypes = {
     /**
      * Secondary color for alternating dots.
      */
-    secondaryColor: PropTypes.string,
+    secondary_color: PropTypes.string,
     /**
      * Whether the loader is visible.
      */
@@ -96,19 +76,28 @@ PremiumOrbitDots.propTypes = {
     /**
      * Number of orbiting dots.
      */
-    dotCount: PropTypes.number,
+    dot_count: PropTypes.number,
     /**
      * Size of each dot.
      */
-    dotSize: PropTypes.number,
+    dot_size: PropTypes.number,
     /**
      * Orbit radius relative to size.
      */
-    orbitRadius: PropTypes.number,
+    orbit_radius: PropTypes.number,
     /**
      * Stagger animation between dots.
      */
     stagger: PropTypes.bool,
+    /**
+     * Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as fast,
+     * 0.5 half. Leave unset to keep the upstream tempo.
+     */
+    rate: PropTypes.number,
+    /**
+     * Set to False to pause the animation.
+     */
+    playing: PropTypes.bool,
 };
 
 export default PremiumOrbitDots;

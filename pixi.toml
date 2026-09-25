@@ -1,0 +1,23 @@
+[workspace]
+name = "dash-loading-components"
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "osx-64", "linux-64"]
+
+[dependencies]
+python = "3.12.*"
+nodejs = ">=22"
+
+[pypi-dependencies]
+# Dash 4.5 is still a pre-release; naming the rc lets the resolver take it.
+dash = { version = ">=4.5.0rc0", extras = ["dev", "testing"] }
+black = "*"
+gunicorn = "*"
+dash-loading-components = { path = ".", editable = true }
+dash-mantine-components = ">=2.8.0, <3"
+
+[tasks]
+build-js = "npm run build:js"
+build = "npm run build:js && npm run build:backends"
+gallery = { cmd = "python gallery.py", env = { REACT_VERSION = "19.2.4" } }
+serve = { cmd = "gunicorn gallery:server --bind 127.0.0.1:8050", env = { REACT_VERSION = "19.2.4" } }
+test = "pytest"

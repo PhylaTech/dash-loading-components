@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {contract, wrapperClass} from '../../contract';
 import '../../premium-styles';
 import { SpinnerBars as Upstream } from 'premium-react-loaders';
 
@@ -7,10 +8,10 @@ import { SpinnerBars as Upstream } from 'premium-react-loaders';
  * PremiumSpinnerBars — Dash wrapper for upstream spinner.
  */
 const PremiumSpinnerBars = (props) => {
-    const {id, className, style, setProps, size, color, speed, reverse, secondaryColor, visible, barCount} = props;
+    const {id, className, style, size, color, speed, reverse, secondary_color, visible, bar_count, rate, playing} = props;
     return (
         <div id={id} style={style}>
-            <Upstream size={size} color={color} speed={speed} reverse={reverse} secondaryColor={secondaryColor} visible={visible} barCount={barCount} className={className} />
+            <Upstream size={size} color={color} speed={speed} reverse={reverse} secondaryColor={secondary_color} visible={visible} barCount={bar_count} className={wrapperClass(className, playing)} {...contract('premium', 'SpinnerBars', props)} />
         </div>
     );
 };
@@ -31,10 +32,6 @@ PremiumSpinnerBars.propTypes = {
      */
     style: PropTypes.object,
     /**
-     * Dash-assigned callback that should be called to report property changes.
-     */
-    setProps: PropTypes.func,
-    /**
      * Size (sm/md/lg or number).
      */
     size: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -53,7 +50,7 @@ PremiumSpinnerBars.propTypes = {
     /**
      * Secondary color for multi-color loaders.
      */
-    secondaryColor: PropTypes.string,
+    secondary_color: PropTypes.string,
     /**
      * Whether the loader is visible.
      */
@@ -61,7 +58,16 @@ PremiumSpinnerBars.propTypes = {
     /**
      * Number of bars.
      */
-    barCount: PropTypes.number,
+    bar_count: PropTypes.number,
+    /**
+     * Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as fast,
+     * 0.5 half. Leave unset to keep the upstream tempo.
+     */
+    rate: PropTypes.number,
+    /**
+     * Set to False to pause the animation.
+     */
+    playing: PropTypes.bool,
 };
 
 export default PremiumSpinnerBars;

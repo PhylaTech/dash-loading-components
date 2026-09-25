@@ -44,4 +44,7 @@ COPY assets/ assets/
 
 EXPOSE 8050
 
-CMD ["python", "gallery.py"]
+# A production WSGI server, not Flask's development server. Render sets PORT.
+# One worker per core is plenty for a gallery; threads cover concurrent
+# callbacks. --preload imports the app once so workers share its memory.
+CMD ["sh", "-c", "exec gunicorn gallery:server --bind 0.0.0.0:${PORT:-8050} --workers 2 --threads 4 --preload --access-logfile -"]

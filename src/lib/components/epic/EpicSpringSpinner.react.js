@@ -1,15 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {contract, wrapperClass} from '../../contract';
 import { SpringSpinner as Upstream } from 'react-epic-spinners';
 
 /**
  * EpicSpringSpinner — Dash wrapper for upstream spinner.
  */
 const EpicSpringSpinner = (props) => {
-    const {id, className, style, setProps, size, color, animationDuration} = props;
+    const {id, className, style, size, color, animation_duration, rate, playing} = props;
     return (
-        <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} animationDuration={animationDuration} />
+        <div id={id} className={wrapperClass(className, playing)} style={style}>
+            <Upstream size={size} color={color} animationDuration={animation_duration} {...contract('epic', 'SpringSpinner', props)} />
         </div>
     );
 };
@@ -30,10 +31,6 @@ EpicSpringSpinner.propTypes = {
      */
     style: PropTypes.object,
     /**
-     * Dash-assigned callback that should be called to report property changes.
-     */
-    setProps: PropTypes.func,
-    /**
      * Size in pixels.
      */
     size: PropTypes.number,
@@ -44,7 +41,16 @@ EpicSpringSpinner.propTypes = {
     /**
      * Animation duration in ms.
      */
-    animationDuration: PropTypes.number,
+    animation_duration: PropTypes.number,
+    /**
+     * Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as fast,
+     * 0.5 half. Leave unset to keep the upstream tempo.
+     */
+    rate: PropTypes.number,
+    /**
+     * Set to False to pause the animation.
+     */
+    playing: PropTypes.bool,
 };
 
 export default EpicSpringSpinner;

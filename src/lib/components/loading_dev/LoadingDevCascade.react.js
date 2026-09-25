@@ -1,15 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {contract, wrapperClass} from '../../contract';
 import { Cascade as Upstream } from 'loading-dev';
 
 /**
  * LoadingDevCascade — Dash wrapper for upstream spinner.
  */
 const LoadingDevCascade = (props) => {
-    const {id, className, style, setProps, size, color, duration, playState, cap} = props;
+    const {id, className, style, size, color, duration, play_state, cap, rate, playing} = props;
     return (
         <div id={id} style={style}>
-            <Upstream size={size} color={color} duration={duration} playState={playState} cap={cap} className={className} />
+            <Upstream size={size} color={color} duration={duration} playState={play_state} cap={cap} className={wrapperClass(className, playing)} {...contract('loading_dev', 'Cascade', props)} />
         </div>
     );
 };
@@ -30,10 +31,6 @@ LoadingDevCascade.propTypes = {
      */
     style: PropTypes.object,
     /**
-     * Dash-assigned callback that should be called to report property changes.
-     */
-    setProps: PropTypes.func,
-    /**
      * Width/height in pixels. Defaults to 20.
      */
     size: PropTypes.number,
@@ -48,11 +45,20 @@ LoadingDevCascade.propTypes = {
     /**
      * Whether the animation runs.
      */
-    playState: PropTypes.oneOf(["paused", "running"]),
+    play_state: PropTypes.oneOf(["paused", "running"]),
     /**
      * Stroke line cap style.
      */
     cap: PropTypes.oneOf(["round", "flat"]),
+    /**
+     * Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as fast,
+     * 0.5 half. Leave unset to keep the upstream tempo.
+     */
+    rate: PropTypes.number,
+    /**
+     * Set to False to pause the animation.
+     */
+    playing: PropTypes.bool,
 };
 
 export default LoadingDevCascade;

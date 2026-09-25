@@ -1,71 +1,41 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {contract, wrapperClass} from '../../contract';
 import '../../premium-styles';
 import { ShimmerBox as Upstream } from 'premium-react-loaders';
 
 /**
  * PremiumShimmerBox — Dash wrapper for upstream spinner.
  *
- * Upstream ShimmerBox uses width/height (defaults 200×100) and baseColor,
- * not the Common API `size`/`color`. Map those so gallery + dlc.Loading
- * size presets produce a box that fits preview frames.
+ * Upstream ShimmerBox takes width/height (defaults 200x100) and baseColor.
+ * `size` and `color` map onto those so the box behaves like every other
+ * dlc component.
  */
 const PremiumShimmerBox = (props) => {
-    const {
-        id,
-        className,
-        style,
-        setProps,
-        size,
-        color,
-        speed,
-        reverse,
-        secondaryColor,
-        visible,
-        width,
-        height,
-    } = props;
+    const {id, className, style, size, color, speed, secondary_color, visible, width, height, playing} = props;
 
-    // Common API size → upstream width/height (2:1 aspect, matching upstream defaults).
-    // Explicit width/height win when provided.
-    let resolvedWidth = width;
-    let resolvedHeight = height;
-    if (size != null && size !== '') {
-        const n = typeof size === 'number' ? size : Number(size);
-        if (!Number.isNaN(n)) {
-            if (resolvedWidth == null) {
-                resolvedWidth = Math.round(n * 2);
-            }
-            if (resolvedHeight == null) {
-                resolvedHeight = n;
-            }
-        }
+    // size -> width/height at upstream's own 2:1, unless given outright.
+    const upstreamProps = {speed, visible, className: wrapperClass(className, playing)};
+    if (width !== undefined) {
+        upstreamProps.width = width;
+    } else if (size !== undefined) {
+        upstreamProps.width = Math.round(Number(size) * 2);
     }
-
-    const upstreamProps = {
-        speed,
-        visible,
-        className,
-    };
-    if (resolvedWidth != null) {
-        upstreamProps.width = resolvedWidth;
-    }
-    if (resolvedHeight != null) {
-        upstreamProps.height = resolvedHeight;
+    if (height !== undefined) {
+        upstreamProps.height = height;
+    } else if (size !== undefined) {
+        upstreamProps.height = Number(size);
     }
     if (color) {
         upstreamProps.baseColor = color;
     }
-    if (secondaryColor) {
-        upstreamProps.highlightColor = secondaryColor;
+    if (secondary_color) {
+        upstreamProps.highlightColor = secondary_color;
     }
-    // reverse is not an upstream prop; direction could be flipped later if needed
-    void reverse;
-    void setProps;
 
     return (
         <div id={id} style={style}>
-            <Upstream {...upstreamProps} />
+            <Upstream {...upstreamProps} {...contract('premium', 'ShimmerBox', props)} />
         </div>
     );
 };
@@ -85,10 +55,6 @@ PremiumShimmerBox.propTypes = {
      * Inline styles applied to the outer wrapper.
      */
     style: PropTypes.object,
-    /**
-     * Dash-assigned callback that should be called to report property changes.
-     */
-    setProps: PropTypes.func,
     /**
      * Common API size. Mapped to width≈2×size and height≈size when
      * width/height are not set (upstream defaults are 200×100).
@@ -111,17 +77,22 @@ PremiumShimmerBox.propTypes = {
      */
     speed: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     /**
-     * Reverse animation direction (reserved; upstream uses direction enum).
-     */
-    reverse: PropTypes.bool,
-    /**
      * Mapped to upstream highlightColor (shimmer highlight).
      */
-    secondaryColor: PropTypes.string,
+    secondary_color: PropTypes.string,
     /**
      * Whether the loader is visible.
      */
     visible: PropTypes.bool,
+    /**
+     * Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as fast,
+     * 0.5 half. Leave unset to keep the upstream tempo.
+     */
+    rate: PropTypes.number,
+    /**
+     * Set to False to pause the animation.
+     */
+    playing: PropTypes.bool,
 };
 
 export default PremiumShimmerBox;

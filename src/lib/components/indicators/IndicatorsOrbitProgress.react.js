@@ -1,15 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {contract, wrapperClass} from '../../contract';
 import { OrbitProgress as Upstream } from 'react-loading-indicators';
 
 /**
  * IndicatorsOrbitProgress — Dash wrapper for upstream spinner.
  */
 const IndicatorsOrbitProgress = (props) => {
-    const {id, className, style, setProps, size, color, text, textColor, speedPlus, variant, easing, dense} = props;
+    const {id, className, style, size, color, text, text_color, speed_plus, variant, easing, dense, rate, playing} = props;
     return (
-        <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} text={text} textColor={textColor} speedPlus={speedPlus} variant={variant} easing={easing} dense={dense} />
+        <div id={id} className={wrapperClass(className, playing)} style={style}>
+            <Upstream size={size} color={color} text={text} textColor={text_color} speedPlus={speed_plus} variant={variant} easing={easing} dense={dense} {...contract('indicators', 'OrbitProgress', props)} />
         </div>
     );
 };
@@ -30,10 +31,6 @@ IndicatorsOrbitProgress.propTypes = {
      */
     style: PropTypes.object,
     /**
-     * Dash-assigned callback that should be called to report property changes.
-     */
-    setProps: PropTypes.func,
-    /**
      * Size (small/medium/large or number).
      */
     size: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -48,11 +45,11 @@ IndicatorsOrbitProgress.propTypes = {
     /**
      * Text color.
      */
-    textColor: PropTypes.string,
+    text_color: PropTypes.string,
     /**
      * Speed adjustment.
      */
-    speedPlus: PropTypes.number,
+    speed_plus: PropTypes.number,
     /**
      * Variant where supported (OrbitProgress, ThreeDot).
      */
@@ -65,6 +62,15 @@ IndicatorsOrbitProgress.propTypes = {
      * Make the OrbitProgress animation more bold/compact.
      */
     dense: PropTypes.bool,
+    /**
+     * Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as fast,
+     * 0.5 half. Leave unset to keep the upstream tempo.
+     */
+    rate: PropTypes.number,
+    /**
+     * Set to False to pause the animation.
+     */
+    playing: PropTypes.bool,
 };
 
 export default IndicatorsOrbitProgress;

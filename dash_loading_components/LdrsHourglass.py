@@ -29,7 +29,7 @@ Keyword arguments:
 - id (string; optional):
     The ID used to identify this component in Dash callbacks.
 
-- bgOpacity (number | string; optional):
+- bg_opacity (number | string; optional):
     Background opacity (0–1).
 
 - className (string; optional):
@@ -37,6 +37,13 @@ Keyword arguments:
 
 - color (string; optional):
     Color.
+
+- playing (boolean; optional):
+    Set to False to pause the animation.
+
+- rate (number; optional):
+    Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as
+    fast, 0.5 half. Leave unset to keep the upstream tempo.
 
 - size (number | string; optional):
     Size in px.
@@ -61,12 +68,14 @@ Keyword arguments:
         color: typing.Optional[str] = None,
         speed: typing.Optional[typing.Union[NumberType, str]] = None,
         stroke: typing.Optional[typing.Union[NumberType, str]] = None,
-        bgOpacity: typing.Optional[typing.Union[NumberType, str]] = None,
+        bg_opacity: typing.Optional[typing.Union[NumberType, str]] = None,
+        rate: typing.Optional[NumberType] = None,
+        playing: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'bgOpacity', 'className', 'color', 'size', 'speed', 'stroke', 'style']
+        self._prop_names = ['id', 'bg_opacity', 'className', 'color', 'playing', 'rate', 'size', 'speed', 'stroke', 'style']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'bgOpacity', 'className', 'color', 'size', 'speed', 'stroke', 'style']
+        self.available_properties = ['id', 'bg_opacity', 'className', 'color', 'playing', 'rate', 'size', 'speed', 'stroke', 'style']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

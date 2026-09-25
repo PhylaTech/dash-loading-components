@@ -1,15 +1,18 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import PropTypes from 'prop-types';
+import {contract, usePlaying, wrapperClass} from '../../contract';
 import { BallTriangle as Upstream } from 'react-loader-spinner';
 
 /**
  * LoaderSpinnerBallTriangle — Dash wrapper for upstream spinner.
  */
 const LoaderSpinnerBallTriangle = (props) => {
-    const {id, className, style, setProps, height, width, color, secondaryColor, radius, ariaLabel, visible, strokeWidth} = props;
+    const {id, className, style, size, height, width, color, secondary_color, radius, aria_label, visible, stroke_width, rate, playing} = props;
+    const root = useRef(null);
+    usePlaying(root, playing);
     return (
-        <div id={id} className={className} style={style}>
-            <Upstream height={height} width={width} color={color} secondaryColor={secondaryColor} radius={radius} ariaLabel={ariaLabel} visible={visible} strokeWidth={strokeWidth} />
+        <div id={id} className={wrapperClass(className, playing)} style={style} ref={root}>
+            <Upstream height={height ?? size} width={width ?? size} color={color} secondaryColor={secondary_color} radius={radius} ariaLabel={aria_label} visible={visible} strokeWidth={stroke_width} {...contract('loader_spinner', 'BallTriangle', props)} />
         </div>
     );
 };
@@ -30,9 +33,9 @@ LoaderSpinnerBallTriangle.propTypes = {
      */
     style: PropTypes.object,
     /**
-     * Dash-assigned callback that should be called to report property changes.
+     * Height and width in pixels, unless either is given on its own.
      */
-    setProps: PropTypes.func,
+    size: PropTypes.number,
     /**
      * Height.
      */
@@ -48,7 +51,7 @@ LoaderSpinnerBallTriangle.propTypes = {
     /**
      * Secondary color.
      */
-    secondaryColor: PropTypes.string,
+    secondary_color: PropTypes.string,
     /**
      * Radius where applicable.
      */
@@ -56,7 +59,7 @@ LoaderSpinnerBallTriangle.propTypes = {
     /**
      * Aria label.
      */
-    ariaLabel: PropTypes.string,
+    aria_label: PropTypes.string,
     /**
      * Visibility.
      */
@@ -64,7 +67,16 @@ LoaderSpinnerBallTriangle.propTypes = {
     /**
      * Stroke width.
      */
-    strokeWidth: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    stroke_width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    /**
+     * Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as fast,
+     * 0.5 half. Leave unset to keep the upstream tempo.
+     */
+    rate: PropTypes.number,
+    /**
+     * Set to False to pause the animation.
+     */
+    playing: PropTypes.bool,
 };
 
 export default LoaderSpinnerBallTriangle;

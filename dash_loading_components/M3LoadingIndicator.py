@@ -38,16 +38,23 @@ Keyword arguments:
 - contained (boolean; optional):
     Render with circular container background.
 
-- containerColor (string; optional):
+- container_color (string; optional):
     Container background when contained.
 
 - paused (boolean; optional):
     Pause the animation.
 
+- playing (boolean; optional):
+    Set to False to pause the animation.
+
+- rate (number; optional):
+    Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as
+    fast, 0.5 half. Leave unset to keep the upstream tempo.
+
 - size (number; optional):
     CSS pixel size (default 48).
 
-- sizeRatio (number; optional):
+- size_ratio (number; optional):
     Ratio of indicator shape to container.
 
 - speed (number; optional):
@@ -65,16 +72,18 @@ Keyword arguments:
         style: typing.Optional[typing.Any] = None,
         size: typing.Optional[NumberType] = None,
         color: typing.Optional[str] = None,
-        sizeRatio: typing.Optional[NumberType] = None,
+        size_ratio: typing.Optional[NumberType] = None,
         speed: typing.Optional[NumberType] = None,
         paused: typing.Optional[bool] = None,
         contained: typing.Optional[bool] = None,
-        containerColor: typing.Optional[str] = None,
+        container_color: typing.Optional[str] = None,
+        rate: typing.Optional[NumberType] = None,
+        playing: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'className', 'color', 'contained', 'containerColor', 'paused', 'size', 'sizeRatio', 'speed', 'style']
+        self._prop_names = ['id', 'className', 'color', 'contained', 'container_color', 'paused', 'playing', 'rate', 'size', 'size_ratio', 'speed', 'style']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'className', 'color', 'contained', 'containerColor', 'paused', 'size', 'sizeRatio', 'speed', 'style']
+        self.available_properties = ['id', 'className', 'color', 'contained', 'container_color', 'paused', 'playing', 'rate', 'size', 'size_ratio', 'speed', 'style']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

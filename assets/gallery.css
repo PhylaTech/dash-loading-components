@@ -1,438 +1,209 @@
+/*
+ * Gallery styles on top of Mantine. Colors come from Mantine's own tokens
+ * (--mantine-color-*) so both color schemes follow the one ColorSchemeToggle;
+ * light-dark() picks the value for the scheme in effect.
+ */
 :root {
-  --accent: #f97316;
-  --bg: #f8fafc;
-  --panel: #ffffff;
-  --border: #e2e8f0;
-  --text: #0f172a;
-  --muted: #64748b;
-  --nav-w: 248px;
-  --toc-w: 168px;
-  /* Depth as shadow, not a solid border: transparency works on any surface,
-     a border colour only works on the one it was picked for. */
-  --shadow-border:
-    0px 0px 0px 1px oklch(0 0 0 / 0.06),
-    0px 1px 2px -1px oklch(0 0 0 / 0.06),
-    0px 2px 4px 0px oklch(0 0 0 / 0.04);
-  --shadow-border-hover:
-    0px 0px 0px 1px oklch(0 0 0 / 0.08),
-    0px 1px 2px -1px oklch(0 0 0 / 0.08),
-    0px 2px 4px 0px oklch(0 0 0 / 0.06);
-  --ring-accent: 0 0 0 1px var(--accent), 0 0 0 4px rgb(249 115 22 / 0.15);
+  --dlc-accent: var(--mantine-color-orange-6);
+  --dlc-surface: light-dark(var(--mantine-color-white), var(--mantine-color-dark-7));
+  --dlc-surface-sunken: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-8));
+  --dlc-border: var(--mantine-color-default-border);
+  --dlc-toc-w: 200px;
 }
+
 html {
   /* macOS renders text heavier than intended without this. */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 h1, h2, h3 { text-wrap: balance; }
-p, li, figcaption { text-wrap: pretty; }
-/* One visible focus treatment for every control, instead of nine UA defaults. */
-:where(a, button, input, select, summary):focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 6px;
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-}
-a { color: inherit; text-decoration: none; }
-a:hover { color: var(--accent); }
-.dlc-shell { display: flex; min-height: 100vh; }
-.dlc-sidenav {
-  position: sticky; top: 0; align-self: flex-start;
-  /* min == max so a short (filtered) list still paints a full-height panel
-     instead of stopping mid-viewport. */
-  width: var(--nav-w); min-height: 100vh; max-height: 100vh;
-  display: flex; flex-direction: column;
-  background: var(--panel); border-right: 1px solid var(--border);
-  padding: 18px 12px 12px; flex-shrink: 0;
-}
-.dlc-nav-body { flex: 1; overflow-y: auto; padding-bottom: 12px; }
-.dlc-brand {
-  display: block; margin: 0 0 10px; padding: 2px 6px;
-}
-.dlc-brand:hover { color: inherit; }
-.dlc-brand-mark {
-  display: block; font-size: 16px; font-weight: 700;
-  letter-spacing: -0.03em; color: var(--text);
-}
-.dlc-brand .sub {
-  display: block; font-size: 11px; color: var(--muted);
-  margin: 2px 0 0; font-weight: 500;
-}
-.dlc-nav-home {
-  font-weight: 600; margin-bottom: 8px !important;
-}
-.dlc-nav-search {
-  width: 100%; margin: 0 0 12px;
-  border: 1px solid var(--border); border-radius: 8px;
-  background: var(--bg); overflow: hidden;
-}
-.dlc-nav-search:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(249,115,22,.15);
-}
-.dlc-nav-search .dash-input-element,
-#nav-search {
-  width: 100%; margin: 0; padding: 11px 10px; min-height: 40px;
-  border: none; outline: none; background: transparent;
-  font-size: 13px; color: var(--text);
-  box-shadow: none !important;
-}
-.dlc-nav-family { margin: 14px 0 4px; font-size: 11px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-/* Rows were 24px tall. 32px is as much as the list can take without halving
-   how many of the 107 components are visible at once; the 2px gaps are folded
-   into the row so no two hit areas sit apart or overlap. */
-.dlc-nav-item {
-  display: flex; align-items: center; min-height: 32px;
-  padding: 4px 8px; border-radius: 6px;
-  font-size: 13px; color: #334155; margin: 0;
-  transition-property: background-color, color;
-  transition-duration: .1s; transition-timing-function: ease-out;
-}
-.dlc-nav-item:hover { background: #fff7ed; color: var(--accent); }
-.dlc-nav-active {
-  background: #fff7ed; color: var(--accent); font-weight: 600;
-}
-.dlc-nav-footer {
-  flex-shrink: 0; padding: 8px 8px 4px;
-  border-top: 1px solid var(--border);
-  margin-top: 4px;
-  /* The links are inline-flex so their hit areas can reach 32px; the column
-     keeps them one per row. */
-  display: flex; flex-direction: column; align-items: flex-start;
-}
-.dlc-nav-github {
-  font-size: 12px; color: var(--muted); font-weight: 500;
-  text-decoration: underline; text-underline-offset: 2px;
-  display: inline-flex; align-items: center; gap: 5px;
-  min-height: 32px;
-}
-.dlc-nav-github::before {
-  content: "";
-  display: inline-block; width: 14px; height: 14px;
-  background: currentColor;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.65 7.65 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.65 7.65 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z'/%3E%3C/svg%3E");
-  -webkit-mask-size: contain; mask-size: contain;
-  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-  flex-shrink: 0;
-}
-.dlc-nav-github:hover { color: var(--accent); }
-.dlc-nav-credits {
-  display: inline-flex; align-items: center; min-height: 32px;
-  font-size: 12px; color: var(--muted); font-weight: 500;
-}
-.dlc-nav-credits:hover { color: var(--accent); }
-.dlc-main { flex: 1; min-width: 0; padding: 28px 36px 48px; }
+p { text-wrap: pretty; }
+.dlc-tabular { font-variant-numeric: tabular-nums; }
 
-/* Overview */
-.dlc-hero h1 { font-size: 30px; margin: 0 0 10px; letter-spacing: -0.03em; line-height: 1.15; }
-.dlc-hero p { margin: 0 0 14px; color: var(--muted); max-width: 640px; line-height: 1.55; }
-.dlc-hero-teaser {
-  display: inline-block; margin: 0 0 28px; padding: 10px 14px;
-  background: #0f172a; color: #e2e8f0; border-radius: 10px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 12.5px; line-height: 1.4;
+/* Icons: one SVG per glyph, painted in currentColor through a mask, so every
+   state is a color change and never a second asset. */
+.dlc-icon {
+  display: inline-block; flex-shrink: 0;
+  width: 1.1em; height: 1.1em; vertical-align: -0.2em;
+  background: currentColor;
+  -webkit-mask: var(--dlc-icon) center / contain no-repeat;
+  mask: var(--dlc-icon) center / contain no-repeat;
 }
-.dlc-family { scroll-margin-top: 24px; padding: 8px 0 32px;
-  border-bottom: 1px solid var(--border); margin-bottom: 8px; }
-.dlc-family h2 { font-size: 18px; margin: 0 0 4px; }
-.dlc-family .meta { font-size: 13px; color: var(--muted); margin: 0 0 14px; }
-.dlc-detail-desc, .dlc-prop-doc-copy, .dlc-credits-intro, .dlc-credits-note,
-.dlc-credits-table td { text-wrap: pretty; }
+.dlc-icon-loading_dev { --dlc-icon: url(icons/loading_dev.svg); }
+.dlc-icon-ldrs { --dlc-icon: url(icons/ldrs.svg); }
+.dlc-icon-spinners { --dlc-icon: url(icons/spinners.svg); }
+.dlc-icon-spinners_react { --dlc-icon: url(icons/spinners_react.svg); }
+.dlc-icon-loader_spinner { --dlc-icon: url(icons/loader_spinner.svg); }
+.dlc-icon-premium { --dlc-icon: url(icons/premium.svg); }
+.dlc-icon-indicators { --dlc-icon: url(icons/indicators.svg); }
+.dlc-icon-m3 { --dlc-icon: url(icons/m3.svg); }
+.dlc-icon-epic { --dlc-icon: url(icons/epic.svg); }
+.dlc-icon-overview { --dlc-icon: url(icons/overview.svg); }
+.dlc-icon-credits { --dlc-icon: url(icons/credits.svg); }
+.dlc-icon-search { --dlc-icon: url(icons/search.svg); }
+.dlc-icon-sun { --dlc-icon: url(icons/sun.svg); }
+.dlc-icon-moon { --dlc-icon: url(icons/moon.svg); }
+.dlc-icon-external { --dlc-icon: url(icons/external.svg); width: 0.85em; height: 0.85em; }
+.dlc-icon-chevron { --dlc-icon: url(icons/chevron.svg); }
+.dlc-icon-reset { --dlc-icon: url(icons/reset.svg); }
+.dlc-icon-github { --dlc-icon: url(icons/github.svg); }
+
+/* ---------- Header ---------- */
+.dlc-brand {
+  display: inline-flex; align-items: center; gap: 10px;
+  color: var(--mantine-color-text);
+  font-weight: 650; letter-spacing: -0.02em; font-size: 15px;
+}
+.dlc-brand-mark { display: inline-flex; color: var(--dlc-accent); }
+/* The mark is a live loader. Idle in the corner of every page it would pull
+   the eye forever, so it holds still until the brand is hovered. */
+.dlc-brand:not(:hover) .dlc-brand-mark * { animation-play-state: paused !important; }
+@media (max-width: 30em) { .dlc-brand-name { display: none; } }
+.dlc-search .mantine-Select-section[data-position="right"] { opacity: 0.8; }
+html[data-mac] .dlc-mod-other, html:not([data-mac]) .dlc-mod-mac { display: none; }
+/* No keyboard, no shortcut to advertise. */
+@media (hover: none) { .dlc-kbd { display: none; } }
+.dlc-search .mantine-Select-input:focus ~ .mantine-Select-section[data-position="right"] { opacity: 0; }
+
+/* ---------- Navbar ---------- */
+.dlc-nav-scroll { height: 100%; padding: 12px 10px 24px; }
+.dlc-nav-section { padding: 18px 12px 6px; color: var(--mantine-color-dimmed); }
+.dlc-nav-link { padding-left: 36px; min-height: 32px; }
+.dlc-nav-link .mantine-NavLink-label { font-size: 13px; }
+
+/* ---------- Page frame ---------- */
+.dlc-page {
+  max-width: 1180px; margin: 0 auto;
+  padding: 40px 32px 48px;
+}
+.dlc-footer {
+  margin-top: 64px; padding-top: 20px;
+  border-top: 1px solid var(--dlc-border);
+}
+@media (max-width: 48em) { .dlc-page { padding: 24px 16px 40px; } }
+
+/* ---------- Overview ---------- */
+.dlc-hero { padding: 12px 0 40px; }
+.dlc-hero-title {
+  font-size: clamp(34px, 5vw, 48px); line-height: 1.08; letter-spacing: -0.035em;
+}
+.dlc-hero-title span { color: var(--mantine-color-dimmed); }
+.dlc-hero-lede { margin: 16px 0 24px; }
+.dlc-install { margin-bottom: 12px; }
+.dlc-install, .dlc-hero-code {
+  border: 1px solid var(--dlc-border); border-radius: var(--mantine-radius-md);
+}
+
+.dlc-family { padding: 36px 0 8px; scroll-margin-top: 80px; }
+.dlc-family-title {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 22px; letter-spacing: -0.02em;
+}
+.dlc-family-title .dlc-icon { color: var(--dlc-accent); }
+.dlc-family-link { display: inline-flex; align-items: center; gap: 4px; }
+
 .dlc-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 12px;
-}
-.dlc-card-wrap { min-width: 0; }
-/* Search with no matches used to leave a wall of dimmed, still-animating
-   cards that were also still in the tab order. */
-.dlc-empty {
-  color: var(--muted); font-size: 14px; line-height: 1.55;
-  padding: 28px 0 8px;
-}
-.dlc-empty strong { color: var(--text); font-weight: 600; }
-.dlc-nav-empty {
-  font-size: 12.5px; color: var(--muted); line-height: 1.5;
-  padding: 10px 8px;
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
 }
 .dlc-card {
-  display: block; border-radius: 12px;
-  background: var(--panel); padding: 14px 12px; scroll-margin-top: 24px;
-  box-shadow: var(--shadow-border);
-  transition-property: box-shadow, transform;
-  transition-duration: .12s; transition-timing-function: ease-out;
-  height: 100%;
+  display: flex; flex-direction: column;
+  aspect-ratio: 1; min-width: 0;
+  background: var(--dlc-surface);
+  border: 1px solid var(--dlc-border);
+  border-radius: var(--mantine-radius-lg);
+  color: var(--mantine-color-text);
+  transition-property: border-color, box-shadow, translate;
+  transition-duration: 150ms; transition-timing-function: ease-out;
 }
 .dlc-card:hover {
-  box-shadow: var(--ring-accent);
-  transform: translateY(-1px);
+  border-color: var(--dlc-accent);
+  box-shadow: 0 0 0 3px light-dark(rgb(253 126 20 / 0.12), rgb(253 126 20 / 0.18));
+  translate: 0 -1px;
 }
-.dlc-card:focus-visible { outline-offset: 3px; }
-.dlc-card .name { font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 10px; }
 .dlc-card .preview {
+  flex: 1; min-height: 0;
   display: flex; align-items: center; justify-content: center;
-  min-height: 96px; width: 100%;
-  /* Slack for loaders that animate past their layout box (bouncing dots and
-     the like). Without it the clip below shaves the top of every bounce. */
-  padding: 10px 4px;
-  /* Contain loaders whose animations/intrinsic size exceed the card slot */
+  /* Slack for loaders that animate past their layout box; the clip below
+     would otherwise shave the top off every bounce. */
+  padding: 12px 8px;
   overflow: hidden; position: relative;
 }
+.dlc-card .name {
+  padding: 0 10px 14px; text-align: center;
+  font-size: 12.5px; font-weight: 500; color: var(--mantine-color-dimmed);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dlc-card:hover .name { color: var(--mantine-color-text); }
 
-/* Detail page shell: content + right TOC */
+/* ---------- Component page ---------- */
 .dlc-detail-page {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--toc-w);
-  gap: 28px;
-  align-items: start;
-  padding-right: 24px;
+  max-width: 1280px;
+  display: grid; gap: 40px; align-items: start;
+  grid-template-columns: minmax(0, 1fr) var(--dlc-toc-w);
 }
 .dlc-detail-content { min-width: 0; }
-.dlc-detail-breadcrumb {
-  font-size: 13px; color: var(--muted); margin: 0 0 8px; font-weight: 500;
+.mantine-Breadcrumbs-breadcrumb { display: inline-flex; align-items: center; gap: 6px; }
+.dlc-badge-link .mantine-Badge-label { display: inline-flex; align-items: center; gap: 4px; }
+.dlc-section-title {
+  margin: 40px 0 14px; font-size: 22px; letter-spacing: -0.02em;
+  scroll-margin-top: 80px;
 }
-.dlc-detail-kicker { color: var(--muted); }
-.dlc-detail-sep { color: #cbd5e1; }
-.dlc-detail-name { color: var(--text); font-weight: 600; }
-.dlc-detail-title { font-size: 28px; margin: 0 0 6px; letter-spacing: -0.03em; }
-.dlc-detail-desc { color: var(--muted); margin: 0 0 22px; max-width: 640px; line-height: 1.5; }
 
-/* Workbench: preview | controls */
-.dlc-workbench {
-  display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(260px, 320px);
-  gap: 20px;
-  align-items: stretch;
-  margin-bottom: 22px;
-  scroll-margin-top: 24px;
+.dlc-demo { overflow: hidden; background: var(--dlc-surface); }
+.dlc-demo-top {
+  display: grid; grid-template-columns: minmax(0, 1fr) 300px;
 }
 .dlc-preview-panel {
-  background: var(--panel); box-shadow: var(--shadow-border); border-radius: 16px;
-  min-height: 320px; display: flex; align-items: center; justify-content: center;
-  padding: 40px;
-  /* Contain expanding animations (shimmer sweep, propagate, orbit rings, etc.) */
+  min-height: 360px; padding: 40px;
+  display: flex; align-items: center; justify-content: center;
+  background:
+    radial-gradient(circle, light-dark(rgb(0 0 0 / 0.07), rgb(255 255 255 / 0.06)) 1px, transparent 1px)
+    0 0 / 16px 16px,
+    var(--dlc-surface-sunken);
+  /* Contain expanding animations (shimmer sweep, propagate, orbit rings). */
   overflow: hidden; position: relative;
 }
-.dlc-workbench-controls {
-  background: var(--panel); box-shadow: var(--shadow-border); border-radius: 16px;
-  padding: 16px 16px 14px;
-  display: flex; flex-direction: column; gap: 4px;
+.dlc-controls {
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 16px 18px 20px;
+  border-left: 1px solid var(--dlc-border);
+  max-height: 560px; overflow-y: auto;
 }
-.dlc-workbench-controls-title {
-  font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
-  text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
-}
-.dlc-workbench-controls-body { flex: 1; }
-.dlc-ctrl-row { margin-bottom: 14px; }
-.dlc-ctrl-label {
-  display: block; font-size: 13px; font-weight: 600; color: #334155;
-  margin-bottom: 6px;
-}
-.dlc-size-presets {
-  display: flex; flex-wrap: wrap; gap: 6px;
-}
-.dlc-size-presets .dash-radio-items,
-.dlc-size-presets {
-  display: flex; flex-wrap: wrap; gap: 6px;
-}
-.dlc-size-presets label {
-  display: inline-flex !important; align-items: center; justify-content: center;
-  margin: 0 !important; padding: 8px 14px; min-height: 36px;
-  border: 1px solid var(--border); border-radius: 8px;
-  font-size: 12px; font-weight: 600; color: #334155;
-  background: var(--bg); cursor: pointer;
-  transition-property: border-color, background-color, color, scale;
-  transition-duration: .12s; transition-timing-function: ease-out;
-}
-.dlc-size-presets label:active { scale: 0.96; }
-.dlc-size-presets label:has(input:checked),
-.dlc-size-presets input:checked + label {
-  border-color: var(--accent);
-  background: #fff7ed;
-  color: var(--accent);
-}
-.dlc-size-presets input[type="radio"] {
-  position: absolute; opacity: 0; pointer-events: none;
-}
-.dlc-ctrl-color {
-  width: 56px; height: 40px; padding: 2px;
-  border: 1px solid var(--border); border-radius: 8px; background: #fff;
-  cursor: pointer;
-}
-/* Concentric: 8px outer radius minus 2px padding leaves 6px for the swatch,
-   which browsers otherwise draw square inside a rounded well. */
-.dlc-ctrl-color::-webkit-color-swatch { border: none; border-radius: 6px; }
-.dlc-ctrl-color::-moz-color-swatch { border: none; border-radius: 6px; }
-.dlc-ctrl-input {
-  width: 100%; padding: 11px 10px; border-radius: 8px;
-  border: 1px solid var(--border); font-size: 13px;
-}
-.dlc-ctrl-dropdown { font-size: 13px; }
-.dlc-ctrl-check { font-size: 13px; }
-/* Dash ships a violet slider; retint it to the gallery accent. */
-.dlc-ctrl-slider { padding: 0 4px; --Dash-Fill-Interactive-Strong: var(--accent); }
-/* The value box tracks the handle, so its digits must not change width. */
-.dlc-ctrl-slider input { font-variant-numeric: tabular-nums; }
-/* The always-visible slider value box sits below the rail, outside layout
-   flow, so a slider row needs room for it or it lands on the next label. */
-.dlc-ctrl-row:has(.dlc-ctrl-slider) { margin-bottom: 34px; }
-.dlc-reset-btn {
-  margin-top: 8px; align-self: flex-start;
-  padding: 10px 14px; min-height: 40px; border-radius: 8px;
-  border: 1px solid var(--border); background: var(--bg);
-  font-size: 12px; font-weight: 600; color: #334155; cursor: pointer;
-  transition-property: border-color, background-color, color, scale;
-  transition-duration: .12s; transition-timing-function: ease-out;
-}
-.dlc-reset-btn:hover {
-  border-color: var(--accent); color: var(--accent); background: #fff7ed;
-}
-.dlc-reset-btn:active { scale: 0.96; }
+.dlc-demo-code { border-top: 1px solid var(--dlc-border); border-radius: 0; }
+.dlc-ctrl-slider { padding: 0 2px; }
 
-/* Live dual snippets under workbench */
-.dlc-snippets-row {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
-  margin-bottom: 36px;
-}
-.dlc-snippet-block { margin: 0; min-width: 0; }
-.dlc-snippet-label {
-  font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
-  text-transform: uppercase; color: var(--muted); margin: 0 0 6px;
-}
-.dlc-snippet {
-  background: #0f172a; color: #e2e8f0; border-radius: 12px; padding: 16px 18px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 12.5px; line-height: 1.55; overflow-x: auto;
-  /* Black already chose where these lines break; soft-wrapping them at the
-     panel edge undoes that and drops the continuation indent. */
-  white-space: pre;
-  margin: 0;
-}
-
-/* Per-prop docs below workbench */
-.dlc-prop-doc {
-  scroll-margin-top: 28px;
-  padding: 8px 0 28px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 8px;
-}
+.dlc-prop-doc { padding: 14px 0 18px; border-bottom: 1px solid var(--dlc-border); }
 .dlc-prop-doc:last-of-type { border-bottom: none; }
-.dlc-prop-doc h2 {
-  font-size: 20px; margin: 0 0 8px; letter-spacing: -0.02em;
-}
-.dlc-prop-doc-copy {
-  margin: 0 0 12px; color: var(--muted); max-width: 640px; line-height: 1.55;
-  font-size: 14px;
-}
+.dlc-prop-doc .dlc-toc-target { font-size: 17px; scroll-margin-top: 80px; }
 
-/* Right on-page TOC */
+.dlc-pager-card {
+  transition-property: border-color; transition-duration: 150ms; transition-timing-function: ease-out;
+}
+.dlc-pager-card:hover { border-color: var(--dlc-accent); }
+
 .dlc-toc {
-  position: sticky; top: 24px;
-  padding: 4px 0 4px 12px;
-  border-left: 1px solid var(--border);
+  position: sticky; top: calc(var(--app-shell-header-height, 60px) + 32px);
+  max-height: calc(100vh - var(--app-shell-header-height, 60px) - 64px); overflow-y: auto;
 }
-.dlc-toc-heading {
-  font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
-  text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
-}
-.dlc-toc-link {
-  display: flex; align-items: center; min-height: 32px;
-  font-size: 12.5px; color: #475569;
-  padding: 4px 0; line-height: 1.35;
-}
-.dlc-toc-link:hover { color: var(--accent); }
 
-/* Legacy prop card (unused on detail workbench; keep for safety) */
-.dlc-prop {
-  background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
-  padding: 14px 16px; margin-bottom: 12px;
+@media (max-width: 75em) {
+  .dlc-detail-page { grid-template-columns: minmax(0, 1fr); }
+  .dlc-toc { display: none; }
 }
-.dlc-prop h3 { margin: 0 0 4px; font-size: 14px; }
-.dlc-prop .doc { margin: 0 0 10px; font-size: 12px; color: var(--muted); line-height: 1.4; }
-
-.dlc-site-footer {
-  margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border);
-  font-size: 13px; color: var(--muted); line-height: 1.5;
-}
-.dlc-site-footer a { color: var(--text); font-weight: 500; text-decoration: underline;
-  text-underline-offset: 2px; }
-.dlc-site-footer a:hover { color: var(--accent); }
-.dlc-footer-note { margin: 10px 0 0; font-size: 12px; color: var(--muted); opacity: 0.85; }
-.dlc-404 { padding: 48px 0; }
-
-/* Credits page */
-.dlc-credits-intro { color: var(--muted); max-width: 720px; line-height: 1.6; margin: 0 0 28px; }
-.dlc-credits-intro a { color: var(--text); font-weight: 500; text-decoration: underline;
-  text-underline-offset: 2px; }
-.dlc-credits-intro a:hover { color: var(--accent); }
-.dlc-credits-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-bottom: 32px; }
-.dlc-credits-table th {
-  text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
-  text-transform: uppercase; color: var(--muted); padding: 8px 12px;
-  border-bottom: 2px solid var(--border);
-}
-.dlc-credits-table td {
-  padding: 10px 12px; border-bottom: 1px solid var(--border);
-  vertical-align: top; line-height: 1.45;
-}
-.dlc-credits-table tr:last-child td { border-bottom: none; }
-.dlc-credits-table a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
-.dlc-credits-table a:hover { color: var(--text); }
-.dlc-credits-table code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 4px;
-}
-.dlc-credits-badge {
-  display: inline-block; padding: 2px 7px; border-radius: 4px;
-  font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
-}
-.dlc-credits-badge-mit { background: #ecfdf5; color: #065f46; }
-.dlc-credits-badge-apache { background: #fff7ed; color: #9a3412; }
-.dlc-credits-badge-gated { background: #fef3c7; color: #92400e; }
-.dlc-credits-note {
-  color: var(--muted); font-size: 13px; max-width: 720px; line-height: 1.55;
-  margin: 0 0 12px;
-}
-.dlc-credits-skip { margin-top: 32px; }
-.dlc-credits-skip h2 { font-size: 16px; margin: 0 0 6px; }
-.dlc-credits-skip p { color: var(--muted); font-size: 13px; line-height: 1.5; margin: 0 0 8px; }
-
-@media (max-width: 1100px) {
-  .dlc-detail-page { grid-template-columns: 1fr; }
-  .dlc-toc { position: relative; top: 0; border-left: none; border-top: 1px solid var(--border);
-    padding: 16px 0 0; margin-bottom: 16px; order: -1; }
-}
-@media (max-width: 960px) {
-  .dlc-shell { flex-direction: column; }
-  .dlc-sidenav { position: relative; width: 100%; max-height: none; border-right: none;
-    border-bottom: 1px solid var(--border); }
-  .dlc-workbench { grid-template-columns: 1fr; }
-  .dlc-snippets-row { grid-template-columns: 1fr; }
+@media (max-width: 62em) {
+  .dlc-demo-top { grid-template-columns: minmax(0, 1fr); }
+  .dlc-controls { border-left: none; border-top: 1px solid var(--dlc-border); max-height: none; }
+  .dlc-preview-panel { min-height: 260px; }
 }
 
 /* loading.dev Custom Classes demo (className passthrough) */
-.opacity-40 {
-  opacity: 0.4;
-}
+.opacity-40 { opacity: 0.4; }
 
 /* Switch off the motion the gallery itself adds. The spinners are left alone:
    they are the subject matter, and each upstream library decides for itself
-   what reduced motion means (loading-dev, for one, already freezes). */
+   what reduced motion means. */
 @media (prefers-reduced-motion: reduce) {
-  .dlc-card,
-  .dlc-nav-item,
-  .dlc-toc-link,
-  .dlc-reset-btn,
-  .dlc-size-presets label {
-    transition-duration: 1ms;
-  }
-  .dlc-card:hover { transform: none; }
-  .dlc-reset-btn:active,
-  .dlc-size-presets label:active { scale: 1; }
+  .dlc-card, .dlc-pager-card { transition-duration: 1ms; }
+  .dlc-card:hover { translate: none; }
 }

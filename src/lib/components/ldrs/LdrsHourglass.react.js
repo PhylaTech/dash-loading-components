@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {contract, wrapperClass} from '../../contract';
 import { Hourglass as Upstream } from 'ldrs/react';
 import 'ldrs/react/Hourglass.css';
 
@@ -7,10 +8,10 @@ import 'ldrs/react/Hourglass.css';
  * LdrsHourglass — Dash wrapper for upstream spinner.
  */
 const LdrsHourglass = (props) => {
-    const {id, className, style, setProps, size, color, speed, stroke, bgOpacity} = props;
+    const {id, className, style, size, color, speed, stroke, bg_opacity, rate, playing} = props;
     return (
-        <div id={id} className={className} style={style}>
-            <Upstream size={size} color={color} speed={speed} stroke={stroke} bgOpacity={bgOpacity} />
+        <div id={id} className={wrapperClass(className, playing)} style={style}>
+            <Upstream size={size} color={color} speed={speed} stroke={stroke} bgOpacity={bg_opacity} {...contract('ldrs', 'Hourglass', props)} />
         </div>
     );
 };
@@ -31,10 +32,6 @@ LdrsHourglass.propTypes = {
      */
     style: PropTypes.object,
     /**
-     * Dash-assigned callback that should be called to report property changes.
-     */
-    setProps: PropTypes.func,
-    /**
      * Size in px.
      */
     size: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
@@ -53,7 +50,16 @@ LdrsHourglass.propTypes = {
     /**
      * Background opacity (0–1).
      */
-    bgOpacity: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    bg_opacity: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    /**
+     * Relative tempo: 1.0 is this spinner's own tempo, 2.0 twice as fast,
+     * 0.5 half. Leave unset to keep the upstream tempo.
+     */
+    rate: PropTypes.number,
+    /**
+     * Set to False to pause the animation.
+     */
+    playing: PropTypes.bool,
 };
 
 export default LdrsHourglass;
