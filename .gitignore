@@ -278,3 +278,16 @@ GitHub.sublime-settings
 # Julia manifest file names
 Manifest.toml
 JuliaManifest.toml
+
+# dash-generate-components also emits R and Julia bindings. This package ships
+# Python only, so they are build output, not sources.
+/.Rbuildignore
+/DESCRIPTION
+/NAMESPACE
+/Project.toml
+/R/
+/deps/
+/inst/
+/man/
+/src/jl/
+/src/DashLoadingComponents.jl

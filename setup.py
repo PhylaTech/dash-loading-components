@@ -9,10 +9,18 @@ long_description = (here / 'README.md').read_text()
 
 package_name = package["name"].replace(" ", "_").replace("-", "_")
 
+# npm stores one "Name <email>" string; Python wants the two apart, so that
+# PyPI renders a name and a mailto rather than one run-together field.
+# dash-generate-components parses this field the same way, which is why
+# package.json cannot use npm's object form here.
+author_name, _, author_email = package["author"].partition(" <")
+author_email = author_email.rstrip(">")
+
 setup(
     name=package_name,
     version=package["version"],
-    author=package['author'],
+    author=author_name,
+    author_email=author_email,
     # The family namespaces (dlc.epic, dlc.ldrs, ...) are real subpackages and
     # are imported from __init__.py, so they must ship in the distribution.
     packages=find_packages(include=[package_name, package_name + '.*']),
