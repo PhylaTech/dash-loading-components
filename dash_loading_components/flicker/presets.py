@@ -467,32 +467,6 @@ def download():
     return [tray | {(r, c) for r, c in shift(arrow, f) | shift(arrow, f - 5) if 0 <= r < 5} for f in range(5)]
 
 
-def walker():
-    # A figure walking on the spot. Head and shoulders never move; only the
-    # limbs do, through a four-pose cycle (stride, closing, passing, closing),
-    # so the legs open and close instead of the whole figure jumping between
-    # two shapes.
-    stride = art("...#...", "..###..", ".#.#.#.", "...#...", "..#.#..", ".#...#.", ".#...#.")
-    closing = art("...#...", "..###..", ".#.#.#.", "...#...", "..#.#..", "..#.#..", ".#...#.")
-    passing = art("...#...", "..###..", "..###..", "...#...", "...#...", "...##..", "...#...")
-    return [stride, closing, passing, closing]
-
-
-def runner():
-    # A figure running on the spot, leaning into it. As with Walker the head
-    # and torso hold still; the arms pump bent at the elbow and the legs run
-    # a four-pose cycle: flight (both feet up, full split), landing, passing
-    # (knee driven high) and toe-off.
-    body = {(0, 4), (1, 3), (1, 4), (2, 3), (3, 3)}
-    poses = [
-        ({(2, 2), (3, 1), (2, 4), (1, 5)}, {(4, 2), (5, 1), (4, 4), (4, 5), (5, 6)}),
-        ({(2, 2), (3, 2), (2, 4), (3, 5)}, {(4, 2), (5, 2), (6, 1), (4, 4), (5, 4), (6, 4)}),
-        ({(2, 2), (2, 4)}, {(4, 3), (5, 3), (6, 3), (4, 4), (4, 5), (5, 5)}),
-        ({(2, 4), (3, 5), (2, 2), (1, 1)}, {(4, 3), (5, 2), (6, 1), (4, 4), (3, 5)}),
-    ]
-    return [body | arms | legs for arms, legs in poses]
-
-
 def mail():
     # A letter dropping into its envelope and the flap folding shut.
     envelope = art(".......", ".......", "#######", "#.....#", "#.....#", "#.....#", "#######")
@@ -835,8 +809,6 @@ _DESIGNS = [
     ("Upload", "everyday", upload, "Arrows streaming up out of a tray."),
     ("Magnifier", "everyday", magnifier, "A magnifying glass circling as it searches."),
     ("Download", "everyday", download, "Arrows streaming down into a tray."),
-    ("Walker", "everyday", walker, "A figure walking on the spot, its legs opening and closing through each stride."),
-    ("Runner", "everyday", runner, "A figure running on the spot, leaning in, arms pumping and knees driving high."),
     ("Mail", "everyday", mail, "A letter dropping into its envelope and the flap folding shut."),
     ("Wifi", "everyday", wifi, "A signal finding its bars, arc by arc, then searching again."),
     ("Battery", "everyday", battery, "A battery charging, one cell at a time."),

@@ -1,7 +1,7 @@
 # dash-loading-components (`dlc`)
 
 Loading indicators for [Plotly Dash](https://dash.plotly.com), wrapping ten
-React spinner libraries as one install. 170 components under stable namespaces,
+React spinner libraries as one install. 168 components under stable namespaces,
 with a common factory over the top so you can switch families without
 relearning each one's props.
 
@@ -71,16 +71,16 @@ resolve it; it will accept the final 4.5 release once published.
 | `spinners_react` | [spinners-react](https://www.npmjs.com/package/spinners-react) | 9 |
 | `epic` | [react-epic-spinners](https://www.npmjs.com/package/react-epic-spinners) | 8 |
 | `m3` | [@alerix/m3-loading-indicator](https://www.npmjs.com/package/@alerix/m3-loading-indicator) | 1 |
-| `flicker` | [flicker-dot](https://www.npmjs.com/package/flicker-dot) | 63 |
+| `flicker` | [flicker-dot](https://www.npmjs.com/package/flicker-dot) | 61 |
 
 ## Flip-dot presets
 
 flicker-dot is a player: it animates whatever 7x7 frames it is given. `dlc.flicker`
-ships 63 original presets for it, drawn by PhylaTech and MIT licensed with this
+ships 61 original presets for it, drawn by PhylaTech and MIT licensed with this
 package, in six sets: Field (the naturalist set: `Mycelium`, `Diatom`,
 `Cladogram`, `Chromatogram`, `MassSpec`, `TestTube`, `Jellyfish`, ...), Data
 (`Scatter`, `Histogram`, `LineChart`, `PieChart`, `Heatmap`, `Database`),
-Everyday (`Cart`, `Upload`, `Download`, `Walker`, `Runner`, `Heart`, `Lock`, ...),
+Everyday (`Cart`, `Upload`, `Download`, `Mail`, `Wifi`, `Heart`, `Lock`, ...),
 Board (flip-dot panel classics), Geometry, and Solids (the five Platonic
 solids). Each is the player with its frames filled in:
 
