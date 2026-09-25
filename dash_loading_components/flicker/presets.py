@@ -201,6 +201,27 @@ def snail():
     return frames
 
 
+def leaf():
+    # A leaf falling, swaying side to side and tipping at each turn.
+    tip_right = {(0, 0), (0, 1), (1, 1)}
+    tip_left = {(0, 0), (0, 1), (1, 0)}
+    sway = [1, 2, 3, 4, 3, 2, 1]
+    frames = []
+    for r, c in enumerate(sway):
+        heading_right = r < len(sway) - 1 and sway[r + 1] > c
+        frames.append(shift(tip_right if heading_right else tip_left, r - 1, c))
+    return frames
+
+
+def ant():
+    # An ant walking on the spot, its legs stepping in alternate tripods. A
+    # one-dot gap keeps legs and body apart, so only the legs read as moving.
+    body = art(".......", "..#.#..", "...#...", "...#...", "...#...", "...#...")
+    tripod_a = {(2, 1), (4, 1), (3, 5)}
+    tripod_b = {(2, 5), (4, 5), (3, 1)}
+    return [body | legs for legs in (tripod_a, tripod_a, tripod_b, tripod_b)]
+
+
 def frond():
     # A fern: the rachis grows, leaflets open in pairs from the base up.
     stem = [(r, 3) for r in range(5, 0, -1)]
@@ -446,11 +467,15 @@ def download():
 
 
 def crosswalk():
-    # A pedestrian signal: the figure stands, then strides across.
-    stand = art("...#...", "..###..", ".#.#.#.", ".#.#.#.", "..###..", "..#.#..", "..#.#..")
-    stride = art("...#...", "..###..", ".#.#.#.", "...#...", "..#.#..", ".#...#.", "#.....#")
-    passing = art("...#...", "..##...", "..###..", "...#...", "...##..", "...#.#.", "..#..#.")
-    return [stand] * 5 + [stride, passing] * 4
+    # A pedestrian signal: the figure stands, then walks. Head and shoulders
+    # never move; only the limbs do, through a four-pose cycle (stride,
+    # closing, passing, closing), so the legs open and close instead of the
+    # whole figure jumping between two shapes.
+    stand = art("...#...", "..###..", ".#.#.#.", ".#.#.#.", "...#...", "..#.#..", "..#.#..")
+    stride = art("...#...", "..###..", ".#.#.#.", "...#...", "..#.#..", ".#...#.", ".#...#.")
+    closing = art("...#...", "..###..", ".#.#.#.", "...#...", "..#.#..", "..#.#..", ".#...#.")
+    passing = art("...#...", "..###..", "..###..", "...#...", "...#...", "...##..", "...#...")
+    return [stand] * 5 + [stride, closing, passing, closing] * 3
 
 
 def mail():
@@ -487,6 +512,45 @@ def truck():
     # The road runs on row 5, inside the 5x5 safe area, so variant="5x5" moves too.
     body = art("####...", "####.#.", "######.", "######.", ".#..#..")
     return [body | {(5, c) for c in range(N) if (c + f) % 3 != 2} for f in range(3)]
+
+
+def bell():
+    # A bell ringing: the clapper swings and strikes, a ring on each side.
+    body = art("...#...", "..###..", ".#...#.", ".#...#.", "#######")
+    clapper = [(5, 3), (5, 2), (5, 3), (5, 4)]
+    rings = [set(), {(1, 0), (0, 1)}, set(), {(1, 6), (0, 5)}]
+    return [body | {clapper[i]} | rings[i] for i in range(4) for _ in range(2)]
+
+
+def heart():
+    # A heart beating, lub-dub, then resting before the next beat.
+    small = art(".......", ".......", "..#.#..", ".#####.", "..###..", "...#...")
+    big = art(".......", ".##.##.", "#######", ".#####.", "..###..", "...#...")
+    # Starts on the beat, so the rest at the end runs straight into it.
+    return [big, small, big, small, small, small, small, small]
+
+
+def chat():
+    # A speech bubble with someone typing: three dots rising in turn.
+    bubble = art(".#####.", "#.....#", "#.....#", "#.....#", ".#####.", ".#.....", "#......")
+    return [bubble | {(3 - (c == col), c) for c in (2, 3, 4)} for col in (2, 3, 4, None)]
+
+
+def cloud_sync():
+    # A cloud syncing: a ring turning beneath it, its gap chasing round.
+    cloud = art("..##...", ".#..##.", "#.....#", "#######")
+    ring = shift(ring_path(1), 2) - {(5, 3)}
+    order = [(4, 2), (4, 3), (4, 4), (5, 4), (6, 4), (6, 3), (6, 2), (5, 2)]
+    return [cloud | (ring - {order[f], order[(f + 1) % 8]}) for f in range(8)]
+
+
+def lock():
+    # A padlock opening: the shackle lifts and swings free, then locks again.
+    body = art(".......", ".......", ".......", ".......", ".#####.", ".##.##.", ".#####.")
+    shut = {(1, 2), (1, 3), (1, 4), (2, 2), (2, 4), (3, 2), (3, 4)}
+    lifted = shift(shut, -1) - {(2, 4)}
+    open_ = lifted - {(1, 4)}
+    return [body | shut] * 3 + [body | lifted] + [body | open_] * 3 + [body | lifted]
 
 
 # ---------------------------------------------------------------------------
@@ -682,6 +746,8 @@ _DESIGNS = [
     ("TestTube", "field", test_tube, "A test tube on the bench, bubbles rising through it and off the rim."),
     ("Fish", "field", fish, "A fish swimming across, its tail beating as it goes."),
     ("Snail", "field", snail, "A snail gliding along, feelers waving, as the ground slides beneath."),
+    ("Leaf", "field", leaf, "A leaf falling, swaying side to side and tipping at each turn."),
+    ("Ant", "field", ant, "An ant walking on the spot, its legs stepping in alternate tripods."),
     ("Jellyfish", "field", jellyfish, "A jellyfish squeezing its bell to rise, then opening wide and sinking as its tentacles sway."),
     ("Frond", "field", frond, "A fern growing its stem, then opening its leaflets in pairs from the base up."),
     ("Diatom", "field", diatom, "A centric diatom, its striae turning slowly inside the round shell."),
@@ -707,6 +773,11 @@ _DESIGNS = [
     ("Wifi", "everyday", wifi, "A signal finding its bars, arc by arc, then searching again."),
     ("Battery", "everyday", battery, "A battery charging, one cell at a time."),
     ("Truck", "everyday", truck, "A delivery truck on its way, the road markings rushing past."),
+    ("Bell", "everyday", bell, "A bell ringing, its clapper swinging to strike each side."),
+    ("Heart", "everyday", heart, "A heart beating, lub-dub, then resting before the next beat."),
+    ("Chat", "everyday", chat, "A speech bubble with someone typing, three dots rising in turn."),
+    ("CloudSync", "everyday", cloud_sync, "A cloud syncing, a ring turning beneath it."),
+    ("Lock", "everyday", lock, "A padlock opening, its shackle lifting and swinging free, then locking again."),
     ("Departures", "board", departures, "Three lines of a departure board ticking past at their own pace."),
     ("SplitFlap", "board", split_flap, "A split-flap sign flipping through its glyphs, the flap caught mid-turn."),
     ("Marquee", "board", marquee, "Chase lights running round a theatre sign."),
