@@ -162,9 +162,10 @@ def test_header_search_jumps_to_a_component(dash_duo):
     dash_duo.driver.get(dash_duo.server_url + '/c/ldrs/Mirage')
     dash_duo.wait_for_element('#detail-preview')
 
-    body = dash_duo.find_element('body')
-    body.send_keys(Keys.CONTROL, 'k')
-    body.send_keys(Keys.COMMAND, 'k')
+    # One chord, the one the page listens for here. send_keys refocuses body
+    # first, so sending both would undo whichever landed first.
+    is_mac = dash_duo.driver.execute_script("return 'mac' in document.documentElement.dataset")
+    dash_duo.find_element('body').send_keys(Keys.COMMAND if is_mac else Keys.CONTROL, 'k')
     search = dash_duo.find_element('#site-search')
     assert dash_duo.driver.switch_to.active_element == search
 
