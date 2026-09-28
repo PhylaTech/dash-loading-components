@@ -1,7 +1,7 @@
 # dash-loading-components (`dlc`)
 
-Loading indicators for [Plotly Dash](https://dash.plotly.com), wrapping ten
-React spinner libraries as one install. 168 components under stable namespaces,
+Loading indicators for [Plotly Dash](https://dash.plotly.com), wrapping eleven
+React spinner libraries as one install. 301 components under stable namespaces,
 with a common factory over the top so you can switch families without
 relearning each one's props.
 
@@ -72,6 +72,7 @@ resolve it; it will accept the final 4.5 release once published.
 | `epic` | [react-epic-spinners](https://www.npmjs.com/package/react-epic-spinners) | 8 |
 | `m3` | [@alerix/m3-loading-indicator](https://www.npmjs.com/package/@alerix/m3-loading-indicator) | 1 |
 | `flicker` | [flicker-dot](https://www.npmjs.com/package/flicker-dot) | 61 |
+| `gridora` | [gridora](https://www.npmjs.com/package/gridora) | 133 |
 
 ## Flip-dot presets
 
@@ -107,6 +108,24 @@ Lit dots are `color` at `on_opacity` (default `1`). Unlit dots are `off_color`
 rather than upstream's fixed light grey, so one `color` reads on light and dark
 pages; `off_opacity=0` shows only the lit dots.
 
+## Grid-dot loaders
+
+gridora ships 133 motion variants of grid-dot animations plus a bitmap-font text
+component. `dlc.gridora.GridLoader` renders any motion variant; `dlc.gridora.Text`
+renders text using gridora's built-in glyph font.
+
+```python
+dlc.gridora.GridLoader(variant="orbit", color="#f97316", rate=1.5)
+dlc.gridora.Text(text="LOAD", color="#f97316", effect="bounce")
+```
+
+**`size` is overall px, not cell size.** Upstream `size` is an alias for `cellSize`
+(the individual cell), which would make a 3×3 grid 12 px wide. When you set the
+common `size`, `dlc.gridora` derives the cell size from the grid geometry. Pass
+`cell_size` explicitly if you need direct control. The upstream `speed` prop is
+cycle duration in seconds (higher = slower), not a multiplier; `rate` translates:
+`speed = 1 / rate`.
+
 Every component is also exported prefixed at the top level
 (`dlc.LoadingDevArc`, `dlc.LdrsRing`) for Dash callbacks that want a flat name.
 
@@ -120,7 +139,8 @@ Version pins, SPDX licenses, upstream URLs and React peers:
 component runs at on its own, and the value is translated per family in the
 wrappers: a duration in milliseconds for loading-dev, epic and premium,
 seconds per loop for ldrs, a multiplier for react-spinners, m3 and flicker, a
-percentage for spinners-react, an offset for react-loading-indicators.
+percentage for spinners-react, an offset for react-loading-indicators, and
+seconds per cycle (inverted) for gridora.
 
 That baseline is per spinner, not per family. `loading_dev.Compass` is normally
 500ms and `loading_dev.Slide` is 2400ms, so `rate=1.0` gives each of them its

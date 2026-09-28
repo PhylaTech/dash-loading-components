@@ -440,6 +440,7 @@ FAMILY_PROP_ORDER = {
     "m3": ["size", "color", "rate", "playing", "contained", "container_color", "size_ratio", "className"],
     "epic": ["size", "color", "rate", "playing", "className"],
     "flicker": ["size", "color", "on_opacity", "off_color", "off_opacity", "rate", "playing", "variant", "rotate", "mirror", "reverse", "aria_label", "className"],
+    "gridora": ["size", "color", "rate", "playing", "variant", "grid_size", "cell_size", "dot_size", "gap", "effect", "shape", "color_mode", "easing", "reverse", "direction", "glow", "inactive", "inactive_opacity", "mask_motion", "label", "respect_reduced_motion", "className"],
 }
 
 
@@ -518,6 +519,16 @@ UPSTREAM_CREDITS = [
         "status": "mvp",
     },
     {
+        "family": "gridora", "npm": "gridora", "version": "0.3.0", "spdx": "MIT",
+        "homepage": "https://gridora.gabrielayer.com",
+        "repo": "https://github.com/0x65dgerunner/gridora",
+        "blurb": (
+            f"133 motion variants of grid-dot loaders plus bitmap-font text. "
+            "dlc.gridora.GridLoader(variant=...) and dlc.gridora.Text(text=...)."
+        ),
+        "status": "mvp",
+    },
+    {
         "family": "svg_spinners", "npm": "react-svg-spinners", "version": "0.3.1", "spdx": "MIT",
         "homepage": "https://www.npmjs.com/package/react-svg-spinners",
         "repo": "https://github.com/theme-park/react-svg-spinners",
@@ -542,6 +553,8 @@ def description_for(family: str, name: str, upstream: str) -> str:
         return LOADING_DEV_BLURBS[name]
     if family == "flicker":
         return dlc.flicker.PRESETS[name].blurb
+    if family == "gridora":
+        return f"The {name} grid-dot animation pattern from gridora."
     return f"The {name} loader from {upstream}, as a Dash component."
 
 
@@ -796,6 +809,7 @@ FEATURED: list[tuple[str, str, dict[str, Any]]] = [
     ("loader_spinner", "DNA", {}),
     ("ldrs", "Mirage", {}),
     ("flicker", "Mycelium", {}),
+    ("gridora", "orbit", {}),
 ]
 
 
@@ -1041,17 +1055,31 @@ def make_overview_card(family: str, name: str) -> dmc.Anchor:
 
 def family_grids(key: str, items: list[tuple[str, Callable]]) -> list:
     """One grid of cards, or, for flicker's presets, one per category."""
-    if key != "flicker":
-        return [html.Div([make_overview_card(key, n) for n, _c in items], className="dlc-grid")]
-    grids = []
-    for i, (category, (title, note)) in enumerate(dlc.flicker.CATEGORIES.items()):
-        names = [n for n, _c in items if dlc.flicker.PRESETS[n].category == category]
-        grids += [
-            dmc.Group([dmc.Text(title, size="sm", fw=600), dmc.Text(note, size="sm", c="dimmed")],
-                      gap=6, className="dlc-subfamily is-first" if i == 0 else "dlc-subfamily"),
-            html.Div([make_overview_card(key, n) for n in names], className="dlc-grid"),
-        ]
-    return grids
+    if key == "flicker":
+        grids = []
+        for i, (category, (title, note)) in enumerate(dlc.flicker.CATEGORIES.items()):
+            names = [n for n, _c in items if dlc.flicker.PRESETS[n].category == category]
+            grids += [
+                dmc.Group([dmc.Text(title, size="sm", fw=600), dmc.Text(note, size="sm", c="dimmed")],
+                          gap=6, className="dlc-subfamily is-first" if i == 0 else "dlc-subfamily"),
+                html.Div([make_overview_card(key, n) for n in names], className="dlc-grid"),
+            ]
+        return grids
+    if key == "gridora":
+        grids = []
+        item_names = {n for n, _c in items}
+        for i, (category, (title, note)) in enumerate(dlc.gridora.CATEGORIES.items()):
+            names = [n for n in dlc.gridora.MOTION_VARIANTS
+                     if dlc.gridora.VARIANT_CATEGORY.get(n) == category and n in item_names]
+            if not names:
+                continue
+            grids += [
+                dmc.Group([dmc.Text(title, size="sm", fw=600), dmc.Text(note, size="sm", c="dimmed")],
+                          gap=6, className="dlc-subfamily is-first" if i == 0 else "dlc-subfamily"),
+                html.Div([make_overview_card(key, n) for n in names], className="dlc-grid"),
+            ]
+        return grids
+    return [html.Div([make_overview_card(key, n) for n, _c in items], className="dlc-grid")]
 
 
 def build_overview() -> html.Div:
