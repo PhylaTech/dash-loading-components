@@ -58,6 +58,7 @@ const TEMPO = {
     premium: {prop: 'speed', of: (rate) => PREMIUM_PERIOD / rate},
     m3: {prop: 'speed', of: (rate) => rate},
     flicker: {prop: 'speed', of: (rate) => rate},
+    gridora: {prop: 'speed', of: (rate) => 1.0 / rate},
     spinners: {prop: 'speedMultiplier', of: (rate) => rate},
     spinners_react: {prop: 'speed', of: (rate) => 100 * rate},
     // speedPlus: 0 = normal, one step per fifth of the rate either way.
@@ -73,6 +74,7 @@ const TEMPO = {
 const PLAY = {
     loading_dev: {prop: 'playState', of: (playing) => (playing ? 'running' : 'paused')},
     m3: {prop: 'paused', of: (playing) => !playing},
+    gridora: {prop: 'paused', of: (playing) => !playing},
     spinners_react: {prop: 'still', of: (playing) => !playing},
 };
 

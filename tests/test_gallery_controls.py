@@ -97,6 +97,10 @@ def _render(dash_duo, probes):
     app.layout = html.Div([html.Div(node, **{"data-probe": key}) for key, node in probes])
     dash_duo.start_server(app)
     dash_duo.wait_for_element("[data-probe]")
+    # Serializing every probe resolves ~45 computed styles per element, and
+    # gridora alone contributes 133 variants times a 40-option control surface,
+    # so this runs well past Selenium's 30 second default for one script.
+    dash_duo.driver.set_script_timeout(600)
     dash_duo.driver.execute_script("return new Promise((r) => setTimeout(r, 1500));")
     return dash_duo.driver.execute_script(RENDERED_STATE)
 

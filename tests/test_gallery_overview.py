@@ -170,13 +170,17 @@ def test_header_search_jumps_to_a_component(dash_duo):
     assert dash_duo.driver.switch_to.active_element == search
 
     search.send_keys('orbit')
+    # Grouped by library, in registry order; gridora's entries are its variant
+    # names, which is what you pass as variant=, so they stay lower camel case.
+    expected = ['Orbit', 'Orbit', 'OrbitDots', 'OrbitRings', 'OrbitProgress',
+                'OrbitSpinner', 'Orbit', 'orbit', 'orbitDot']
     for _ in range(40):
         options = dash_duo.driver.find_elements('css selector', '.dlc-search-option .dlc-search-title')
-        if len(options) == 7:
+        if len(options) == len(expected):
             break
         time.sleep(0.1)
     names = [o.text for o in options]
-    assert names == ['Orbit', 'Orbit', 'OrbitDots', 'OrbitRings', 'OrbitProgress', 'OrbitSpinner', 'Orbit'], names
+    assert names == expected, names
 
     search.send_keys(Keys.ARROW_DOWN, Keys.ENTER)
     dash_duo.wait_for_text_to_equal('h1', 'Orbit')

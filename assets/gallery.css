@@ -39,6 +39,7 @@ p { text-wrap: pretty; }
 .dlc-icon-m3 { --dlc-icon: url(icons/m3.svg); }
 .dlc-icon-epic { --dlc-icon: url(icons/epic.svg); }
 .dlc-icon-flicker { --dlc-icon: url(icons/flicker.svg); }
+.dlc-icon-gridora { --dlc-icon: url(icons/gridora.svg); }
 .dlc-icon-overview { --dlc-icon: url(icons/overview.svg); }
 .dlc-icon-credits { --dlc-icon: url(icons/credits.svg); }
 .dlc-icon-request { --dlc-icon: url(icons/request.svg); }
