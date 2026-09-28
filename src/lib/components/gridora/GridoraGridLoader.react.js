@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {contract, wrapperClass} from '../../contract';
 import {GridLoader as Upstream, GRID_LOADER_DEFAULTS} from 'gridora';
-import 'gridora/dist/styles.css';
+import 'gridora/styles.css';
 
 const DEFAULTS = GRID_LOADER_DEFAULTS;
 
@@ -33,44 +33,43 @@ const GridoraGridLoader = (props) => {
         cellSize = Math.max(1, (size - (gridSize - 1) * gapPx) / gridSize);
     }
 
-    const upstream = {};
-    if (variant !== undefined) upstream.variant = variant;
-    if (sequence !== undefined) upstream.sequence = sequence;
-    if (mask !== undefined) upstream.mask = mask;
-    upstream.gridSize = gridSize;
-    if (cellSize !== undefined) upstream.cellSize = cellSize;
-    if (dot_size !== undefined) upstream.dotSize = dot_size;
-    upstream.gap = gapPx;
-    if (speed !== undefined) upstream.speed = speed;
-    if (color !== undefined) upstream.color = color;
-    if (colors !== undefined) upstream.colors = colors;
-    if (color_mode !== undefined) upstream.colorMode = color_mode;
-    if (effect !== undefined) upstream.effect = effect;
-    if (shape !== undefined) upstream.shape = shape;
-    if (easing !== undefined) upstream.easing = easing;
-    if (inactive !== undefined) upstream.inactive = inactive;
-    if (inactive_opacity !== undefined) upstream.inactiveOpacity = inactive_opacity;
-    if (inactive_color !== undefined) upstream.inactiveColor = inactive_color;
-    if (min_opacity !== undefined) upstream.minOpacity = min_opacity;
-    if (max_opacity !== undefined) upstream.maxOpacity = max_opacity;
-    if (min_scale !== undefined) upstream.minScale = min_scale;
-    if (max_scale !== undefined) upstream.maxScale = max_scale;
-    if (glow !== undefined) upstream.glow = glow;
-    if (spread !== undefined) upstream.spread = spread;
-    if (offset !== undefined) upstream.offset = offset;
-    if (mask_motion !== undefined) upstream.maskMotion = mask_motion;
-    if (label !== undefined) upstream.label = label;
-    if (respect_reduced_motion !== undefined) upstream.respectReducedMotion = respect_reduced_motion;
-    if (reverse !== undefined) upstream.reverse = reverse;
-    if (direction !== undefined) upstream.direction = direction;
-    if (paused !== undefined) upstream.paused = paused;
-
-    const mapped = contract('gridora', 'GridLoader', props);
-    Object.assign(upstream, mapped);
-
+    // Every upstream prop has a destructuring default, so an undefined prop
+    // is the same as one left off: pass them all straight through.
     return (
         <div id={id} className={wrapperClass(className, playing)} style={style}>
-            <Upstream {...upstream} />
+            <Upstream
+                variant={variant}
+                sequence={sequence}
+                mask={mask}
+                gridSize={gridSize}
+                cellSize={cellSize}
+                dotSize={dot_size}
+                gap={gapPx}
+                speed={speed}
+                color={color}
+                colors={colors}
+                colorMode={color_mode}
+                effect={effect}
+                shape={shape}
+                easing={easing}
+                inactive={inactive}
+                inactiveOpacity={inactive_opacity}
+                inactiveColor={inactive_color}
+                minOpacity={min_opacity}
+                maxOpacity={max_opacity}
+                minScale={min_scale}
+                maxScale={max_scale}
+                glow={glow}
+                spread={spread}
+                offset={offset}
+                maskMotion={mask_motion}
+                label={label}
+                respectReducedMotion={respect_reduced_motion}
+                reverse={reverse}
+                direction={direction}
+                paused={paused}
+                {...contract('gridora', 'GridLoader', props)}
+            />
         </div>
     );
 };

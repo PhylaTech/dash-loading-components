@@ -6,6 +6,7 @@ from dash.development.base_component import Component, _explicitize_args
 try:
     from dash.types import NumberType  # noqa: F401
 except ImportError:
+    # Backwards compatibility for dash<=4.1.0
     if typing.TYPE_CHECKING:
         raise
     NumberType = typing.Union[  # noqa: F401
@@ -75,14 +76,14 @@ Keyword arguments:
     Color used for inactive cells.
 
 - inactive_opacity (number; optional):
-    Opacity used when inactive is "dim".
+    Opacity used when inactive is \"dim\".
 
 - label (string; optional):
-    Accessible label. Default "Loading".
+    Accessible label. Default \"Loading\".
 
 - mask (list of list of numberss | string; optional):
-    Custom bitmap mask (array of arrays of 0/1, or a
-    slash-delimited string).
+    Custom bitmap mask (array of arrays of 0/1, or a slash-delimited
+    string).
 
 - mask_motion (a value equal to: 'write', 'writeReverse', 'fade', 'sweepX', 'sweepY', 'diagonal', 'radial', 'random', 'wave', 'drop', 'typewriter'; optional):
     Drawing order for glyph and mask variants.
@@ -144,6 +145,7 @@ Keyword arguments:
     _namespace = 'dash_loading_components'
     _type = 'GridoraGridLoader'
 
+
     def __init__(
         self,
         id: typing.Optional[typing.Union[str, dict]] = None,
@@ -190,7 +192,7 @@ Keyword arguments:
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()
-        _locals.update(kwargs)
+        _locals.update(kwargs)  # For wildcard attrs and excess named props
         args = {k: _locals[k] for k in _explicit_args}
 
         super(GridoraGridLoader, self).__init__(**args)
