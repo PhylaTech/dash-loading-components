@@ -58,6 +58,7 @@ SIZE_PRESET_DEFAULT = 48
 # Workbench control order (props not listed follow in family order)
 WORKBENCH_PROP_PRIORITY = [
     "size", "height", "width", "color", "on_opacity", "off_color", "off_opacity", "rate", "playing",
+    "grid_size", "gap", "effect", "shape", "glow", "min_opacity",
     "easing", "cap", "sweep", "direction", "origin",
     "thickness", "stroke", "stroke_width", "stroke_width_secondary",
     "stroke_length", "bg_opacity", "secondary_color", "margin",
@@ -119,6 +120,15 @@ PROP_SECTION_TITLES = {
     "on_opacity": "On opacity",
     "rotate": "Rotate",
     "mirror": "Mirror",
+    "grid_size": "Grid size",
+    "gap": "Gap",
+    "effect": "Effect",
+    "shape": "Shape",
+    "color_mode": "Color mode",
+    "glow": "Glow",
+    "inactive": "Inactive cells",
+    "inactive_opacity": "Inactive opacity",
+    "min_opacity": "Dim opacity",
 }
 
 PROP_SECTION_COPY = {
@@ -181,6 +191,15 @@ PROP_SECTION_COPY = {
     "on_opacity": "Opacity of the lit dots, from 0 to 1.",
     "rotate": "Turns the animation clockwise: 90° makes a loop that grows upward grow to the right.",
     "mirror": "Mirrors the animation left to right, before any rotation.",
+    "grid_size": "Cells per side. The dots are sized to fill the size given, so a bigger grid means smaller dots.",
+    "gap": "Space between cells in pixels, taken out of the size before the dots are sized.",
+    "effect": "What a cell does when its turn comes: pulse fades and scales it, spin turns it, drop lets it fall in.",
+    "shape": "The shape each cell is drawn as.",
+    "color_mode": "How the color is spread over the grid: solid paints every cell the same, the rest ramp it across or around the grid.",
+    "glow": "Blur radius of the halo behind each lit cell, in pixels. 0 draws none.",
+    "inactive": "How cells outside the pattern are drawn: dimmed, hidden altogether, or solid in the inactive color.",
+    "inactive_opacity": "Opacity of the dimmed cells, from 0 to 1. Only applies while inactive cells are dimmed.",
+    "min_opacity": "Opacity a lit cell falls to between its turns, from 0 to 1.",
 }
 
 # Upstream tempo and pause props, replaced on the page by the contract's
@@ -322,6 +341,39 @@ PREMIUM_THICKNESS_SPEC = {"kind": "slider", "min": 1, "max": 12, "step": 1, "def
 FLICKER_VARIANT_SPEC = {"kind": "enum", "options": ["5x5", "7x7", "9x9"],
                         "labels": {"5x5": "5×5", "7x7": "7×7", "9x9": "9×9"}, "default": "7x7"}
 
+# gridora's grid props, with upstream's own defaults (GRID_LOADER_DEFAULTS).
+# Several names collide with a family-wide spec that means something else
+# there: gridora's `easing` is a CSS curve, not loading.dev's three presets,
+# and its `direction` is animation-direction, not "out of / into the centre".
+GRIDORA_SPECS: dict[str, dict[str, Any]] = {
+    "grid_size": {"kind": "slider", "min": 2, "max": 12, "step": 1, "default": 3},
+    "gap": {"kind": "slider", "min": 0, "max": 8, "step": 0.5, "default": 2.5},
+    "glow": {"kind": "slider", "min": 0, "max": 16, "step": 1, "default": 0},
+    "inactive_opacity": {"kind": "slider", "min": 0.0, "max": 1.0, "step": 0.02, "default": 0.08},
+    "min_opacity": {"kind": "slider", "min": 0.0, "max": 1.0, "step": 0.05, "default": 0.2},
+    "effect": {"kind": "dropdown", "options": [
+        "pulse", "fade", "scale", "blink", "bounce", "swing", "flip", "jelly", "glow", "spin",
+        "wobble", "swell", "drop", "rise", "zoom", "pop", "flicker", "ping", "twist", "morph",
+    ], "default": "pulse"},
+    "shape": {"kind": "dropdown", "options": [
+        "circle", "square", "rounded", "squircle", "diamond", "triangle",
+        "hexagon", "star", "plus", "ring", "blob", "bar",
+    ], "default": "circle"},
+    "color_mode": {"kind": "dropdown", "options": [
+        "solid", "horizontal", "vertical", "diagonal", "radial", "angular", "random", "cycle",
+    ], "default": "solid"},
+    "easing": {"kind": "dropdown", "options": [
+        "ease", "linear", "ease-in", "ease-out", "ease-in-out",
+        "cubic-bezier(0.34, 1.56, 0.64, 1)", "cubic-bezier(0.16, 1, 0.3, 1)", "steps(3, end)",
+    ], "default": "ease"},
+    "inactive": {"kind": "enum", "options": ["dim", "hidden", "solid"],
+                 "labels": {"dim": "Dim", "hidden": "Hidden", "solid": "Solid"},
+                 "default": "dim"},
+    "direction": {"kind": "enum", "options": ["normal", "reverse", "alternate"],
+                  "labels": {"normal": "Normal", "reverse": "Reverse", "alternate": "Alternate"},
+                  "default": "normal"},
+}
+
 
 def prop_spec(family: str, prop: str, name: str | None = None) -> dict[str, Any] | None:
     """Resolve control metadata for one prop of one spinner."""
@@ -335,6 +387,8 @@ def prop_spec(family: str, prop: str, name: str | None = None) -> dict[str, Any]
         return PREMIUM_THICKNESS_SPEC
     if prop == "variant" and family == "flicker":
         return FLICKER_VARIANT_SPEC
+    if family == "gridora" and prop in GRIDORA_SPECS:
+        return GRIDORA_SPECS[prop]
     return PROP_SPECS.get(prop)
 
 
@@ -392,6 +446,23 @@ def _flicker_no_ops(name: str) -> frozenset[str]:
 
 IGNORED_PROPS.update({("flicker", name): _flicker_no_ops(name) for name in dlc.flicker.PRESETS})
 
+# A gridora page *is* one motion variant, so `variant` is the page, not a
+# control. The rest do nothing from a variant page: cell_size and dot_size are
+# derived from `size`; colors, mask, sequence, spread and offset only bite once
+# they replace the variant's own pattern (and color_mode ramps a `colors` list,
+# so with one color every mode paints the same grid); inactive and
+# inactive_opacity need a variant that leaves cells unlit, and `reverse` one
+# whose phase order is not symmetric, neither of which holds for a third of the
+# 133; max_opacity and the scale pair tune the far end of a cycle; label and
+# respect_reduced_motion change no frame at all.
+GRIDORA_NO_OPS = frozenset({
+    "variant", "cell_size", "dot_size", "colors", "color_mode", "inactive_color",
+    "mask", "mask_motion", "sequence", "spread", "offset", "reverse",
+    "inactive", "inactive_opacity",
+    "max_opacity", "min_scale", "max_scale", "label", "respect_reduced_motion",
+})
+IGNORED_PROPS.update({("gridora", name): GRIDORA_NO_OPS for name in dlc.gridora.MOTION_VARIANTS})
+
 
 # Where a spinner's own default differs from the family-wide PROP_SPECS one.
 # Controls start here, so the page shows what `dlc.<family>.<Name>()` renders;
@@ -440,6 +511,7 @@ FAMILY_PROP_ORDER = {
     "m3": ["size", "color", "rate", "playing", "contained", "container_color", "size_ratio", "className"],
     "epic": ["size", "color", "rate", "playing", "className"],
     "flicker": ["size", "color", "on_opacity", "off_color", "off_opacity", "rate", "playing", "variant", "rotate", "mirror", "reverse", "aria_label", "className"],
+    "gridora": ["size", "color", "rate", "playing", "grid_size", "gap", "effect", "shape", "glow", "min_opacity", "easing", "direction", "className"],
 }
 
 
@@ -518,6 +590,16 @@ UPSTREAM_CREDITS = [
         "status": "mvp",
     },
     {
+        "family": "gridora", "npm": "gridora", "version": "0.3.0", "spdx": "MIT",
+        "homepage": "https://gridora.gabrielayer.com",
+        "repo": "https://github.com/0x65dgerunner/gridora",
+        "blurb": (
+            f"133 motion variants of grid-dot loaders plus bitmap-font text. "
+            "dlc.gridora.GridLoader(variant=...) and dlc.gridora.Text(text=...)."
+        ),
+        "status": "mvp",
+    },
+    {
         "family": "svg_spinners", "npm": "react-svg-spinners", "version": "0.3.1", "spdx": "MIT",
         "homepage": "https://www.npmjs.com/package/react-svg-spinners",
         "repo": "https://github.com/theme-park/react-svg-spinners",
@@ -542,6 +624,8 @@ def description_for(family: str, name: str, upstream: str) -> str:
         return LOADING_DEV_BLURBS[name]
     if family == "flicker":
         return dlc.flicker.PRESETS[name].blurb
+    if family == "gridora":
+        return f"The {name} grid-dot animation pattern from gridora."
     return f"The {name} loader from {upstream}, as a Dash component."
 
 
@@ -663,10 +747,23 @@ def format_python_snippet(source: str, line_length: int = SNIPPET_LINE_LENGTH) -
         return source
 
 
+def call_signature(family: str, name: str) -> tuple[str, dict[str, Any]]:
+    """The dotted callable a gallery entry is, and the props that pick it.
+
+    Every family but gridora exposes one callable per entry. gridora has one
+    GridLoader and picks the animation with `variant`, so the entry name is a
+    prop value rather than an attribute of the namespace.
+    """
+    if family == "gridora":
+        return f"dlc.{family}.GridLoader", {"variant": name}
+    return f"dlc.{family}.{name}", {}
+
+
 def build_snippet(family: str, name: str, values: dict[str, Any], line_length: int = SNIPPET_LINE_LENGTH) -> str:
-    parts = [f"{k}={format_py_value(v)}" for k, v in values.items()]
+    call, picked = call_signature(family, name)
+    parts = [f"{k}={format_py_value(v)}" for k, v in {**picked, **values}.items()]
     return format_python_snippet(
-        f"import dash_loading_components as dlc\n\ndlc.{family}.{name}({', '.join(parts)})\n", line_length
+        f"import dash_loading_components as dlc\n\n{call}({', '.join(parts)})\n", line_length
     )
 
 
@@ -774,7 +871,7 @@ def build_brand_mark() -> html.Span:
         scale = MARK_SCALE.get(f"{family}/{name}")
         node = instantiate(family, name, brand_mark_values(family, name))
         marks.append(html.Span(
-            node, className="dlc-mark", title=f"dlc.{family}.{name}", hidden=True,
+            node, className="dlc-mark", title=call_signature(family, name)[0], hidden=True,
             style={"--mark-scale": scale} if scale else None,
         ))
     return html.Span(marks, className="dlc-brand-mark", **{"aria-hidden": "true"})
@@ -796,6 +893,7 @@ FEATURED: list[tuple[str, str, dict[str, Any]]] = [
     ("loader_spinner", "DNA", {}),
     ("ldrs", "Mirage", {}),
     ("flicker", "Mycelium", {}),
+    ("gridora", "orbit", {}),
 ]
 
 
@@ -812,7 +910,8 @@ def build_hero_carousel() -> html.Div:
                 dcc.Link(
                     [
                         html.Div(instantiate(family, name, {**values, "size": 64}), className="dlc-hero-loader"),
-                        html.Div([html.Span(f"dlc.{family}.", className="dlc-hero-ns"), html.Strong(name)],
+                        html.Div([html.Span(f"dlc.{family}.", className="dlc-hero-ns"),
+                                  html.Strong(call_signature(family, name)[0].rsplit(".", 1)[1])],
                                  className="dlc-hero-name"),
                     ],
                     href=detail_path(family, name),
@@ -1041,17 +1140,31 @@ def make_overview_card(family: str, name: str) -> dmc.Anchor:
 
 def family_grids(key: str, items: list[tuple[str, Callable]]) -> list:
     """One grid of cards, or, for flicker's presets, one per category."""
-    if key != "flicker":
-        return [html.Div([make_overview_card(key, n) for n, _c in items], className="dlc-grid")]
-    grids = []
-    for i, (category, (title, note)) in enumerate(dlc.flicker.CATEGORIES.items()):
-        names = [n for n, _c in items if dlc.flicker.PRESETS[n].category == category]
-        grids += [
-            dmc.Group([dmc.Text(title, size="sm", fw=600), dmc.Text(note, size="sm", c="dimmed")],
-                      gap=6, className="dlc-subfamily is-first" if i == 0 else "dlc-subfamily"),
-            html.Div([make_overview_card(key, n) for n in names], className="dlc-grid"),
-        ]
-    return grids
+    if key == "flicker":
+        grids = []
+        for i, (category, (title, note)) in enumerate(dlc.flicker.CATEGORIES.items()):
+            names = [n for n, _c in items if dlc.flicker.PRESETS[n].category == category]
+            grids += [
+                dmc.Group([dmc.Text(title, size="sm", fw=600), dmc.Text(note, size="sm", c="dimmed")],
+                          gap=6, className="dlc-subfamily is-first" if i == 0 else "dlc-subfamily"),
+                html.Div([make_overview_card(key, n) for n in names], className="dlc-grid"),
+            ]
+        return grids
+    if key == "gridora":
+        grids = []
+        item_names = {n for n, _c in items}
+        for i, (category, (title, note)) in enumerate(dlc.gridora.CATEGORIES.items()):
+            names = [n for n in dlc.gridora.MOTION_VARIANTS
+                     if dlc.gridora.VARIANT_CATEGORY.get(n) == category and n in item_names]
+            if not names:
+                continue
+            grids += [
+                dmc.Group([dmc.Text(title, size="sm", fw=600), dmc.Text(note, size="sm", c="dimmed")],
+                          gap=6, className="dlc-subfamily is-first" if i == 0 else "dlc-subfamily"),
+                html.Div([make_overview_card(key, n) for n in names], className="dlc-grid"),
+            ]
+        return grids
+    return [html.Div([make_overview_card(key, n) for n, _c in items], className="dlc-grid")]
 
 
 def build_overview() -> html.Div:
@@ -1116,6 +1229,11 @@ def section_copy(family: str, prop: str) -> str:
     if family == "flicker" and prop == "variant":
         return ("The grid the loop plays on: the full 7×7, only its inner 5×5 for bigger dots, "
                 "or padded out to 9×9 with a ring of unlit dots for smaller ones.")
+    if family == "gridora" and prop == "easing":
+        return "The CSS timing function each cell animates on."
+    if family == "gridora" and prop == "direction":
+        return ("CSS animation-direction for the cells: normal plays each cycle forwards, "
+                "reverse plays it backwards, alternate turns round every other cycle.")
     return PROP_SECTION_COPY.get(prop, f"Configurable `{prop}` for this wrapper.")
 
 
@@ -1290,7 +1408,7 @@ def build_detail(family: str, name: str) -> html.Div:
             dmc.Text(description_for(family, name, upstream), c="dimmed", mt=6, maw=640),
             dmc.Group(
                 [
-                    dmc.Code(f"dlc.{family}.{name}"),
+                    dmc.Code(call_signature(family, name)[0]),
                     external_link(dmc.Badge([credit["npm"], icon("external")], variant="light",
                                             color="gray", radius="sm", tt="none",
                                             className="dlc-badge-link"),
@@ -1423,8 +1541,8 @@ _OG_IMAGE = f"{SITE_URL}/assets/og-card.png?v=" + hashlib.md5(
 ).hexdigest()[:8]
 _PUBLISHED = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 _OG_DESCRIPTION = (
-    "Interactive gallery of Dash loading spinners: wrappers for "
-    "loading.dev, ldrs, react-spinners, and more. Built by PhylaTech."
+    "One Dash install for loaders across multiple React families — "
+    "gallery, common API, and namespaces."
 )
 
 app = Dash(
@@ -1447,7 +1565,7 @@ app = Dash(
         {"property": "og:image", "content": _OG_IMAGE},
         {"property": "og:image:width", "content": "1200"},
         {"property": "og:image:height", "content": "630"},
-        {"property": "og:image:alt", "content": "dash-loading-components: Interactive Dash loading spinner gallery"},
+        {"property": "og:image:alt", "content": "dash-loading-components: multi-family loading indicator gallery for Dash"},
         {"name": "twitter:card", "content": "summary_large_image"},
         {"name": "twitter:title", "content": "dash-loading-components"},
         {"name": "twitter:description", "content": _OG_DESCRIPTION},

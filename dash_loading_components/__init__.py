@@ -88,7 +88,7 @@ for _component in __all__:
 
 
 # Family namespaces (short names): dlc.loading_dev.Arc, dlc.spinners.ClipLoader, …
-from . import loading_dev, ldrs, spinners, spinners_react, loader_spinner, premium, indicators, m3, epic, flicker
+from . import loading_dev, ldrs, spinners, spinners_react, loader_spinner, premium, indicators, m3, epic, flicker, gridora
 
 from .registry import list_libraries, list_spinners
 
@@ -103,6 +103,7 @@ __all__ = list(__all__) + [
     "m3",
     "epic",
     "flicker",
+    "gridora",
     "list_libraries",
     "list_spinners",
 ]

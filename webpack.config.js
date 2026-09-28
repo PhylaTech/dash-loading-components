@@ -64,7 +64,7 @@ module.exports = (env, argv) => {
             rules: [
                 {
                     test: /\.m?jsx?$/,
-                    exclude: /node_modules\/(?!(loading-dev|ldrs|spinners-react|react-loader-spinner|premium-react-loaders|react-loading-indicators|react-epic-spinners|@alerix\/m3-loading-indicator|react-spinners)\/)/,
+                    exclude: /node_modules\/(?!(loading-dev|ldrs|spinners-react|react-loader-spinner|premium-react-loaders|react-loading-indicators|react-epic-spinners|@alerix\/m3-loading-indicator|react-spinners|gridora)\/)/,
                     resolve: {
                         fullySpecified: false,
                     },
