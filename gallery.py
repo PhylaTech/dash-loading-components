@@ -1451,8 +1451,8 @@ _OG_IMAGE = f"{SITE_URL}/assets/og-card.png?v=" + hashlib.md5(
 ).hexdigest()[:8]
 _PUBLISHED = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 _OG_DESCRIPTION = (
-    "Interactive gallery of Dash loading spinners: wrappers for "
-    "loading.dev, ldrs, react-spinners, and more. Built by PhylaTech."
+    "One Dash install for loaders across multiple React families — "
+    "gallery, common API, and namespaces."
 )
 
 app = Dash(
@@ -1475,7 +1475,7 @@ app = Dash(
         {"property": "og:image", "content": _OG_IMAGE},
         {"property": "og:image:width", "content": "1200"},
         {"property": "og:image:height", "content": "630"},
-        {"property": "og:image:alt", "content": "dash-loading-components: Interactive Dash loading spinner gallery"},
+        {"property": "og:image:alt", "content": "dash-loading-components: multi-family loading indicator gallery for Dash"},
         {"name": "twitter:card", "content": "summary_large_image"},
         {"name": "twitter:title", "content": "dash-loading-components"},
         {"name": "twitter:description", "content": _OG_DESCRIPTION},
