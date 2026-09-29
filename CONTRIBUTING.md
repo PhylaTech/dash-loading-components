@@ -3,9 +3,27 @@
 Pull requests only, against `main`. Family wrappers land as focused follow-up
 PRs, one family or a small batch per PR.
 
-Commit subjects follow [Conventional Commits](https://www.conventionalcommits.org/)
-(`feat:`, `fix:`, `chore:`), which is what [release-please](https://github.com/googleapis/release-please)
-uses to cut releases from `main`.
+This repo squash-merges every PR to `main`. **The PR title becomes the commit
+subject on `main`** — individual branch commits are folded away.
+[release-please](https://github.com/googleapis/release-please) only sees that
+squash subject, so the PR title decides whether a release PR is opened.
+
+### PR title rules
+
+Releasable work **must** carry a [Conventional Commits](https://www.conventionalcommits.org/)
+type in the PR title:
+
+- `feat:` / `fix:` / `perf:` / `revert:` — triggers a release PR after merge.
+  Add a scope when it helps: `feat(gallery): …`, `fix(ldrs): …`.
+- `chore:` / `docs:` / `ci:` / `test:` / `style:` / `refactor:` — does **not**
+  open a release PR. Use these for deps bumps (`chore(deps): …`), docs-only
+  changes, CI tweaks, etc.
+
+Examples: `feat: add gridora family`, `fix(gallery): meta tags for previews`.
+
+Before merging, confirm that the GitHub squash-commit title still has the type
+prefix — GitHub sometimes rewrites it to the branch name or a casual title if
+the PR was renamed mid-review.
 
 ## Local setup
 
