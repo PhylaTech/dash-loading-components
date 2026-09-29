@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/PhylaTech/dash-loading-components/compare/0.1.1...0.1.2) (2026-09-29)
+
+
+### Features
+
+* add gridora family ([#32](https://github.com/PhylaTech/dash-loading-components/issues/32)) ([7699b4e](https://github.com/PhylaTech/dash-loading-components/commit/7699b4ef428be348077a13f6679f78aead51dc78))
+
 ## [0.1.1](https://github.com/PhylaTech/dash-loading-components/compare/v0.1.0...0.1.1) (2026-09-25)
 
 
