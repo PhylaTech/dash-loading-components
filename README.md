@@ -44,8 +44,9 @@ dcc.Loading(children, custom_spinner=dlc.ldrs.Ring(size=48))
 Discover what is available at runtime:
 
 ```python
-dlc.list_libraries()          # ['loading_dev', 'ldrs', 'spinners', ...]
+dlc.list_libraries()          # ['loading_dev', 'ldrs', 'spinners', ..., 'gridora']
 dlc.list_spinners("ldrs")     # ['Ring', 'Helix', 'DotPulse', ...]
+dlc.list_spinners("gridora")  # ['GridLoader', 'Text']
 ```
 
 ## Requirements
