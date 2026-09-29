@@ -164,10 +164,12 @@ drop-in replacement.
 ## Contributing
 
 Pull requests only, against `main`. Family wrappers land as focused follow-up
-PRs, one family or a small batch per PR. Releases are cut by
-[release-please](https://github.com/googleapis/release-please) from
-[Conventional Commits](https://www.conventionalcommits.org/) merged to `main`,
-so commit subjects need a `feat:` / `fix:` / `chore:` prefix.
+PRs, one family or a small batch per PR. This repo squash-merges, so **the PR
+title becomes the commit subject on `main`**. Releases are cut by
+[release-please](https://github.com/googleapis/release-please) from that
+subject, so the PR title must carry a
+[Conventional Commits](https://www.conventionalcommits.org/) type (`feat:`,
+`fix:`, etc.). See [CONTRIBUTING.md](CONTRIBUTING.md) for the full rules.
 
 Local setup:
 
