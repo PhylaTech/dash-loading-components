@@ -2,13 +2,18 @@
 
 Checks: rate->speed mapping, size passthrough, color passthrough,
 registry contains exactly the 160 loader states, namespace exports,
-and category coverage.
+category coverage, and live canvas rendering (custom element registered,
+canvas non-zero size, non-blank pixels).
 """
 from __future__ import annotations
 
 import pytest
+import dash
+from dash import Dash, html
 
 import dash_loading_components as dlc
+
+dash._dash_renderer._set_react_version("19.2.4")
 from dash_loading_components import loadersz
 from dash_loading_components.registry import FAMILY_LOOKUP, list_libraries, list_spinners
 
@@ -168,3 +173,54 @@ class TestLoaderComponent:
     def test_density_prop(self):
         node = dlc.loadersz.Loader(state="working", density=1.5).to_plotly_json()["props"]
         assert node["density"] == 1.5
+
+
+CANVAS_CHECK = """
+const out = {};
+document.querySelectorAll('[data-probe]').forEach((root) => {
+    const key = root.dataset.probe;
+    const ce = !!customElements.get('loadersz-loader');
+    const el = root.querySelector('loadersz-loader');
+    if (!el) { out[key] = {ce, element: false}; return; }
+    const c = el.querySelector('canvas');
+    if (!c) { out[key] = {ce, element: true, canvas: false, childCount: el.childElementCount}; return; }
+    const w = c.width, h = c.height;
+    const ctx = c.getContext('2d');
+    const data = ctx.getImageData(0, 0, w, h).data;
+    let nonZero = 0;
+    for (let i = 0; i < data.length; i += 4) {
+        if (data[i+3] > 0) nonZero++;
+    }
+    out[key] = {ce, element: true, canvas: true, width: w, height: h, nonZeroPixels: nonZero};
+});
+return out;
+"""
+
+
+def test_loadersz_canvas_renders(dash_duo):
+    """The <loadersz-loader> custom element must be registered and render
+    non-blank pixels on a canvas for representative states."""
+    states = ["working", "searching", "heatmapping", "loading", "orbiting"]
+    probes = [
+        (f"loadersz/{s}", dlc.loadersz.Loader(state=s, size=48))
+        for s in states
+    ]
+    app = Dash(__name__)
+    app.layout = html.Div([
+        html.Div(node, **{"data-probe": key}) for key, node in probes
+    ])
+    dash_duo.start_server(app)
+    dash_duo.wait_for_element("[data-probe]")
+    dash_duo.driver.execute_script(
+        "return new Promise((r) => setTimeout(r, 2000));"
+    )
+
+    results = dash_duo.driver.execute_script(CANVAS_CHECK)
+
+    for key, info in results.items():
+        assert info.get("ce"), f"{key}: customElements.get('loadersz-loader') is not defined"
+        assert info.get("element"), f"{key}: no <loadersz-loader> element found"
+        assert info.get("canvas"), f"{key}: no <canvas> inside <loadersz-loader> (children: {info.get('childCount', 0)})"
+        assert info.get("width", 0) > 0, f"{key}: canvas width is 0"
+        assert info.get("height", 0) > 0, f"{key}: canvas height is 0"
+        assert info.get("nonZeroPixels", 0) > 0, f"{key}: canvas is blank (0 non-transparent pixels)"
