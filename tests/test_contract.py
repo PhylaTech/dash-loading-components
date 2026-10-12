@@ -60,7 +60,7 @@ return out;
 """
 
 # Tempo is drawn on a canvas by requestAnimationFrame; nothing to measure.
-NO_CSS_TEMPO = {"m3"}
+NO_CSS_TEMPO = {"m3", "loadersz"}
 # No tempo prop upstream: rate is documented as a no-op here.
 NO_TEMPO = {"loader_spinner"}
 # Native `speedPlus` is a coarse integer offset, so 2.0 maps to +5, not an exact halving.
@@ -153,8 +153,15 @@ def test_playing_false_stops_every_spinner(dash_duo):
     assert not paused_at_rest, paused_at_rest
 
 
+_CANVAS_FAMILY_PROBES = {
+    "m3": lambda: dlc.m3.LoadingIndicator(rate=2.0, playing=False),
+    "loadersz": lambda: dlc.loadersz.Loader(state="working", rate=2.0, playing=False),
+}
+
+
 @pytest.mark.parametrize("family", sorted(NO_CSS_TEMPO))
 def test_canvas_families_pass_rate_and_playing_through(family):
-    """m3 draws on a canvas, so the contract is checked at the prop level."""
-    node = dlc.m3.LoadingIndicator(rate=2.0, playing=False).to_plotly_json()["props"]
-    assert node == {"rate": 2.0, "playing": False}
+    """Canvas families have no CSS animation; the contract is checked at the prop level."""
+    node = _CANVAS_FAMILY_PROBES[family]().to_plotly_json()["props"]
+    assert node["rate"] == 2.0
+    assert node["playing"] is False

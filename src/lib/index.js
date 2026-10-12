@@ -109,6 +109,7 @@ import EpicTrinityRingsSpinner from './components/epic/EpicTrinityRingsSpinner.r
 import FlickerSpinner from './components/flicker/FlickerSpinner.react';
 import GridoraGridLoader from './components/gridora/GridoraGridLoader.react';
 import GridoraText from './components/gridora/GridoraText.react';
+import LoaderszLoader from './components/loadersz/LoaderszLoader.react';
 
 export {
     LoadingDevArc,
@@ -220,5 +221,6 @@ export {
     EpicTrinityRingsSpinner,
     FlickerSpinner,
     GridoraGridLoader,
-    GridoraText
+    GridoraText,
+    LoaderszLoader
 };

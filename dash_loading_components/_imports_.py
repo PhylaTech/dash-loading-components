@@ -42,6 +42,7 @@ from .LoaderSpinnerOval import LoaderSpinnerOval
 from .LoaderSpinnerRings import LoaderSpinnerRings
 from .LoaderSpinnerTailSpin import LoaderSpinnerTailSpin
 from .LoaderSpinnerThreeDots import LoaderSpinnerThreeDots
+from .LoaderszLoader import LoaderszLoader
 from .LoadingDevArc import LoadingDevArc
 from .LoadingDevAtom import LoadingDevAtom
 from .LoadingDevBlocks import LoadingDevBlocks
@@ -154,6 +155,7 @@ __all__ = [
     "LoaderSpinnerRings",
     "LoaderSpinnerTailSpin",
     "LoaderSpinnerThreeDots",
+    "LoaderszLoader",
     "LoadingDevArc",
     "LoadingDevAtom",
     "LoadingDevBlocks",

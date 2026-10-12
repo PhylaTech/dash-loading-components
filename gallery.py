@@ -463,6 +463,13 @@ GRIDORA_NO_OPS = frozenset({
 })
 IGNORED_PROPS.update({("gridora", name): GRIDORA_NO_OPS for name in dlc.gridora.MOTION_VARIANTS})
 
+LOADERSZ_NO_OPS = frozenset({
+    "state", "speed", "paused", "force_motion",
+    "size", "color", "hue", "density", "particle_radius", "theme", "rate",
+    "playing", "aria_label",
+})
+IGNORED_PROPS.update({("loadersz", name): LOADERSZ_NO_OPS for name in dlc.loadersz.LOADER_STATES})
+
 
 # Where a spinner's own default differs from the family-wide PROP_SPECS one.
 # Controls start here, so the page shows what `dlc.<family>.<Name>()` renders;
@@ -512,6 +519,7 @@ FAMILY_PROP_ORDER = {
     "epic": ["size", "color", "rate", "playing", "className"],
     "flicker": ["size", "color", "on_opacity", "off_color", "off_opacity", "rate", "playing", "variant", "rotate", "mirror", "reverse", "aria_label", "className"],
     "gridora": ["size", "color", "rate", "playing", "grid_size", "gap", "effect", "shape", "glow", "min_opacity", "easing", "direction", "className"],
+    "loadersz": ["size", "color", "rate", "playing", "density", "particle_radius", "theme", "hue", "aria_label", "className"],
 }
 
 
@@ -600,6 +608,17 @@ UPSTREAM_CREDITS = [
         "status": "mvp",
     },
     {
+        "family": "loadersz", "npm": "loadersz", "version": "0.9.0", "spdx": "MIT",
+        "homepage": "https://loadersz.vercel.app",
+        "repo": "https://github.com/lumberjacque/loadersz-core",
+        "blurb": (
+            "160 canvas-based loaders as a Web Component. "
+            "Includes chart-shaped loaders (heatmap, sankey, treemap, bar chart) suited for Dash. "
+            "dlc.loadersz.Loader(state=...)."
+        ),
+        "status": "mvp",
+    },
+    {
         "family": "svg_spinners", "npm": "react-svg-spinners", "version": "0.3.1", "spdx": "MIT",
         "homepage": "https://www.npmjs.com/package/react-svg-spinners",
         "repo": "https://github.com/theme-park/react-svg-spinners",
@@ -626,6 +645,8 @@ def description_for(family: str, name: str, upstream: str) -> str:
         return dlc.flicker.PRESETS[name].blurb
     if family == "gridora":
         return f"The {name} grid-dot animation pattern from gridora."
+    if family == "loadersz":
+        return f"The {name} canvas loader from loadersz."
     return f"The {name} loader from {upstream}, as a Dash component."
 
 
@@ -756,6 +777,8 @@ def call_signature(family: str, name: str) -> tuple[str, dict[str, Any]]:
     """
     if family == "gridora":
         return f"dlc.{family}.GridLoader", {"variant": name}
+    if family == "loadersz":
+        return f"dlc.{family}.Loader", {"state": name}
     return f"dlc.{family}.{name}", {}
 
 
@@ -1156,6 +1179,20 @@ def family_grids(key: str, items: list[tuple[str, Callable]]) -> list:
         for i, (category, (title, note)) in enumerate(dlc.gridora.CATEGORIES.items()):
             names = [n for n in dlc.gridora.MOTION_VARIANTS
                      if dlc.gridora.VARIANT_CATEGORY.get(n) == category and n in item_names]
+            if not names:
+                continue
+            grids += [
+                dmc.Group([dmc.Text(title, size="sm", fw=600), dmc.Text(note, size="sm", c="dimmed")],
+                          gap=6, className="dlc-subfamily is-first" if i == 0 else "dlc-subfamily"),
+                html.Div([make_overview_card(key, n) for n in names], className="dlc-grid"),
+            ]
+        return grids
+    if key == "loadersz":
+        grids = []
+        item_names = {n for n, _c in items}
+        for i, (category, (title, note)) in enumerate(dlc.loadersz.CATEGORIES.items()):
+            names = [n for n in dlc.loadersz.LOADER_STATES
+                     if dlc.loadersz.STATE_CATEGORY.get(n) == category and n in item_names]
             if not names:
                 continue
             grids += [

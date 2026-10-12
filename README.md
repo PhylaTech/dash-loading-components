@@ -1,7 +1,7 @@
 # dash-loading-components (`dlc`)
 
-Loading indicators for [Plotly Dash](https://dash.plotly.com), wrapping eleven
-React spinner libraries as one install. 301 components under stable namespaces,
+Loading indicators for [Plotly Dash](https://dash.plotly.com), wrapping twelve
+React spinner libraries as one install. 461 components under stable namespaces,
 with a common factory over the top so you can switch families without
 relearning each one's props.
 
@@ -44,9 +44,9 @@ dcc.Loading(children, custom_spinner=dlc.ldrs.Ring(size=48))
 Discover what is available at runtime:
 
 ```python
-dlc.list_libraries()          # ['loading_dev', 'ldrs', 'spinners', ..., 'gridora']
+dlc.list_libraries()          # ['loading_dev', 'ldrs', 'spinners', ..., 'gridora', 'loadersz']
 dlc.list_spinners("ldrs")     # ['Ring', 'Helix', 'DotPulse', ...]
-dlc.list_spinners("gridora")  # ['GridLoader', 'Text']
+dlc.list_spinners("loadersz") # ['working', 'searching', 'connecting', ...]
 ```
 
 ## Requirements
@@ -74,6 +74,7 @@ resolve it; it will accept the final 4.5 release once published.
 | `m3` | [@alerix/m3-loading-indicator](https://www.npmjs.com/package/@alerix/m3-loading-indicator) | 1 |
 | `flicker` | [flicker-dot](https://www.npmjs.com/package/flicker-dot) | 61 |
 | `gridora` | [gridora](https://www.npmjs.com/package/gridora) | 133 |
+| `loadersz` | [loadersz](https://www.npmjs.com/package/loadersz) | 160 |
 
 ## Flip-dot presets
 

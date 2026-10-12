@@ -16,6 +16,7 @@ from . import (
     ldrs,
     loader_spinner,
     loading_dev,
+    loadersz,
     m3,
     premium,
     spinners,
@@ -193,6 +194,12 @@ FAMILIES: list[tuple[str, str, list[tuple[str, Callable]]]] = [
         "gridora",
         [(v, lambda variant=v, **kw: gridora.GridLoader(variant=variant, **kw))
          for v in gridora.MOTION_VARIANTS],
+    ),
+    (
+        "loadersz",
+        "loadersz",
+        [(s, lambda state=s, **kw: loadersz.Loader(state=state, **kw))
+         for s in loadersz.LOADER_STATES],
     ),
 ]
 
