@@ -912,6 +912,8 @@ MARK_SKIP = {
     ("indicators", "LifeLine"),
     ("indicators", "BlinkBlur"),
     ("epic", "HollowDotsSpinner"),
+    # 160 canvases the library never stops animating, even when hidden.
+    *(("loadersz", state) for state in dlc.loadersz.LOADER_STATES),
 }
 
 
