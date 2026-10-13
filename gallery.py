@@ -385,7 +385,7 @@ GRIDORA_SPECS: dict[str, dict[str, Any]] = {
                   "default": "normal"},
 }
 
-# loadersz canvas knobs. hue -1 is upstream's "keep the native palette".
+# loadersz canvas knobs. hue -1 and an empty color keep the native palette.
 LOADERSZ_SPECS: dict[str, dict[str, Any]] = {
     "density": {"kind": "slider", "min": 0.35, "max": 2.0, "step": 0.05, "default": 1.0},
     "particle_radius": {"kind": "slider", "min": 0.5, "max": 2.5, "step": 0.05, "default": 1.0},
@@ -393,12 +393,16 @@ LOADERSZ_SPECS: dict[str, dict[str, Any]] = {
               "labels": {"auto": "Auto", "dark": "Dark", "light": "Light"},
               "default": "auto"},
     "hue": {"kind": "slider", "min": -1, "max": 360, "step": 1, "default": -1},
+    "color": {"kind": "color", "default": ""},
     "force_motion": {"kind": "bool", "default": False},
+    "rate": {"kind": "slider", "min": 0.35, "max": 3.0, "step": 0.05, "default": 1.0},
 }
 
 
 def prop_spec(family: str, prop: str, name: str | None = None) -> dict[str, Any] | None:
     """Resolve control metadata for one prop of one spinner."""
+    if family == "loadersz" and prop in LOADERSZ_SPECS:
+        return LOADERSZ_SPECS[prop]
     if prop == "rate":
         return RATE_SPEC
     if prop == "easing" and family == "indicators":
@@ -411,8 +415,6 @@ def prop_spec(family: str, prop: str, name: str | None = None) -> dict[str, Any]
         return FLICKER_VARIANT_SPEC
     if family == "gridora" and prop in GRIDORA_SPECS:
         return GRIDORA_SPECS[prop]
-    if family == "loadersz" and prop in LOADERSZ_SPECS:
-        return LOADERSZ_SPECS[prop]
     return PROP_SPECS.get(prop)
 
 
@@ -751,7 +753,9 @@ def sent_values(family: str, name: str, values: dict[str, Any]) -> dict[str, Any
     overview card render exactly what `dlc.<family>.<Name>()` does.
     """
     defaults = default_values(family, name, list(values))
-    keep = ALWAYS_SENT
+    # loadersz color/hue are palette overrides. Sending the gallery accent
+    # would recolour every state and make the hue control a no-op.
+    keep = frozenset({"size"}) if family == "loadersz" else ALWAYS_SENT
     return {
         k: v
         for k, v in values.items()
@@ -1300,6 +1304,9 @@ def section_copy(family: str, prop: str) -> str:
     if family == "loadersz" and prop == "hue":
         return ("A single hue from 0 to 360 that recolours every particle. -1 keeps the "
                 "loader's native palette. color overrides hue when both are set.")
+    if family == "loadersz" and prop == "color":
+        return ("A CSS colour that recolours every particle. Empty keeps the loader's "
+                "native palette. When set, it overrides hue.")
     return PROP_SECTION_COPY.get(prop, f"Configurable `{prop}` for this wrapper.")
 
 

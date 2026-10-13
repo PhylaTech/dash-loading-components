@@ -52,7 +52,7 @@ const LoaderszLoader = (props) => {
     if (hue !== undefined) {
         attrs.hue = String(hue);
     }
-    if (color !== undefined) {
+    if (color) {
         attrs.color = color;
     }
     if (resolvedPaused === true) {

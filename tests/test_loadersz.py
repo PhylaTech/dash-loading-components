@@ -216,11 +216,15 @@ class TestGalleryControls:
         "theme", "hue", "force_motion", "aria_label", "className",
     ]
 
-    def test_configurable_props_include_demo_options(self):
+    def _defaults(self):
         import gallery
-        props = gallery.configurable_props(
-            "loadersz", "working", gallery.COMPONENT_LOOKUP[("loadersz", "working")]
-        )
+        component = gallery.COMPONENT_LOOKUP[("loadersz", "working")]
+        props = gallery.configurable_props("loadersz", "working", component)
+        values = gallery.default_values("loadersz", "working", props)
+        return gallery, props, values
+
+    def test_configurable_props_include_demo_options(self):
+        gallery, props, _values = self._defaults()
         missing = [p for p in self.EXPECTED if p not in props]
         assert not missing, f"Gallery hid live loadersz controls: {missing}; got {props}"
         assert "state" not in props
@@ -231,6 +235,48 @@ class TestGalleryControls:
         import gallery
         mode, family, name = gallery.parse_pathname("/c/loadersz/bar-charting")
         assert (mode, family, name) == ("detail", "loadersz", "bar-charting")
+
+    def test_defaults_keep_the_native_palette(self):
+        """Hue is live only while color is omitted. The gallery accent must
+        not be always-sent, or every state paints orange and hue does nothing."""
+        gallery, _props, values = self._defaults()
+        sent = gallery.sent_values("loadersz", "working", values)
+        assert sent == {"size": 48}, sent
+        snippet = gallery.build_snippet("loadersz", "working", sent)
+        assert "dlc.loadersz.Loader" in snippet
+        assert "state=" in snippet
+        assert "size=48" in snippet
+        for prop in ("color", "hue", "density", "theme", "rate", "particle_radius"):
+            assert f"{prop}=" not in snippet, snippet
+
+    def test_changed_knobs_sync_into_the_snippet(self):
+        gallery, _props, values = self._defaults()
+        changed = {
+            **values,
+            "density": 1.5,
+            "particle_radius": 2.0,
+            "theme": "dark",
+            "hue": 88,
+            "force_motion": True,
+            "rate": 2.0,
+            "playing": False,
+        }
+        sent = gallery.sent_values("loadersz", "working", changed)
+        snippet = gallery.build_snippet("loadersz", "working", sent)
+        assert "density=1.5" in snippet
+        assert "particle_radius=2.0" in snippet
+        assert 'theme="dark"' in snippet
+        assert "hue=88" in snippet
+        assert "force_motion=True" in snippet
+        assert "rate=2.0" in snippet
+        assert "playing=False" in snippet
+        assert "color=" not in snippet
+
+        recoloured = gallery.sent_values(
+            "loadersz", "working", {**changed, "color": "#123456"}
+        )
+        color_snippet = gallery.build_snippet("loadersz", "working", recoloured)
+        assert 'color="#123456"' in color_snippet
 
 
 CANVAS_CHECK = """
@@ -360,6 +406,50 @@ def test_native_speed_wins_on_the_element(dash_duo):
     assert attrs["speed"] == "3"
 
 
+def test_gallery_wiring_reaches_the_element(dash_duo):
+    """Gallery sent_values for changed knobs must land on <loadersz-loader>."""
+    import gallery
+
+    props = gallery.configurable_props(
+        "loadersz", "working", gallery.COMPONENT_LOOKUP[("loadersz", "working")]
+    )
+    values = gallery.default_values("loadersz", "working", props)
+    sent = gallery.sent_values("loadersz", "working", {
+        **values,
+        "density": 1.5,
+        "particle_radius": 2.0,
+        "theme": "dark",
+        "hue": 88,
+        "force_motion": True,
+        "rate": 2.0,
+        "playing": False,
+        "aria_label": "Searching",
+    })
+    app = Dash(__name__)
+    app.layout = html.Div(
+        gallery.instantiate("loadersz", "working", sent),
+        **{"data-probe": "opts"},
+    )
+    dash_duo.start_server(app)
+    dash_duo.wait_for_element("[data-probe]")
+    dash_duo.driver.execute_script(
+        "return new Promise((r) => setTimeout(r, 500));"
+    )
+    attrs = dash_duo.driver.execute_script(ATTRIBUTE_CHECK)
+    assert attrs.get("found"), "no <loadersz-loader> element"
+    assert attrs["state"] == "working"
+    assert attrs["size"] == "48"
+    assert attrs["speed"] == "2"
+    assert attrs["density"] == "1.5"
+    assert attrs["particleRadius"] == "2"
+    assert attrs["theme"] == "dark"
+    assert attrs["hue"] == "88"
+    assert attrs["color"] is None
+    assert attrs["paused"] is True
+    assert attrs["forceMotion"] is True
+    assert attrs["ariaLabel"] == "Searching"
+
+
 def test_gallery_detail_shows_loadersz_controls(dash_duo):
     """The /c/loadersz/<state> page must render live controls for demo knobs."""
     from dash.testing.application_runners import import_app
@@ -383,3 +473,33 @@ def test_gallery_detail_shows_loadersz_controls(dash_duo):
     snippet = dash_duo.find_element("#detail-snippet").text
     assert "dlc.loadersz.Loader" in snippet
     assert 'state="working"' in snippet or "state='working'" in snippet
+    assert "size=48" in snippet
+    assert "color=" not in snippet
+    assert "hue=" not in snippet
+
+    preview = dash_duo.driver.execute_script("""
+        const el = document.querySelector('#detail-preview loadersz-loader');
+        if (!el) return {found: false};
+        return {
+            found: true,
+            color: el.getAttribute('color'),
+            hue: el.getAttribute('hue'),
+            size: el.getAttribute('size'),
+            state: el.getAttribute('state'),
+        };
+    """)
+    assert preview.get("found"), "no <loadersz-loader> in the detail preview"
+    assert preview["state"] == "working"
+    assert preview["size"] == "48"
+    assert preview["color"] is None
+    assert preview["hue"] is None
+
+    switches = dash_duo.find_elements("#detail-controls input[type='checkbox']")
+    assert len(switches) >= 2, "expected Playing and Force motion switches"
+    switches[1].click()
+    dash_duo.wait_for_contains_text("#detail-snippet", "force_motion=True")
+    force = dash_duo.driver.execute_script("""
+        const el = document.querySelector('#detail-preview loadersz-loader');
+        return el ? el.hasAttribute('force-motion') : null;
+    """)
+    assert force is True
