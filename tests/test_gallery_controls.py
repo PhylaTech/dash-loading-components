@@ -75,9 +75,9 @@ return Object.fromEntries([...document.querySelectorAll('[data-probe]')].map((e)
 # react-spinners' GridLoader draws random delays; pin them so two renders agree.
 SEEDED = "<head><script>Math.random = () => 0.5</script>"
 
-# m3 draws on a canvas from requestAnimationFrame, so there is no DOM state to
-# compare and no way to freeze it.
-UNINSPECTABLE_FAMILIES = {"m3"}
+# Canvas families draw from requestAnimationFrame, so there is no CSS/DOM
+# state to compare and no way to freeze a frame.
+UNINSPECTABLE_FAMILIES = {"m3", "loadersz"}
 
 # Props that change behaviour but not a frame: an accessible name, and a class
 # that only does something once the page defines it.

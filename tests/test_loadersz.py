@@ -175,6 +175,64 @@ class TestLoaderComponent:
         assert node["density"] == 1.5
 
 
+# Every published <loadersz-loader> attribute, as a Dash snake_case prop.
+# Native `speed`/`paused` are also on the wrapper so they can win over rate/playing.
+LOADERSZ_OPTIONS = {
+    "state": "searching",
+    "size": 64,
+    "speed": 1.25,
+    "density": 1.5,
+    "particle_radius": 2.0,
+    "theme": "dark",
+    "hue": 88,
+    "color": "#123456",
+    "paused": True,
+    "force_motion": True,
+    "aria_label": "Searching",
+    "rate": 2.0,
+    "playing": False,
+}
+
+
+class TestOptionPassthrough:
+    """Every upstream option must be a Dash prop and survive to_plotly_json."""
+
+    def test_all_options_recorded(self):
+        node = dlc.loadersz.Loader(**LOADERSZ_OPTIONS).to_plotly_json()["props"]
+        for prop, value in LOADERSZ_OPTIONS.items():
+            assert node[prop] == value, f"{prop}: expected {value!r}, got {node.get(prop)!r}"
+
+    def test_available_properties_cover_the_api(self):
+        available = set(dlc.loadersz.Loader().available_properties)
+        missing = set(LOADERSZ_OPTIONS) - available
+        assert not missing, f"Wrapper is missing props: {missing}"
+
+
+class TestGalleryControls:
+    """The detail page must offer the live knobs, not hide them as no-ops."""
+
+    EXPECTED = [
+        "size", "color", "rate", "playing", "density", "particle_radius",
+        "theme", "hue", "force_motion", "aria_label", "className",
+    ]
+
+    def test_configurable_props_include_demo_options(self):
+        import gallery
+        props = gallery.configurable_props(
+            "loadersz", "working", gallery.COMPONENT_LOOKUP[("loadersz", "working")]
+        )
+        missing = [p for p in self.EXPECTED if p not in props]
+        assert not missing, f"Gallery hid live loadersz controls: {missing}; got {props}"
+        assert "state" not in props
+        assert "speed" not in props
+        assert "paused" not in props
+
+    def test_hyphenated_states_have_detail_routes(self):
+        import gallery
+        mode, family, name = gallery.parse_pathname("/c/loadersz/bar-charting")
+        assert (mode, family, name) == ("detail", "loadersz", "bar-charting")
+
+
 CANVAS_CHECK = """
 const out = {};
 document.querySelectorAll('[data-probe]').forEach((root) => {
@@ -224,3 +282,104 @@ def test_loadersz_canvas_renders(dash_duo):
         assert info.get("width", 0) > 0, f"{key}: canvas width is 0"
         assert info.get("height", 0) > 0, f"{key}: canvas height is 0"
         assert info.get("nonZeroPixels", 0) > 0, f"{key}: canvas is blank (0 non-transparent pixels)"
+
+
+ATTRIBUTE_CHECK = """
+const el = document.querySelector('[data-probe="opts"] loadersz-loader');
+if (!el) return {found: false};
+return {
+    found: true,
+    state: el.getAttribute('state'),
+    size: el.getAttribute('size'),
+    speed: el.getAttribute('speed'),
+    density: el.getAttribute('density'),
+    particleRadius: el.getAttribute('particle-radius'),
+    theme: el.getAttribute('theme'),
+    hue: el.getAttribute('hue'),
+    color: el.getAttribute('color'),
+    paused: el.hasAttribute('paused'),
+    forceMotion: el.hasAttribute('force-motion'),
+    ariaLabel: el.getAttribute('aria-label'),
+};
+"""
+
+
+def test_loadersz_options_reach_the_element(dash_duo):
+    """Each published option must land on the <loadersz-loader> element."""
+    app = Dash(__name__)
+    app.layout = html.Div(
+        dlc.loadersz.Loader(
+            state="searching",
+            size=64,
+            density=1.5,
+            particle_radius=2.0,
+            theme="dark",
+            hue=88,
+            color="#123456",
+            rate=2.0,
+            playing=False,
+            force_motion=True,
+            aria_label="Searching",
+        ),
+        **{"data-probe": "opts"},
+    )
+    dash_duo.start_server(app)
+    dash_duo.wait_for_element("[data-probe]")
+    dash_duo.driver.execute_script(
+        "return new Promise((r) => setTimeout(r, 500));"
+    )
+    attrs = dash_duo.driver.execute_script(ATTRIBUTE_CHECK)
+    assert attrs.get("found"), "no <loadersz-loader> element"
+    assert attrs["state"] == "searching"
+    assert attrs["size"] == "64"
+    assert attrs["speed"] == "2"
+    assert attrs["density"] == "1.5"
+    assert attrs["particleRadius"] == "2"
+    assert attrs["theme"] == "dark"
+    assert attrs["hue"] == "88"
+    assert attrs["color"] == "#123456"
+    assert attrs["paused"] is True
+    assert attrs["forceMotion"] is True
+    assert attrs["ariaLabel"] == "Searching"
+
+
+def test_native_speed_wins_on_the_element(dash_duo):
+    """An explicit upstream speed must win over rate on the element."""
+    app = Dash(__name__)
+    app.layout = html.Div(
+        dlc.loadersz.Loader(state="working", size=48, rate=2.0, speed=3.0),
+        **{"data-probe": "opts"},
+    )
+    dash_duo.start_server(app)
+    dash_duo.wait_for_element("[data-probe]")
+    dash_duo.driver.execute_script(
+        "return new Promise((r) => setTimeout(r, 500));"
+    )
+    attrs = dash_duo.driver.execute_script(ATTRIBUTE_CHECK)
+    assert attrs.get("found")
+    assert attrs["speed"] == "3"
+
+
+def test_gallery_detail_shows_loadersz_controls(dash_duo):
+    """The /c/loadersz/<state> page must render live controls for demo knobs."""
+    from dash.testing.application_runners import import_app
+
+    app = import_app("gallery")
+    dash_duo.start_server(app)
+    dash_duo.driver.set_window_size(1440, 1200)
+    dash_duo.driver.get(dash_duo.server_url + "/c/loadersz/working")
+    dash_duo.wait_for_element("#detail-preview")
+    dash_duo.wait_for_element("#detail-controls")
+
+    labels = dash_duo.driver.execute_script("""
+        return [...document.querySelectorAll('#detail-controls')].flatMap(
+            (root) => [...root.querySelectorAll('*')].map((e) => e.textContent)
+        ).join(' ');
+    """)
+    for title in ("Size", "Color", "Rate", "Playing", "Density",
+                  "Particle radius", "Theme", "Hue", "Force motion"):
+        assert title in labels, f"Missing gallery control {title!r} on /c/loadersz/working"
+
+    snippet = dash_duo.find_element("#detail-snippet").text
+    assert "dlc.loadersz.Loader" in snippet
+    assert 'state="working"' in snippet or "state='working'" in snippet

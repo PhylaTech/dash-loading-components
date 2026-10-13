@@ -59,6 +59,7 @@ SIZE_PRESET_DEFAULT = 48
 WORKBENCH_PROP_PRIORITY = [
     "size", "height", "width", "color", "on_opacity", "off_color", "off_opacity", "rate", "playing",
     "grid_size", "gap", "effect", "shape", "glow", "min_opacity",
+    "density", "particle_radius", "theme", "hue", "force_motion",
     "easing", "cap", "sweep", "direction", "origin",
     "thickness", "stroke", "stroke_width", "stroke_width_secondary",
     "stroke_length", "bg_opacity", "secondary_color", "margin",
@@ -129,6 +130,11 @@ PROP_SECTION_TITLES = {
     "inactive": "Inactive cells",
     "inactive_opacity": "Inactive opacity",
     "min_opacity": "Dim opacity",
+    "density": "Density",
+    "particle_radius": "Particle radius",
+    "theme": "Theme",
+    "hue": "Hue",
+    "force_motion": "Force motion",
 }
 
 PROP_SECTION_COPY = {
@@ -200,6 +206,11 @@ PROP_SECTION_COPY = {
     "inactive": "How cells outside the pattern are drawn: dimmed, hidden altogether, or solid in the inactive color.",
     "inactive_opacity": "Opacity of the dimmed cells, from 0 to 1. Only applies while inactive cells are dimmed.",
     "min_opacity": "Opacity a lit cell falls to between its turns, from 0 to 1.",
+    "density": "Geometry detail multiplier. Upstream clamps it to 0.35-2. 1 is the native look.",
+    "particle_radius": "Particle thickness multiplier. Upstream clamps it to 0.5-2.5. 1 is the native look.",
+    "theme": "Canvas colour scheme. auto follows the browser prefers-color-scheme; dark and light pin it.",
+    "hue": "A single hue from 0 to 360 that recolours every particle. -1 keeps the loader's native palette. color overrides hue when both are set.",
+    "force_motion": "Keep animating even when the operating system asks for reduced motion.",
 }
 
 # Upstream tempo and pause props, replaced on the page by the contract's
@@ -374,6 +385,17 @@ GRIDORA_SPECS: dict[str, dict[str, Any]] = {
                   "default": "normal"},
 }
 
+# loadersz canvas knobs. hue -1 is upstream's "keep the native palette".
+LOADERSZ_SPECS: dict[str, dict[str, Any]] = {
+    "density": {"kind": "slider", "min": 0.35, "max": 2.0, "step": 0.05, "default": 1.0},
+    "particle_radius": {"kind": "slider", "min": 0.5, "max": 2.5, "step": 0.05, "default": 1.0},
+    "theme": {"kind": "enum", "options": ["auto", "dark", "light"],
+              "labels": {"auto": "Auto", "dark": "Dark", "light": "Light"},
+              "default": "auto"},
+    "hue": {"kind": "slider", "min": -1, "max": 360, "step": 1, "default": -1},
+    "force_motion": {"kind": "bool", "default": False},
+}
+
 
 def prop_spec(family: str, prop: str, name: str | None = None) -> dict[str, Any] | None:
     """Resolve control metadata for one prop of one spinner."""
@@ -389,6 +411,8 @@ def prop_spec(family: str, prop: str, name: str | None = None) -> dict[str, Any]
         return FLICKER_VARIANT_SPEC
     if family == "gridora" and prop in GRIDORA_SPECS:
         return GRIDORA_SPECS[prop]
+    if family == "loadersz" and prop in LOADERSZ_SPECS:
+        return LOADERSZ_SPECS[prop]
     return PROP_SPECS.get(prop)
 
 
@@ -463,11 +487,10 @@ GRIDORA_NO_OPS = frozenset({
 })
 IGNORED_PROPS.update({("gridora", name): GRIDORA_NO_OPS for name in dlc.gridora.MOTION_VARIANTS})
 
-LOADERSZ_NO_OPS = frozenset({
-    "state", "speed", "paused", "force_motion",
-    "size", "color", "hue", "density", "particle_radius", "theme", "rate",
-    "playing", "aria_label",
-})
+# A loadersz page *is* one semantic state, so `state` is the page, not a
+# control. Native `speed` and `paused` are already replaced by `rate` and
+# `playing` in configurable_props.
+LOADERSZ_NO_OPS = frozenset({"state"})
 IGNORED_PROPS.update({("loadersz", name): LOADERSZ_NO_OPS for name in dlc.loadersz.LOADER_STATES})
 
 
@@ -519,7 +542,10 @@ FAMILY_PROP_ORDER = {
     "epic": ["size", "color", "rate", "playing", "className"],
     "flicker": ["size", "color", "on_opacity", "off_color", "off_opacity", "rate", "playing", "variant", "rotate", "mirror", "reverse", "aria_label", "className"],
     "gridora": ["size", "color", "rate", "playing", "grid_size", "gap", "effect", "shape", "glow", "min_opacity", "easing", "direction", "className"],
-    "loadersz": ["size", "color", "rate", "playing", "density", "particle_radius", "theme", "hue", "aria_label", "className"],
+    "loadersz": [
+        "size", "color", "rate", "playing", "density", "particle_radius",
+        "theme", "hue", "force_motion", "aria_label", "className",
+    ],
 }
 
 
@@ -661,7 +687,7 @@ def parse_pathname(pathname: Optional[str]) -> tuple[str, Optional[str], Optiona
     pathname = unquote(pathname.rstrip("/") or "/")
     if pathname in ("/credits", "/licenses"):
         return "credits", None, None
-    m = re.match(r"^/c/([a-z0-9_]+)/([A-Za-z0-9_]+)$", pathname)
+    m = re.match(r"^/c/([a-z0-9_]+)/([A-Za-z0-9_-]+)$", pathname)
     if m:
         family, name = m.group(1), m.group(2)
         if (family, name) in COMPONENT_LOOKUP:
@@ -1271,6 +1297,9 @@ def section_copy(family: str, prop: str) -> str:
     if family == "gridora" and prop == "direction":
         return ("CSS animation-direction for the cells: normal plays each cycle forwards, "
                 "reverse plays it backwards, alternate turns round every other cycle.")
+    if family == "loadersz" and prop == "hue":
+        return ("A single hue from 0 to 360 that recolours every particle. -1 keeps the "
+                "loader's native palette. color overrides hue when both are set.")
     return PROP_SECTION_COPY.get(prop, f"Configurable `{prop}` for this wrapper.")
 
 

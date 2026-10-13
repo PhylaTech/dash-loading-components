@@ -54,7 +54,9 @@ Keyword arguments:
     Override reduced-motion preference.
 
 - hue (number; optional):
-    Overrides native colour palette with a single hue (0-360).
+    Overrides native colour palette with a single hue (0-360). -1
+    (upstream default) keeps the loader's own colours. `color` wins
+    over `hue` when both are set.
 
 - particle_radius (number; optional):
     Particle thickness multiplier. Clamped to 0.5-2.5 by upstream.

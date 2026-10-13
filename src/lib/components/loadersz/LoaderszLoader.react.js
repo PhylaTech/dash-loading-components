@@ -103,7 +103,11 @@ LoaderszLoader.propTypes = {
     particle_radius: PropTypes.number,
     /** Canvas colour scheme: "auto", "dark", or "light". Default "auto". */
     theme: PropTypes.oneOf(['auto', 'dark', 'light']),
-    /** Overrides native colour palette with a single hue (0-360). */
+    /**
+     * Overrides native colour palette with a single hue (0-360).
+     * -1 (upstream default) keeps the loader's own colours. `color` wins
+     * over `hue` when both are set.
+     */
     hue: PropTypes.number,
     /** CSS colour string. Overrides hue when set. */
     color: PropTypes.string,
