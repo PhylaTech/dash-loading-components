@@ -196,7 +196,8 @@ LOADERSZ_SAMPLE = ["working", "searching", "heatmapping", "orbiting", "sankeying
 def test_every_loadersz_control_changes_the_canvas(dash_duo):
     """The color is cleared first: it overrides hue and theme, which is why
     the page lets you clear it. rate and playing are checked in
-    test_contract.py, and a paused frame does not move with the tempo."""
+    test_contract.py, and a paused frame does not move with the tempo.
+    force_motion only matters to a visitor who asked for reduced motion."""
 
     def frame(name, values):
         sent = gallery.sent_values("loadersz", name, values)
@@ -209,7 +210,7 @@ def test_every_loadersz_control_changes_the_canvas(dash_duo):
         values = {**gallery.default_values("loadersz", name, props), "color": ""}
         probes += [(f"{name}/-", frame(name, values)), (f"{name}/=", frame(name, values))]
         for prop in props:
-            if prop in NOT_VISUAL | {"rate", "playing"}:
+            if prop in NOT_VISUAL | {"rate", "playing", "force_motion"}:
                 continue
             for i, option in enumerate(_as_list(_changed("loadersz", name, prop, values[prop]))):
                 probes.append((f"{name}/{prop}#{i}", frame(name, {**values, prop: option})))
