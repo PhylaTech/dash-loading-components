@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.3](https://github.com/PhylaTech/dash-loading-components/compare/0.1.2...0.1.3) (2026-10-14)
+
+
+### Features
+
+* add loadersz family ([#36](https://github.com/PhylaTech/dash-loading-components/issues/36)) ([de69ba1](https://github.com/PhylaTech/dash-loading-components/commit/de69ba1c98f365f0c6c8cc1b56d427508f20a975))
+* add thinking-orbs family ([#38](https://github.com/PhylaTech/dash-loading-components/issues/38)) ([a9a5f6d](https://github.com/PhylaTech/dash-loading-components/commit/a9a5f6da683311d2ca1817d632c8d375264ece0c))
+
 ## [0.1.2](https://github.com/PhylaTech/dash-loading-components/compare/0.1.1...0.1.2) (2026-09-29)
 
 
