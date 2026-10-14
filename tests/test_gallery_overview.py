@@ -203,3 +203,43 @@ def test_pages_load_without_console_errors(dash_duo):
         dash_duo.driver.get(dash_duo.server_url + path)
         dash_duo.wait_for_element(marker)
         assert dash_duo.get_logs() == [], path
+
+
+def test_custom_size_and_presets_stay_in_step(dash_duo):
+    """A preset writes its size into the px field; typing another size drops
+    the preset highlight and reaches the snippet."""
+    from selenium.webdriver.common.keys import Keys
+
+    app = import_app('gallery')
+    dash_duo.start_server(app)
+    dash_duo.driver.set_window_size(1440, 1200)
+    dash_duo.driver.get(dash_duo.server_url + '/c/ldrs/Ring')
+    dash_duo.wait_for_element('#detail-preview')
+
+    field = dash_duo.find_element('.dlc-size-field .dash-input-element')
+    checked = "return [...document.querySelectorAll('.mantine-SegmentedControl-input:checked')].map((i) => i.value)"
+    snippet = lambda: dash_duo.find_element('#detail-snippet').text
+    assert dash_duo.driver.execute_script(checked) == ['48']
+
+    field.send_keys(Keys.BACKSPACE * 4, '72')
+    dash_duo.wait_for_contains_text('#detail-snippet', 'size=72')
+    assert dash_duo.driver.execute_script(checked) == []
+
+    large = [l for l in dash_duo.driver.find_elements('css selector', '.mantine-SegmentedControl-label') if l.text == 'Large'][0]
+    large.click()
+    dash_duo.wait_for_contains_text('#detail-snippet', 'size=96')
+    assert field.get_attribute('value') == '96'
+    assert dash_duo.driver.execute_script(checked) == ['96']
+    assert dash_duo.get_logs() == []
+
+
+def test_sidebar_opens_only_the_current_family(dash_duo):
+    app = import_app('gallery')
+    dash_duo.start_server(app)
+    dash_duo.driver.set_window_size(1440, 1200)
+    dash_duo.driver.get(dash_duo.server_url + '/c/loadersz/heatmapping')
+    dash_duo.wait_for_element('#detail-preview')
+    time.sleep(0.5)
+    open_ = dash_duo.driver.execute_script(
+        "return [...document.querySelectorAll('#dlc-navbar details[open]')].map((d) => d.querySelector('summary').textContent.trim())")
+    assert open_ == ['loadersz160', 'Data visualizations51'], open_

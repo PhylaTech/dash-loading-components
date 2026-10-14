@@ -121,7 +121,7 @@
     target.scrollIntoView({block: 'start'});
   }).observe(document.documentElement, {childList: true, subtree: true});
 
-  // Keep the current component's nav link in view. Arriving on /c/epic/...
+  // Keep the current component's nav link in view, its family and category open. Arriving on /c/epic/...
   // from a search or a shared link otherwise leaves it 100 rows below the fold.
   let lastPath = null;
   new MutationObserver(() => {
@@ -129,6 +129,8 @@
     const active = document.querySelector('#dlc-navbar a[data-active]');
     if (!active || !active.getAttribute('href').endsWith(location.pathname)) return;
     lastPath = location.pathname;
+    // Families and categories start closed; open the ones holding this link.
+    for (let d = active.closest('details'); d; d = d.parentElement.closest('details')) d.open = true;
     active.scrollIntoView({block: 'nearest'});
   }).observe(document.documentElement, {subtree: true, attributes: true, attributeFilter: ['data-active']});
 

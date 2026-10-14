@@ -54,6 +54,7 @@ DEFAULT_SIZE = 48
 SIZE_PRESETS = [("Small", 24), ("Medium", 48), ("Large", 96)]
 SIZE_PRESET_VALUES = {v for _, v in SIZE_PRESETS}
 SIZE_PRESET_DEFAULT = 48
+SIZE_MIN, SIZE_MAX = 4, 512  # px bounds of the custom size field
 
 # Workbench control order (props not listed follow in family order)
 WORKBENCH_PROP_PRIORITY = [
@@ -1141,21 +1142,42 @@ def build_navbar() -> dmc.AppShellNavbar:
                     active="exact"),
     ]
     for key, label, items in FAMILIES:
+        def link(name: str) -> dmc.NavLink:
+            return dmc.NavLink(label=name, href=detail_path(key, name), active="exact",
+                               className="dlc-nav-link")
+
+        categories = family_categories(key, items)
+        if categories:
+            body = [
+                html.Details(
+                    [html.Summary([icon("chevron", "dlc-nav-chevron"), html.Span(title, style={"flex": 1}),
+                                   html.Span(str(len(names)), className="dlc-tabular")],
+                                  className="dlc-nav-cat-title"),
+                     *map(link, names)],
+                    className="dlc-nav-cat",
+                )
+                for title, _note, names in categories
+            ]
+        else:
+            body = [link(name) for name, _comp in items]
+        # Closed until the page is in the family: assets/gallery.js opens the
+        # family and category holding the current link.
         sections.append(
-            dmc.Group(
-                [icon(key), dmc.Text(label, size="xs", fw=600, tt="uppercase", c="dimmed"),
-                 dmc.Divider(style={"flex": 1}),
-                 dmc.Text(str(len(items)), size="xs", c="dimmed", className="dlc-tabular")],
-                gap=8,
-                wrap="nowrap",
-                className="dlc-nav-section",
+            html.Details(
+                [
+                    html.Summary(
+                        [icon(key), dmc.Text(label, size="xs", fw=600, tt="uppercase", c="dimmed",
+                                              className="dlc-nav-label"),
+                         dmc.Divider(style={"flex": 1, "minWidth": 12}),
+                         dmc.Text(str(len(items)), size="xs", c="dimmed", className="dlc-tabular"),
+                         icon("chevron", "dlc-nav-chevron")],
+                        className="dlc-nav-section", title=label,
+                    ),
+                    *body,
+                ],
+                className="dlc-nav-family",
             )
         )
-        sections += [
-            dmc.NavLink(label=name, href=detail_path(key, name), active="exact",
-                        className="dlc-nav-link")
-            for name, _comp in items
-        ]
     return dmc.AppShellNavbar(
         dmc.ScrollArea(sections, type="scroll", className="dlc-nav-scroll"),
         id="dlc-navbar",
@@ -1193,47 +1215,36 @@ def make_overview_card(family: str, name: str) -> dmc.Anchor:
     )
 
 
-def family_grids(key: str, items: list[tuple[str, Callable]]) -> list:
-    """One grid of cards, or, for flicker's presets, one per category."""
+def family_categories(key: str, items: list[tuple[str, Callable]]) -> list[tuple[str, str, list[str]]]:
+    """(title, note, names) per category for the families that group their
+    loaders (flicker, gridora, loadersz); empty for the rest."""
+    names = [n for n, _c in items]
     if key == "flicker":
-        grids = []
-        for i, (category, (title, note)) in enumerate(dlc.flicker.CATEGORIES.items()):
-            names = [n for n, _c in items if dlc.flicker.PRESETS[n].category == category]
-            grids += [
-                dmc.Group([dmc.Text(title, size="sm", fw=600), dmc.Text(note, size="sm", c="dimmed")],
-                          gap=6, className="dlc-subfamily is-first" if i == 0 else "dlc-subfamily"),
-                html.Div([make_overview_card(key, n) for n in names], className="dlc-grid"),
-            ]
-        return grids
-    if key == "gridora":
-        grids = []
-        item_names = {n for n, _c in items}
-        for i, (category, (title, note)) in enumerate(dlc.gridora.CATEGORIES.items()):
-            names = [n for n in dlc.gridora.MOTION_VARIANTS
-                     if dlc.gridora.VARIANT_CATEGORY.get(n) == category and n in item_names]
-            if not names:
-                continue
-            grids += [
-                dmc.Group([dmc.Text(title, size="sm", fw=600), dmc.Text(note, size="sm", c="dimmed")],
-                          gap=6, className="dlc-subfamily is-first" if i == 0 else "dlc-subfamily"),
-                html.Div([make_overview_card(key, n) for n in names], className="dlc-grid"),
-            ]
-        return grids
-    if key == "loadersz":
-        grids = []
-        item_names = {n for n, _c in items}
-        for i, (category, (title, note)) in enumerate(dlc.loadersz.CATEGORIES.items()):
-            names = [n for n in dlc.loadersz.LOADER_STATES
-                     if dlc.loadersz.STATE_CATEGORY.get(n) == category and n in item_names]
-            if not names:
-                continue
-            grids += [
-                dmc.Group([dmc.Text(title, size="sm", fw=600), dmc.Text(note, size="sm", c="dimmed")],
-                          gap=6, className="dlc-subfamily is-first" if i == 0 else "dlc-subfamily"),
-                html.Div([make_overview_card(key, n) for n in names], className="dlc-grid"),
-            ]
-        return grids
-    return [html.Div([make_overview_card(key, n) for n, _c in items], className="dlc-grid")]
+        categories, category_of = dlc.flicker.CATEGORIES, lambda n: dlc.flicker.PRESETS[n].category
+    elif key == "gridora":
+        categories, category_of = dlc.gridora.CATEGORIES, dlc.gridora.VARIANT_CATEGORY.get
+    elif key == "loadersz":
+        categories, category_of = dlc.loadersz.CATEGORIES, dlc.loadersz.STATE_CATEGORY.get
+    else:
+        return []
+    grouped = [(title, note, [n for n in names if category_of(n) == category])
+               for category, (title, note) in categories.items()]
+    return [g for g in grouped if g[2]]
+
+
+def family_grids(key: str, items: list[tuple[str, Callable]]) -> list:
+    """One grid of cards, or one per category for the families that have them."""
+    categories = family_categories(key, items)
+    if not categories:
+        return [html.Div([make_overview_card(key, n) for n, _c in items], className="dlc-grid")]
+    grids = []
+    for i, (title, note, names) in enumerate(categories):
+        grids += [
+            dmc.Group([dmc.Text(title, size="sm", fw=600), dmc.Text(note, size="sm", c="dimmed")],
+                      gap=6, className="dlc-subfamily is-first" if i == 0 else "dlc-subfamily"),
+            html.Div([make_overview_card(key, n) for n in names], className="dlc-grid"),
+        ]
+    return grids
 
 
 def build_overview() -> html.Div:
@@ -1317,7 +1328,7 @@ def workbench_control(prop: str, value: Any, family: str, props: list[str], name
     label = section_title(prop)
     spec = prop_spec(family, prop, name) or {"kind": "text", "default": ""}
     presets = prop == "size" and (family == "indicators" or uses_size_presets(family, props))
-    kind = "segmented" if presets else spec["kind"]
+    kind = "size" if presets and family != "indicators" else "segmented" if presets else spec["kind"]
     ctrl_id = {"type": "prop-ctrl", "prop": prop, "kind": kind}
 
     def segmented(options: list[tuple[str, str]], current: str):
@@ -1331,9 +1342,27 @@ def workbench_control(prop: str, value: Any, family: str, props: list[str], name
     if family == "indicators" and prop == "size":
         return segmented([("Small", "small"), ("Medium", "medium"), ("Large", "large")], value)
     if prop == "size" and uses_size_presets(family, props):
-        # SegmentedControl values are strings; _coerce_control_value turns them back.
-        preset = value if value in SIZE_PRESET_VALUES else SIZE_PRESET_DEFAULT
-        return segmented([(l, str(v)) for l, v in SIZE_PRESETS], str(preset))
+        # The number field is the control the callbacks read; the presets are
+        # shortcuts into it, and highlight only while it holds one of them
+        # (assets/gallery.js syncSize keeps the two in step).
+        current = int(value) if value not in (None, "") else SIZE_PRESET_DEFAULT
+        return dmc.Stack(
+            [dmc.Group(
+                [dmc.Text(label, size="sm", fw=500),
+                 html.Label(
+                     [dcc.Input(id=ctrl_id, type="number", value=current, min=SIZE_MIN, max=SIZE_MAX,
+                                step=1, debounce=0.4, className="dlc-size-field"),
+                      html.Span("px", className="dlc-size-unit", **{"aria-hidden": "true"}),
+                      html.Span("Custom size in pixels", className="dlc-sr-only")],
+                     className="dlc-size-input")],
+                justify="space-between", wrap="nowrap"),
+             dmc.SegmentedControl(
+                 id={"type": "size-preset", "prop": prop},
+                 data=[{"label": l, "value": str(v)} for l, v in SIZE_PRESETS],
+                 value=str(current) if current in SIZE_PRESET_VALUES else None,
+                 fullWidth=True, size="xs")],
+            gap=6,
+        )
 
     if kind == "slider":
         current = value if value is not None else spec["default"]
@@ -1724,7 +1753,9 @@ def _coerce_control_value(prop: str, raw: Any, family: str, name: str) -> Any:
     if family == "indicators" and prop == "size":
         return raw
     if prop == "size":
-        return int(float(raw)) if raw not in (None, "") else SIZE_PRESET_DEFAULT
+        if raw in (None, ""):
+            return SIZE_PRESET_DEFAULT
+        return min(max(int(float(raw)), SIZE_MIN), SIZE_MAX)
     if spec and spec["kind"] == "bool":
         return bool(raw)
     if spec and spec["kind"] == "slider":
@@ -1747,7 +1778,7 @@ def _control_values(family: str, name: str, props: list[str]) -> tuple[dict, dic
         if spec and spec["kind"] == "bool" and not (family == "indicators" and prop == "size"):
             switches[prop] = bool(v)
         elif prop == "size" and uses_size_presets(family, props):
-            values[prop] = str(v)
+            values[prop] = int(v)
         elif spec and spec["kind"] in ("text", "color"):
             values[prop] = v or ""
         elif spec and spec["kind"] == "enum":
@@ -1807,6 +1838,24 @@ clientside_callback(
     Output({"type": "color-chip", "prop": MATCH}, "style"),
     Input({"type": "color-swatch", "prop": MATCH}, "value"),
     Input({"type": "prop-ctrl", "prop": MATCH, "kind": "color"}, "value"),
+    prevent_initial_call=True,
+)
+
+# Size presets and the custom px field stay in step, in the browser: a preset
+# writes its size into the field, and the field lights a preset only while it
+# holds exactly that size.
+clientside_callback(
+    """(preset, typed) => {
+        const {no_update, callback_context} = window.dash_clientside;
+        const fromPreset = callback_context.triggered[0].prop_id.includes('size-preset');
+        if (fromPreset) return [preset ? Number(preset) : no_update, no_update];
+        const match = %s.includes(typed) ? String(typed) : null;
+        return [no_update, match];
+    }""" % json.dumps(sorted(SIZE_PRESET_VALUES)),
+    Output({"type": "prop-ctrl", "prop": MATCH, "kind": "size"}, "value", allow_duplicate=True),
+    Output({"type": "size-preset", "prop": MATCH}, "value"),
+    Input({"type": "size-preset", "prop": MATCH}, "value"),
+    Input({"type": "prop-ctrl", "prop": MATCH, "kind": "size"}, "value"),
     prevent_initial_call=True,
 )
 
