@@ -75,10 +75,10 @@ return Object.fromEntries([...document.querySelectorAll('[data-probe]')].map((e)
 # react-spinners' GridLoader draws random delays; pin them so two renders agree.
 SEEDED = "<head><script>Math.random = () => 0.5</script>"
 
-# m3 and loadersz draw on a canvas from requestAnimationFrame, so there is no
-# DOM state to compare. loadersz can be frozen, so it has its own pixel check
-# below; m3 cannot.
-UNINSPECTABLE_FAMILIES = {"m3", "loadersz"}
+# m3, loadersz and thinking_orbs draw on a canvas from requestAnimationFrame,
+# so there is no DOM state to compare. The last two can be frozen, so they have
+# their own pixel checks below; m3 cannot.
+UNINSPECTABLE_FAMILIES = {"m3", "loadersz", "thinking_orbs"}
 
 # Props that change behaviour but not a frame: an accessible name, and a class
 # that only does something once the page defines it.
@@ -186,33 +186,39 @@ def test_every_control_changes_the_spinner(dash_duo):
 FROZEN_CLOCK = "<head><script>Math.random = () => 0.5; performance.now = () => 1000</script>"
 
 CANVAS_PIXELS = """
-return Object.fromEntries([...document.querySelectorAll('[data-probe]')].map(
-  (e) => [e.dataset.probe, e.querySelector('canvas').toDataURL()]));
+// The bitmap and the box it is shown in: thinking_orbs scales one design to many sizes.
+return Object.fromEntries([...document.querySelectorAll('[data-probe]')].map((e) => {
+  const c = e.querySelector('canvas');
+  const r = c.getBoundingClientRect();
+  return [e.dataset.probe, c.toDataURL() + '@' + r.width + 'x' + r.height];
+}));
 """
 
 LOADERSZ_SAMPLE = ["working", "searching", "heatmapping", "orbiting", "sankeying"]
 
 
-def test_every_loadersz_control_changes_the_canvas(dash_duo):
-    """The color is cleared first: it overrides hue and theme, which is why
-    the page lets you clear it. rate and playing are checked in
-    test_contract.py, and a paused frame does not move with the tempo.
-    force_motion only matters to a visitor who asked for reduced motion."""
+def _check_canvas_controls(dash_duo, family, sample, skip, clear=()):
+    """Offer each control on a paused canvas and compare pixels with the page default.
+
+    A paused canvas holds one frame, so any control that moves it is live. The
+    clock is frozen, which also makes a tempo change show up as a different frame.
+    """
 
     def frame(name, values):
-        sent = gallery.sent_values("loadersz", name, values)
-        return gallery.instantiate("loadersz", name, {**sent, "playing": False})
+        sent = gallery.sent_values(family, name, values)
+        return gallery.instantiate(family, name, {**sent, "playing": False})
 
     probes = []
-    for name in LOADERSZ_SAMPLE:
-        component = gallery.COMPONENT_LOOKUP[("loadersz", name)]
-        props = gallery.configurable_props("loadersz", name, component)
-        values = {**gallery.default_values("loadersz", name, props), "color": ""}
+    offered = set()
+    for name in sample:
+        component = gallery.COMPONENT_LOOKUP[(family, name)]
+        props = gallery.configurable_props(family, name, component)
+        values = {**gallery.default_values(family, name, props), **{p: "" for p in clear}}
         probes += [(f"{name}/-", frame(name, values)), (f"{name}/=", frame(name, values))]
         for prop in props:
-            if prop in NOT_VISUAL | {"rate", "playing", "force_motion"}:
+            if prop in NOT_VISUAL | skip:
                 continue
-            for i, option in enumerate(_as_list(_changed("loadersz", name, prop, values[prop]))):
+            for i, option in enumerate(_as_list(_changed(family, name, prop, values[prop]))):
                 probes.append((f"{name}/{prop}#{i}", frame(name, {**values, prop: option})))
     app = Dash(__name__)
     app.index_string = app.index_string.replace("<head>", FROZEN_CLOCK, 1)
@@ -222,11 +228,32 @@ def test_every_loadersz_control_changes_the_canvas(dash_duo):
     dash_duo.driver.execute_script("return new Promise((r) => setTimeout(r, 1000));")
     pixels = dash_duo.driver.execute_script(CANVAS_PIXELS)
 
-    for name in LOADERSZ_SAMPLE:
+    for name in sample:
         assert pixels[f"{name}/-"] == pixels[f"{name}/="], f"{name}: a paused frame is not repeatable"
     tried = {key.split("#")[0] for key in pixels if "#" in key}
     live = {key.split("#")[0] for key, px in pixels.items()
             if "#" in key and px != pixels[key.split("/")[0] + "/-"]}
     assert not tried - live, f"controls that change nothing: {sorted(tried - live)}"
-    offered = {key.split("/")[1] for key in tried}
+    offered = {key.split("/")[1].split("#")[0] for key in tried}
+    return offered
+
+
+def test_every_loadersz_control_changes_the_canvas(dash_duo):
+    """The color is cleared first: it overrides hue and theme, which is why
+    the page lets you clear it. rate and playing are checked in
+    test_contract.py, and a paused frame does not move with the tempo.
+    force_motion only matters to a visitor who asked for reduced motion."""
+    offered = _check_canvas_controls(
+        dash_duo, "loadersz", LOADERSZ_SAMPLE, {"rate", "playing", "force_motion"}, clear=("color",))
     assert {"size", "color", "density", "particle_radius", "theme", "hue"} <= offered, offered
+
+
+THINKING_ORBS_SAMPLE = ["working", "searching", "solving", "breathing", "shaping"]
+
+
+def test_every_thinking_orbs_control_changes_the_canvas(dash_duo):
+    """Every control the page offers moves a paused frame. rate counts: the
+    frame drawn is the clock times the speed. playing is checked in
+    test_contract.py."""
+    offered = _check_canvas_controls(dash_duo, "thinking_orbs", THINKING_ORBS_SAMPLE, {"playing"})
+    assert {"size", "color", "rate", "theme", "dots", "dot_size"} <= offered, offered

@@ -110,6 +110,7 @@ import FlickerSpinner from './components/flicker/FlickerSpinner.react';
 import GridoraGridLoader from './components/gridora/GridoraGridLoader.react';
 import GridoraText from './components/gridora/GridoraText.react';
 import LoaderszLoader from './components/loadersz/LoaderszLoader.react';
+import ThinkingOrbsOrb from './components/thinking_orbs/ThinkingOrbsOrb.react';
 
 export {
     LoadingDevArc,
@@ -222,5 +223,6 @@ export {
     FlickerSpinner,
     GridoraGridLoader,
     GridoraText,
-    LoaderszLoader
+    LoaderszLoader,
+    ThinkingOrbsOrb
 };

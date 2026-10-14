@@ -109,6 +109,7 @@ from .SpinnersReactSpinnerInfinity import SpinnersReactSpinnerInfinity
 from .SpinnersReactSpinnerRound import SpinnersReactSpinnerRound
 from .SpinnersReactSpinnerRoundFilled import SpinnersReactSpinnerRoundFilled
 from .SpinnersReactSpinnerRoundOutlined import SpinnersReactSpinnerRoundOutlined
+from .ThinkingOrbsOrb import ThinkingOrbsOrb
 
 __all__ = [
     "EpicAtomSpinner",
@@ -221,5 +222,6 @@ __all__ = [
     "SpinnersReactSpinnerInfinity",
     "SpinnersReactSpinnerRound",
     "SpinnersReactSpinnerRoundFilled",
-    "SpinnersReactSpinnerRoundOutlined"
+    "SpinnersReactSpinnerRoundOutlined",
+    "ThinkingOrbsOrb"
 ]

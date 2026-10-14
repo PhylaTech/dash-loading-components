@@ -33,8 +33,9 @@
   // A small live preview beside each result. Almost every loader is already in
   // the page, hidden, as a brand-mark slot: clone that. loadersz is not (its
   // canvases never stop animating), so it is made on the spot. What has
-  // neither (m3 draws from React, a few loaders overflow the slot) gets its
-  // family icon, which is also what library and page rows show.
+  // neither (m3 and thinking_orbs draw from React, so there is no element to
+  // create here; a few loaders overflow the slot) gets its family icon, which
+  // is also what library and page rows show.
   const iconFor = (href) => {
     const family = href.match(/^\/(?:c\/([^/]+)\/.*|#family-(.+))$/);
     return (family && (family[1] || family[2])) || (href === '/credits' ? 'credits' : 'overview');
