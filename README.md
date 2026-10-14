@@ -1,7 +1,7 @@
 # dash-loading-components (`dlc`)
 
-Loading indicators for [Plotly Dash](https://dash.plotly.com), wrapping twelve
-React spinner libraries as one install. 461 components under stable namespaces,
+Loading indicators for [Plotly Dash](https://dash.plotly.com), wrapping thirteen
+React spinner libraries as one install. 470 components under stable namespaces,
 with a common factory over the top so you can switch families without
 relearning each one's props.
 
@@ -44,7 +44,7 @@ dcc.Loading(children, custom_spinner=dlc.ldrs.Ring(size=48))
 Discover what is available at runtime:
 
 ```python
-dlc.list_libraries()          # ['loading_dev', 'ldrs', 'spinners', ..., 'gridora', 'loadersz']
+dlc.list_libraries()          # ['loading_dev', 'ldrs', 'spinners', ..., 'gridora', 'loadersz', 'thinking_orbs']
 dlc.list_spinners("ldrs")     # ['Ring', 'Helix', 'DotPulse', ...]
 dlc.list_spinners("loadersz") # ['working', 'searching', 'connecting', ...]
 ```
@@ -75,6 +75,7 @@ resolve it; it will accept the final 4.5 release once published.
 | `flicker` | [flicker-dot](https://www.npmjs.com/package/flicker-dot) | 61 |
 | `gridora` | [gridora](https://www.npmjs.com/package/gridora) | 133 |
 | `loadersz` | [loadersz](https://www.npmjs.com/package/loadersz) | 160 |
+| `thinking_orbs` | [thinking-orbs](https://www.npmjs.com/package/thinking-orbs) | 9 |
 
 ## Flip-dot presets
 
@@ -144,6 +145,42 @@ dlc.loadersz.Loader(state="working", hue=200, density=1.5)
 off to get loadersz's own palette (grey, or a loader's own tones), tinted by
 `hue` (0 to 360) and drawn for a light or dark page by `theme` (`"auto"`
 follows the operating system, not the page).
+
+## Agent status orbs
+
+thinking-orbs draws nine states an AI or agent can be in as dotted spheres on a
+plain 2D canvas: `working`, `searching`, `solving`, `listening`, `connecting`,
+`weaving`, `composing`, `breathing` and `shaping`. `dlc.thinking_orbs.Orb`
+renders any of them; the state is a prop, so there is no
+`dlc.thinking_orbs.working`.
+
+```python
+dlc.thinking_orbs.Orb(state="searching")
+dlc.thinking_orbs.Orb(state="solving", size=20, color="#f97316", rate=1.5)
+```
+
+- **`size` is any pixel size, drawn from one of three designs.** Upstream hand-tunes
+  the orb at 64 (chat avatar), 32 and 20 (inline text) with separate dot counts,
+  dot sizes and speeds, and fails on any other size. `dlc` draws the nearest design
+  (by ratio) and scales the canvas to `size`: 48 is the 64 design a little smaller,
+  24 the 20 design a little larger. Sizes above 64 upscale the 64 design and soften.
+  Upstream documents 64 and 20; its 32 is interpolated from them and has had no tuning
+  pass of its own. `size` defaults to 64.
+- **`color` tints the ink; leave it off for monochrome.** Upstream's stock ink is
+  grey, light on dark pages and dark on light ones. `color` takes `#rgb`, `#rrggbb`
+  or `rgb(r, g, b)` only (any other CSS color syntax is ignored, so `"orange"`
+  keeps the grey) and keeps the orb's depth shading on the tint.
+- **`theme="auto"` follows the page.** Upstream resolves auto from an ancestor
+  `data-theme` attribute or `dark` / `light` class, else the operating system.
+  Mantine sets neither, so `dlc` mirrors `data-mantine-color-scheme` from `<html>`
+  onto the orb while that attribute is present: in a `dash-mantine-components` app
+  the orbs follow its color scheme toggle live. Pin `theme="dark"` or `"light"` for
+  a fixed ink.
+- `dots` and `dot_size` are upstream's density and dot radius multipliers (1 is the
+  tuned look). `rate` is upstream's `speed`, a multiplier on each state's own tempo,
+  and `playing=False` freezes the frame (upstream `paused`). The orb pauses by itself
+  while offscreen or in a hidden tab and draws one still frame under
+  `prefers-reduced-motion`.
 
 Every component is also exported prefixed at the top level
 (`dlc.LoadingDevArc`, `dlc.LdrsRing`) for Dash callbacks that want a flat name.

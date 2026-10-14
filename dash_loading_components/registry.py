@@ -21,6 +21,7 @@ from . import (
     premium,
     spinners,
     spinners_react,
+    thinking_orbs,
 )
 
 FAMILIES: list[tuple[str, str, list[tuple[str, Callable]]]] = [
@@ -200,6 +201,12 @@ FAMILIES: list[tuple[str, str, list[tuple[str, Callable]]]] = [
         "loadersz",
         [(s, lambda state=s, **kw: loadersz.Loader(state=state, **kw))
          for s in loadersz.LOADER_STATES],
+    ),
+    (
+        "thinking_orbs",
+        "thinking-orbs",
+        [(s, lambda state=s, **kw: thinking_orbs.Orb(state=state, **kw))
+         for s in thinking_orbs.ORB_STATES],
     ),
 ]
 

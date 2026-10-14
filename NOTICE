@@ -38,6 +38,10 @@ Notable upstream projects (non-exhaustive; see inventory for pins and status):
     canvas renderer with Dot/OrbLine/OrbRect/OrbArc primitives, while
     thinking-orbs is a React-only 3D dotted-sphere renderer. The shared names
     describe common AI/agent activity verbs. No code or assets are copied.
+  - thinking-orbs (Jakubantalik/Libraries.dev) -- MIT. Nine dotted-sphere canvas
+    orbs for AI and agent status, wrapped as dlc.thinking_orbs.Orb. Not to be
+    confused with the unrelated @yogesharc/thinking-orbs package, which is not
+    wrapped.
 
 Hard skips (not wrapped): css-spinners (GPL-3.0), react18-loaders (MPL-2.0).
 

@@ -60,7 +60,7 @@ SIZE_MIN, SIZE_MAX = 4, 512  # px bounds of the custom size field
 WORKBENCH_PROP_PRIORITY = [
     "size", "height", "width", "color", "on_opacity", "off_color", "off_opacity", "rate", "playing",
     "grid_size", "gap", "effect", "shape", "glow", "min_opacity",
-    "density", "particle_radius", "theme", "hue", "force_motion",
+    "density", "particle_radius", "theme", "hue", "force_motion", "dots",
     "easing", "cap", "sweep", "direction", "origin",
     "thickness", "stroke", "stroke_width", "stroke_width_secondary",
     "stroke_length", "bg_opacity", "secondary_color", "margin",
@@ -136,6 +136,7 @@ PROP_SECTION_TITLES = {
     "theme": "Theme",
     "hue": "Hue",
     "force_motion": "Force motion",
+    "dots": "Dots",
 }
 
 PROP_SECTION_COPY = {
@@ -212,6 +213,7 @@ PROP_SECTION_COPY = {
     "theme": "Canvas colour scheme. auto follows the browser prefers-color-scheme; dark and light pin it.",
     "hue": "A single hue from 0 to 360 that recolours every particle. -1 keeps the loader's native palette. color overrides hue when both are set.",
     "force_motion": "Keep animating even when the operating system asks for reduced motion.",
+    "dots": "Dot-count multiplier. 1 is the tuned look.",
 }
 
 # Upstream tempo and pause props, replaced on the page by the contract's
@@ -400,8 +402,25 @@ LOADERSZ_SPECS: dict[str, dict[str, Any]] = {
 }
 
 
+# thinking-orbs knobs. Its ink is stock grey until `color` tints it, and
+# `dot_size` is a radius multiplier where premium's is a diameter in px.
+THINKING_ORBS_SPECS: dict[str, dict[str, Any]] = {
+    "theme": LOADERSZ_SPECS["theme"],
+    "color": {"kind": "color", "default": ""},
+    "dots": {"kind": "slider", "min": 0.25, "max": 2.0, "step": 0.05, "default": 1.0},
+    "dot_size": {"kind": "slider", "min": 0.5, "max": 2.0, "step": 0.05, "default": 1.0},
+    "rate": {"kind": "slider", "min": 0.35, "max": 3.0, "step": 0.05, "default": 1.0},
+}
+
+
 def prop_spec(family: str, prop: str, name: str | None = None) -> dict[str, Any] | None:
     """Resolve control metadata for one prop of one spinner."""
+    if family == "thinking_orbs" and prop in THINKING_ORBS_SPECS:
+        return THINKING_ORBS_SPECS[prop]
+    if family == "thinking_orbs" and prop == "aria_label":
+        # Upstream's per-state default is what an empty field leaves in place.
+        label = "Thinking…" if name == "breathing" else f"{name.capitalize()}…"
+        return {"kind": "text", "default": "", "placeholder": label}
     if family == "loadersz" and prop in LOADERSZ_SPECS:
         return LOADERSZ_SPECS[prop]
     if prop == "rate":
@@ -496,6 +515,10 @@ IGNORED_PROPS.update({("gridora", name): GRIDORA_NO_OPS for name in dlc.gridora.
 LOADERSZ_NO_OPS = frozenset({"state"})
 IGNORED_PROPS.update({("loadersz", name): LOADERSZ_NO_OPS for name in dlc.loadersz.LOADER_STATES})
 
+# Same for thinking_orbs: a page is one state. Native `speed` and `paused` give
+# way to `rate` and `playing` in configurable_props.
+IGNORED_PROPS.update({("thinking_orbs", name): frozenset({"state"}) for name in dlc.thinking_orbs.ORB_STATES})
+
 
 # Where a spinner's own default differs from the family-wide PROP_SPECS one.
 # Controls start here, so the page shows what `dlc.<family>.<Name>()` renders;
@@ -518,6 +541,8 @@ UPSTREAM_DEFAULTS: dict[tuple[str, str], dict[str, Any]] = {
     ("premium", "OrbitDots"): {"dot_count": 4, "dot_size": 8, "orbit_radius": 0.4},
     # A skeleton shimmer, so it keeps upstream's greys rather than the accent.
     ("premium", "ShimmerBox"): {"color": "#e5e7eb", "secondary_color": "#f3f4f6"},
+    # The size upstream draws at with none given: its chat-avatar design.
+    **{("thinking_orbs", name): {"size": 64} for name in dlc.thinking_orbs.ORB_STATES},
 }
 
 # Props the gallery always passes, even at their default: the spinner's size
@@ -549,6 +574,7 @@ FAMILY_PROP_ORDER = {
         "size", "color", "rate", "playing", "density", "particle_radius",
         "theme", "hue", "force_motion", "aria_label", "className",
     ],
+    "thinking_orbs": ["size", "color", "rate", "playing", "theme", "dots", "dot_size", "aria_label", "className"],
 }
 
 
@@ -648,6 +674,16 @@ UPSTREAM_CREDITS = [
         "status": "mvp",
     },
     {
+        "family": "thinking_orbs", "npm": "thinking-orbs", "version": "0.3.2", "spdx": "MIT",
+        "homepage": "https://libraries.dev/orbs",
+        "repo": "https://github.com/Jakubantalik/Libraries.dev/tree/main/packages/thinking-orbs",
+        "blurb": (
+            "Nine dotted-sphere canvas orbs for AI and agent status: working, searching, solving "
+            "and six more. Monochrome until tinted. dlc.thinking_orbs.Orb(state=...)."
+        ),
+        "status": "mvp",
+    },
+    {
         "family": "svg_spinners", "npm": "react-svg-spinners", "version": "0.3.1", "spdx": "MIT",
         "homepage": "https://www.npmjs.com/package/react-svg-spinners",
         "repo": "https://github.com/theme-park/react-svg-spinners",
@@ -667,6 +703,20 @@ CATALOG: list[tuple[str, str]] = [
 # Values: controls → what the spinner is given
 # ---------------------------------------------------------------------------
 
+# What each thinking-orbs state draws, from the package's README.
+THINKING_ORBS_BLURBS = {
+    "working": "Particles on tilted orbits.",
+    "searching": "A scan meridian sweeping a dotted globe.",
+    "solving": "Bands that scramble in quarter turns, then click back into place.",
+    "listening": "A waveform rolling through latitude rings.",
+    "connecting": "A constellation that wires itself, packets running its edges.",
+    "weaving": "Three strands plaiting around the sphere.",
+    "composing": "An undulating multi-band sash.",
+    "breathing": "A face-on ring slowly morphing.",
+    "shaping": "A dotted outline morphing from circle to triangle to square.",
+}
+
+
 def description_for(family: str, name: str, upstream: str) -> str:
     if family == "loading_dev" and name in LOADING_DEV_BLURBS:
         return LOADING_DEV_BLURBS[name]
@@ -676,6 +726,8 @@ def description_for(family: str, name: str, upstream: str) -> str:
         return f"The {name} grid-dot animation pattern from gridora."
     if family == "loadersz":
         return f"The {name} canvas loader from loadersz."
+    if family == "thinking_orbs":
+        return THINKING_ORBS_BLURBS[name]
     return f"The {name} loader from {upstream}, as a Dash component."
 
 
@@ -756,7 +808,8 @@ def sent_values(family: str, name: str, values: dict[str, Any]) -> dict[str, Any
     defaults = default_values(family, name, list(values))
     # loadersz color/hue are palette overrides. Sending the gallery accent
     # would recolour every state and make the hue control a no-op.
-    keep = frozenset({"size"}) if family == "loadersz" else ALWAYS_SENT
+    # thinking-orbs is stock grey until tinted, so its color is sent only once set.
+    keep = frozenset({"size"}) if family in ("loadersz", "thinking_orbs") else ALWAYS_SENT
     return {
         k: v
         for k, v in values.items()
@@ -810,6 +863,8 @@ def call_signature(family: str, name: str) -> tuple[str, dict[str, Any]]:
         return f"dlc.{family}.GridLoader", {"variant": name}
     if family == "loadersz":
         return f"dlc.{family}.Loader", {"state": name}
+    if family == "thinking_orbs":
+        return f"dlc.{family}.Orb", {"state": name}
     return f"dlc.{family}.{name}", {}
 
 
@@ -915,6 +970,8 @@ MARK_SKIP = {
     ("epic", "HollowDotsSpinner"),
     # 160 canvases the library never stops animating, even when hidden.
     *(("loadersz", state) for state in dlc.loadersz.LOADER_STATES),
+    # Canvases too, and the orbs have no 20px design that reads as a mark.
+    *(("thinking_orbs", state) for state in dlc.thinking_orbs.ORB_STATES),
 }
 
 
@@ -1302,6 +1359,25 @@ def section_title(prop: str) -> str:
     return PROP_SECTION_TITLES.get(prop, prop)
 
 
+THINKING_ORBS_COPY = {
+    "size": (
+        "The orb's side in pixels. Upstream has three designs, at 64, 32 and 20, and no sizes between: "
+        "the nearest one is drawn and scaled to this size, so 48 is the 64 design a little smaller, "
+        "and anything above 64 upscales it and softens. Defaults to 64."
+    ),
+    "color": (
+        "Tints the ink, as #rgb, #rrggbb or rgb(r, g, b); other CSS color syntax is ignored. The depth "
+        "shading is kept on the tint. Empty keeps the stock monochrome ink."
+    ),
+    "theme": (
+        "Dark is light ink for dark pages, light is dark ink for light pages. Auto follows an ancestor "
+        "data-theme or dark/light class, the Mantine color scheme, or else the operating system."
+    ),
+    "dots": "Dot-count multiplier, keeping the state's balance. 1 is the tuned look.",
+    "dot_size": "Dot-radius multiplier. 1 is the tuned look; below reads finer, above bolder.",
+}
+
+
 def section_copy(family: str, prop: str) -> str:
     if family == "indicators" and prop == "size":
         return "A size token: small, medium or large."
@@ -1321,6 +1397,10 @@ def section_copy(family: str, prop: str) -> str:
     if family == "loadersz" and prop == "color":
         return ("A CSS colour that recolours every particle. Empty keeps the loader's "
                 "native palette. When set, it overrides hue.")
+    if family == "thinking_orbs":
+        copy = THINKING_ORBS_COPY.get(prop)
+        if copy:
+            return copy
     return PROP_SECTION_COPY.get(prop, f"Configurable `{prop}` for this wrapper.")
 
 

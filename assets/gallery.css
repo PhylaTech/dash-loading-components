@@ -41,6 +41,7 @@ p { text-wrap: pretty; }
 .dlc-icon-flicker { --dlc-icon: url(icons/flicker.svg); }
 .dlc-icon-gridora { --dlc-icon: url(icons/gridora.svg); }
 .dlc-icon-loadersz { --dlc-icon: url(icons/loadersz.svg); }
+.dlc-icon-thinking_orbs { --dlc-icon: url(icons/thinking_orbs.svg); }
 .dlc-icon-overview { --dlc-icon: url(icons/overview.svg); }
 .dlc-icon-credits { --dlc-icon: url(icons/credits.svg); }
 .dlc-icon-request { --dlc-icon: url(icons/request.svg); }

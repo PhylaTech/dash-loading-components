@@ -60,7 +60,7 @@ return out;
 """
 
 # Tempo is drawn on a canvas by requestAnimationFrame; nothing to measure.
-NO_CSS_TEMPO = {"m3", "loadersz"}
+NO_CSS_TEMPO = {"m3", "loadersz", "thinking_orbs"}
 # No tempo prop upstream: rate is documented as a no-op here.
 NO_TEMPO = {"loader_spinner"}
 # Native `speedPlus` is a coarse integer offset, so 2.0 maps to +5, not an exact halving.
@@ -156,6 +156,7 @@ def test_playing_false_stops_every_spinner(dash_duo):
 _CANVAS_FAMILY_PROBES = {
     "m3": lambda: dlc.m3.LoadingIndicator(rate=2.0, playing=False),
     "loadersz": lambda: dlc.loadersz.Loader(state="working", rate=2.0, playing=False),
+    "thinking_orbs": lambda: dlc.thinking_orbs.Orb(state="working", rate=2.0, playing=False),
 }
 
 

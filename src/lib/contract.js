@@ -60,6 +60,7 @@ const TEMPO = {
     flicker: {prop: 'speed', of: (rate) => rate},
     gridora: {prop: 'speed', of: (rate) => 1.0 / rate},
     loadersz: {prop: 'speed', of: (rate) => rate},
+    thinking_orbs: {prop: 'speed', of: (rate) => rate},
     spinners: {prop: 'speedMultiplier', of: (rate) => rate},
     spinners_react: {prop: 'speed', of: (rate) => 100 * rate},
     // speedPlus: 0 = normal, one step per fifth of the rate either way.
@@ -77,6 +78,7 @@ const PLAY = {
     m3: {prop: 'paused', of: (playing) => !playing},
     gridora: {prop: 'paused', of: (playing) => !playing},
     loadersz: {prop: 'paused', of: (playing) => !playing},
+    thinking_orbs: {prop: 'paused', of: (playing) => !playing},
     spinners_react: {prop: 'still', of: (playing) => !playing},
 };
 
