@@ -113,10 +113,19 @@ html[data-mac] .dlc-mod-other, html:not([data-mac]) .dlc-mod-mac { display: none
   border-radius: var(--mantine-radius-md); box-shadow: var(--mantine-shadow-md);
 }
 .dlc-search-option {
-  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
-  padding: 8px 10px; border-radius: var(--mantine-radius-sm);
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 10px; border-radius: var(--mantine-radius-sm);
   color: var(--mantine-color-text); font-size: 14px; text-decoration: none;
 }
+/* Same slot as the brand mark, so a cloned mark sits in it unchanged. */
+.dlc-search-preview {
+  position: relative; display: inline-flex; flex-shrink: 0; width: 24px; height: 24px;
+  align-items: center; justify-content: center; overflow: hidden; color: var(--dlc-accent);
+}
+.dlc-search-preview .dlc-icon { width: 16px; height: 16px; color: var(--mantine-color-dimmed); }
+/* The element sets inline-block itself; its canvas would sit on a text baseline. */
+.dlc-search-preview loadersz-loader { display: flex !important; }
+.dlc-search-title { flex: 1; min-width: 0; }
 .dlc-search-option[data-active] { background: var(--mantine-color-default-hover); }
 .dlc-search-group { font-size: 12px; color: var(--mantine-color-dimmed); font-family: var(--mantine-font-family-monospace); }
 .dlc-search-empty { padding: 10px; font-size: 14px; color: var(--mantine-color-dimmed); }

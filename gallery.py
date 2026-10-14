@@ -929,6 +929,7 @@ def build_brand_mark() -> html.Span:
         marks.append(html.Span(
             node, className="dlc-mark", title=call_signature(family, name)[0], hidden=True,
             style={"--mark-scale": scale} if scale else None,
+            **{"data-family": family, "data-name": name},
         ))
     return html.Span(marks, className="dlc-brand-mark", **{"aria-hidden": "true"})
 

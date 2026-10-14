@@ -183,6 +183,18 @@ def test_header_search_jumps_to_a_component(dash_duo):
     names = [o.text for o in options]
     assert names == expected, names
 
+    # Rows in view get a preview: a cloned loader, a loadersz element, or the
+    # family icon where neither exists (m3 draws from React).
+    for _ in range(40):
+        filled = dash_duo.driver.execute_script(
+            "return [...document.querySelectorAll('.dlc-search-preview')].filter((s) => s.firstChild).length")
+        if filled >= 9:
+            break
+        time.sleep(0.1)
+    assert filled >= 9, filled
+    assert dash_duo.driver.execute_script(
+        "return !!document.querySelector('.dlc-search-preview loadersz-loader')")
+
     search.send_keys(Keys.ARROW_DOWN, Keys.ENTER)
     dash_duo.wait_for_text_to_equal('h1', 'Orbit')
     assert dash_duo.driver.current_url.endswith('/c/ldrs/Orbit')
