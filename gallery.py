@@ -54,11 +54,13 @@ DEFAULT_SIZE = 48
 SIZE_PRESETS = [("Small", 24), ("Medium", 48), ("Large", 96)]
 SIZE_PRESET_VALUES = {v for _, v in SIZE_PRESETS}
 SIZE_PRESET_DEFAULT = 48
+SIZE_MIN, SIZE_MAX = 4, 512  # px bounds of the custom size field
 
 # Workbench control order (props not listed follow in family order)
 WORKBENCH_PROP_PRIORITY = [
     "size", "height", "width", "color", "on_opacity", "off_color", "off_opacity", "rate", "playing",
     "grid_size", "gap", "effect", "shape", "glow", "min_opacity",
+    "density", "particle_radius", "theme", "hue", "force_motion",
     "easing", "cap", "sweep", "direction", "origin",
     "thickness", "stroke", "stroke_width", "stroke_width_secondary",
     "stroke_length", "bg_opacity", "secondary_color", "margin",
@@ -129,6 +131,11 @@ PROP_SECTION_TITLES = {
     "inactive": "Inactive cells",
     "inactive_opacity": "Inactive opacity",
     "min_opacity": "Dim opacity",
+    "density": "Density",
+    "particle_radius": "Particle radius",
+    "theme": "Theme",
+    "hue": "Hue",
+    "force_motion": "Force motion",
 }
 
 PROP_SECTION_COPY = {
@@ -200,6 +207,11 @@ PROP_SECTION_COPY = {
     "inactive": "How cells outside the pattern are drawn: dimmed, hidden altogether, or solid in the inactive color.",
     "inactive_opacity": "Opacity of the dimmed cells, from 0 to 1. Only applies while inactive cells are dimmed.",
     "min_opacity": "Opacity a lit cell falls to between its turns, from 0 to 1.",
+    "density": "Geometry detail multiplier. Upstream clamps it to 0.35-2. 1 is the native look.",
+    "particle_radius": "Particle thickness multiplier. Upstream clamps it to 0.5-2.5. 1 is the native look.",
+    "theme": "Canvas colour scheme. auto follows the browser prefers-color-scheme; dark and light pin it.",
+    "hue": "A single hue from 0 to 360 that recolours every particle. -1 keeps the loader's native palette. color overrides hue when both are set.",
+    "force_motion": "Keep animating even when the operating system asks for reduced motion.",
 }
 
 # Upstream tempo and pause props, replaced on the page by the contract's
@@ -374,9 +386,24 @@ GRIDORA_SPECS: dict[str, dict[str, Any]] = {
                   "default": "normal"},
 }
 
+# loadersz canvas knobs. hue -1 and an empty color keep the native palette.
+LOADERSZ_SPECS: dict[str, dict[str, Any]] = {
+    "density": {"kind": "slider", "min": 0.35, "max": 2.0, "step": 0.05, "default": 1.0},
+    "particle_radius": {"kind": "slider", "min": 0.5, "max": 2.5, "step": 0.05, "default": 1.0},
+    "theme": {"kind": "enum", "options": ["auto", "dark", "light"],
+              "labels": {"auto": "Auto", "dark": "Dark", "light": "Light"},
+              "default": "auto"},
+    "hue": {"kind": "slider", "min": -1, "max": 360, "step": 1, "default": -1},
+    "color": {"kind": "color", "default": ""},
+    "force_motion": {"kind": "bool", "default": False},
+    "rate": {"kind": "slider", "min": 0.35, "max": 3.0, "step": 0.05, "default": 1.0},
+}
+
 
 def prop_spec(family: str, prop: str, name: str | None = None) -> dict[str, Any] | None:
     """Resolve control metadata for one prop of one spinner."""
+    if family == "loadersz" and prop in LOADERSZ_SPECS:
+        return LOADERSZ_SPECS[prop]
     if prop == "rate":
         return RATE_SPEC
     if prop == "easing" and family == "indicators":
@@ -463,6 +490,12 @@ GRIDORA_NO_OPS = frozenset({
 })
 IGNORED_PROPS.update({("gridora", name): GRIDORA_NO_OPS for name in dlc.gridora.MOTION_VARIANTS})
 
+# A loadersz page *is* one semantic state, so `state` is the page, not a
+# control. Native `speed` and `paused` are already replaced by `rate` and
+# `playing` in configurable_props.
+LOADERSZ_NO_OPS = frozenset({"state"})
+IGNORED_PROPS.update({("loadersz", name): LOADERSZ_NO_OPS for name in dlc.loadersz.LOADER_STATES})
+
 
 # Where a spinner's own default differs from the family-wide PROP_SPECS one.
 # Controls start here, so the page shows what `dlc.<family>.<Name>()` renders;
@@ -512,6 +545,10 @@ FAMILY_PROP_ORDER = {
     "epic": ["size", "color", "rate", "playing", "className"],
     "flicker": ["size", "color", "on_opacity", "off_color", "off_opacity", "rate", "playing", "variant", "rotate", "mirror", "reverse", "aria_label", "className"],
     "gridora": ["size", "color", "rate", "playing", "grid_size", "gap", "effect", "shape", "glow", "min_opacity", "easing", "direction", "className"],
+    "loadersz": [
+        "size", "color", "rate", "playing", "density", "particle_radius",
+        "theme", "hue", "force_motion", "aria_label", "className",
+    ],
 }
 
 
@@ -600,6 +637,17 @@ UPSTREAM_CREDITS = [
         "status": "mvp",
     },
     {
+        "family": "loadersz", "npm": "loadersz", "version": "0.9.0", "spdx": "MIT",
+        "homepage": "https://loadersz.vercel.app",
+        "repo": "https://github.com/lumberjacque/loadersz-core",
+        "blurb": (
+            "160 canvas-based loaders as a Web Component. "
+            "Includes chart-shaped loaders (heatmap, sankey, treemap, bar chart) suited for Dash. "
+            "dlc.loadersz.Loader(state=...)."
+        ),
+        "status": "mvp",
+    },
+    {
         "family": "svg_spinners", "npm": "react-svg-spinners", "version": "0.3.1", "spdx": "MIT",
         "homepage": "https://www.npmjs.com/package/react-svg-spinners",
         "repo": "https://github.com/theme-park/react-svg-spinners",
@@ -626,6 +674,8 @@ def description_for(family: str, name: str, upstream: str) -> str:
         return dlc.flicker.PRESETS[name].blurb
     if family == "gridora":
         return f"The {name} grid-dot animation pattern from gridora."
+    if family == "loadersz":
+        return f"The {name} canvas loader from loadersz."
     return f"The {name} loader from {upstream}, as a Dash component."
 
 
@@ -640,7 +690,7 @@ def parse_pathname(pathname: Optional[str]) -> tuple[str, Optional[str], Optiona
     pathname = unquote(pathname.rstrip("/") or "/")
     if pathname in ("/credits", "/licenses"):
         return "credits", None, None
-    m = re.match(r"^/c/([a-z0-9_]+)/([A-Za-z0-9_]+)$", pathname)
+    m = re.match(r"^/c/([a-z0-9_]+)/([A-Za-z0-9_-]+)$", pathname)
     if m:
         family, name = m.group(1), m.group(2)
         if (family, name) in COMPONENT_LOOKUP:
@@ -704,7 +754,9 @@ def sent_values(family: str, name: str, values: dict[str, Any]) -> dict[str, Any
     overview card render exactly what `dlc.<family>.<Name>()` does.
     """
     defaults = default_values(family, name, list(values))
-    keep = ALWAYS_SENT
+    # loadersz color/hue are palette overrides. Sending the gallery accent
+    # would recolour every state and make the hue control a no-op.
+    keep = frozenset({"size"}) if family == "loadersz" else ALWAYS_SENT
     return {
         k: v
         for k, v in values.items()
@@ -756,6 +808,8 @@ def call_signature(family: str, name: str) -> tuple[str, dict[str, Any]]:
     """
     if family == "gridora":
         return f"dlc.{family}.GridLoader", {"variant": name}
+    if family == "loadersz":
+        return f"dlc.{family}.Loader", {"state": name}
     return f"dlc.{family}.{name}", {}
 
 
@@ -859,6 +913,8 @@ MARK_SKIP = {
     ("indicators", "LifeLine"),
     ("indicators", "BlinkBlur"),
     ("epic", "HollowDotsSpinner"),
+    # 160 canvases the library never stops animating, even when hidden.
+    *(("loadersz", state) for state in dlc.loadersz.LOADER_STATES),
 }
 
 
@@ -873,6 +929,7 @@ def build_brand_mark() -> html.Span:
         marks.append(html.Span(
             node, className="dlc-mark", title=call_signature(family, name)[0], hidden=True,
             style={"--mark-scale": scale} if scale else None,
+            **{"data-family": family, "data-name": name},
         ))
     return html.Span(marks, className="dlc-brand-mark", **{"aria-hidden": "true"})
 
@@ -1086,21 +1143,42 @@ def build_navbar() -> dmc.AppShellNavbar:
                     active="exact"),
     ]
     for key, label, items in FAMILIES:
+        def link(name: str) -> dmc.NavLink:
+            return dmc.NavLink(label=name, href=detail_path(key, name), active="exact",
+                               className="dlc-nav-link")
+
+        categories = family_categories(key, items)
+        if categories:
+            body = [
+                html.Details(
+                    [html.Summary([icon("chevron", "dlc-nav-chevron"), html.Span(title, style={"flex": 1}),
+                                   html.Span(str(len(names)), className="dlc-tabular")],
+                                  className="dlc-nav-cat-title"),
+                     *map(link, names)],
+                    className="dlc-nav-cat",
+                )
+                for title, _note, names in categories
+            ]
+        else:
+            body = [link(name) for name, _comp in items]
+        # Closed until the page is in the family: assets/gallery.js opens the
+        # family and category holding the current link.
         sections.append(
-            dmc.Group(
-                [icon(key), dmc.Text(label, size="xs", fw=600, tt="uppercase", c="dimmed"),
-                 dmc.Divider(style={"flex": 1}),
-                 dmc.Text(str(len(items)), size="xs", c="dimmed", className="dlc-tabular")],
-                gap=8,
-                wrap="nowrap",
-                className="dlc-nav-section",
+            html.Details(
+                [
+                    html.Summary(
+                        [icon(key), dmc.Text(label, size="xs", fw=600, tt="uppercase", c="dimmed",
+                                              className="dlc-nav-label"),
+                         dmc.Divider(style={"flex": 1, "minWidth": 12}),
+                         dmc.Text(str(len(items)), size="xs", c="dimmed", className="dlc-tabular"),
+                         icon("chevron", "dlc-nav-chevron")],
+                        className="dlc-nav-section", title=label,
+                    ),
+                    *body,
+                ],
+                className="dlc-nav-family",
             )
         )
-        sections += [
-            dmc.NavLink(label=name, href=detail_path(key, name), active="exact",
-                        className="dlc-nav-link")
-            for name, _comp in items
-        ]
     return dmc.AppShellNavbar(
         dmc.ScrollArea(sections, type="scroll", className="dlc-nav-scroll"),
         id="dlc-navbar",
@@ -1138,33 +1216,36 @@ def make_overview_card(family: str, name: str) -> dmc.Anchor:
     )
 
 
-def family_grids(key: str, items: list[tuple[str, Callable]]) -> list:
-    """One grid of cards, or, for flicker's presets, one per category."""
+def family_categories(key: str, items: list[tuple[str, Callable]]) -> list[tuple[str, str, list[str]]]:
+    """(title, note, names) per category for the families that group their
+    loaders (flicker, gridora, loadersz); empty for the rest."""
+    names = [n for n, _c in items]
     if key == "flicker":
-        grids = []
-        for i, (category, (title, note)) in enumerate(dlc.flicker.CATEGORIES.items()):
-            names = [n for n, _c in items if dlc.flicker.PRESETS[n].category == category]
-            grids += [
-                dmc.Group([dmc.Text(title, size="sm", fw=600), dmc.Text(note, size="sm", c="dimmed")],
-                          gap=6, className="dlc-subfamily is-first" if i == 0 else "dlc-subfamily"),
-                html.Div([make_overview_card(key, n) for n in names], className="dlc-grid"),
-            ]
-        return grids
-    if key == "gridora":
-        grids = []
-        item_names = {n for n, _c in items}
-        for i, (category, (title, note)) in enumerate(dlc.gridora.CATEGORIES.items()):
-            names = [n for n in dlc.gridora.MOTION_VARIANTS
-                     if dlc.gridora.VARIANT_CATEGORY.get(n) == category and n in item_names]
-            if not names:
-                continue
-            grids += [
-                dmc.Group([dmc.Text(title, size="sm", fw=600), dmc.Text(note, size="sm", c="dimmed")],
-                          gap=6, className="dlc-subfamily is-first" if i == 0 else "dlc-subfamily"),
-                html.Div([make_overview_card(key, n) for n in names], className="dlc-grid"),
-            ]
-        return grids
-    return [html.Div([make_overview_card(key, n) for n, _c in items], className="dlc-grid")]
+        categories, category_of = dlc.flicker.CATEGORIES, lambda n: dlc.flicker.PRESETS[n].category
+    elif key == "gridora":
+        categories, category_of = dlc.gridora.CATEGORIES, dlc.gridora.VARIANT_CATEGORY.get
+    elif key == "loadersz":
+        categories, category_of = dlc.loadersz.CATEGORIES, dlc.loadersz.STATE_CATEGORY.get
+    else:
+        return []
+    grouped = [(title, note, [n for n in names if category_of(n) == category])
+               for category, (title, note) in categories.items()]
+    return [g for g in grouped if g[2]]
+
+
+def family_grids(key: str, items: list[tuple[str, Callable]]) -> list:
+    """One grid of cards, or one per category for the families that have them."""
+    categories = family_categories(key, items)
+    if not categories:
+        return [html.Div([make_overview_card(key, n) for n, _c in items], className="dlc-grid")]
+    grids = []
+    for i, (title, note, names) in enumerate(categories):
+        grids += [
+            dmc.Group([dmc.Text(title, size="sm", fw=600), dmc.Text(note, size="sm", c="dimmed")],
+                      gap=6, className="dlc-subfamily is-first" if i == 0 else "dlc-subfamily"),
+            html.Div([make_overview_card(key, n) for n in names], className="dlc-grid"),
+        ]
+    return grids
 
 
 def build_overview() -> html.Div:
@@ -1234,6 +1315,12 @@ def section_copy(family: str, prop: str) -> str:
     if family == "gridora" and prop == "direction":
         return ("CSS animation-direction for the cells: normal plays each cycle forwards, "
                 "reverse plays it backwards, alternate turns round every other cycle.")
+    if family == "loadersz" and prop == "hue":
+        return ("A single hue from 0 to 360 that recolours every particle. -1 keeps the "
+                "loader's native palette. color overrides hue when both are set.")
+    if family == "loadersz" and prop == "color":
+        return ("A CSS colour that recolours every particle. Empty keeps the loader's "
+                "native palette. When set, it overrides hue.")
     return PROP_SECTION_COPY.get(prop, f"Configurable `{prop}` for this wrapper.")
 
 
@@ -1242,7 +1329,7 @@ def workbench_control(prop: str, value: Any, family: str, props: list[str], name
     label = section_title(prop)
     spec = prop_spec(family, prop, name) or {"kind": "text", "default": ""}
     presets = prop == "size" and (family == "indicators" or uses_size_presets(family, props))
-    kind = "segmented" if presets else spec["kind"]
+    kind = "size" if presets and family != "indicators" else "segmented" if presets else spec["kind"]
     ctrl_id = {"type": "prop-ctrl", "prop": prop, "kind": kind}
 
     def segmented(options: list[tuple[str, str]], current: str):
@@ -1256,9 +1343,27 @@ def workbench_control(prop: str, value: Any, family: str, props: list[str], name
     if family == "indicators" and prop == "size":
         return segmented([("Small", "small"), ("Medium", "medium"), ("Large", "large")], value)
     if prop == "size" and uses_size_presets(family, props):
-        # SegmentedControl values are strings; _coerce_control_value turns them back.
-        preset = value if value in SIZE_PRESET_VALUES else SIZE_PRESET_DEFAULT
-        return segmented([(l, str(v)) for l, v in SIZE_PRESETS], str(preset))
+        # The number field is the control the callbacks read; the presets are
+        # shortcuts into it, and highlight only while it holds one of them
+        # (assets/gallery.js syncSize keeps the two in step).
+        current = int(value) if value not in (None, "") else SIZE_PRESET_DEFAULT
+        return dmc.Stack(
+            [dmc.Group(
+                [dmc.Text(label, size="sm", fw=500),
+                 html.Label(
+                     [dcc.Input(id=ctrl_id, type="number", value=current, min=SIZE_MIN, max=SIZE_MAX,
+                                step=1, debounce=0.4, className="dlc-size-field"),
+                      html.Span("px", className="dlc-size-unit", **{"aria-hidden": "true"}),
+                      html.Span("Custom size in pixels", className="dlc-sr-only")],
+                     className="dlc-size-input")],
+                justify="space-between", wrap="nowrap"),
+             dmc.SegmentedControl(
+                 id={"type": "size-preset", "prop": prop},
+                 data=[{"label": l, "value": str(v)} for l, v in SIZE_PRESETS],
+                 value=str(current) if current in SIZE_PRESET_VALUES else None,
+                 fullWidth=True, size="xs")],
+            gap=6,
+        )
 
     if kind == "slider":
         current = value if value is not None else spec["default"]
@@ -1649,7 +1754,9 @@ def _coerce_control_value(prop: str, raw: Any, family: str, name: str) -> Any:
     if family == "indicators" and prop == "size":
         return raw
     if prop == "size":
-        return int(float(raw)) if raw not in (None, "") else SIZE_PRESET_DEFAULT
+        if raw in (None, ""):
+            return SIZE_PRESET_DEFAULT
+        return min(max(int(float(raw)), SIZE_MIN), SIZE_MAX)
     if spec and spec["kind"] == "bool":
         return bool(raw)
     if spec and spec["kind"] == "slider":
@@ -1672,7 +1779,7 @@ def _control_values(family: str, name: str, props: list[str]) -> tuple[dict, dic
         if spec and spec["kind"] == "bool" and not (family == "indicators" and prop == "size"):
             switches[prop] = bool(v)
         elif prop == "size" and uses_size_presets(family, props):
-            values[prop] = str(v)
+            values[prop] = int(v)
         elif spec and spec["kind"] in ("text", "color"):
             values[prop] = v or ""
         elif spec and spec["kind"] == "enum":
@@ -1732,6 +1839,24 @@ clientside_callback(
     Output({"type": "color-chip", "prop": MATCH}, "style"),
     Input({"type": "color-swatch", "prop": MATCH}, "value"),
     Input({"type": "prop-ctrl", "prop": MATCH, "kind": "color"}, "value"),
+    prevent_initial_call=True,
+)
+
+# Size presets and the custom px field stay in step, in the browser: a preset
+# writes its size into the field, and the field lights a preset only while it
+# holds exactly that size.
+clientside_callback(
+    """(preset, typed) => {
+        const {no_update, callback_context} = window.dash_clientside;
+        const fromPreset = callback_context.triggered[0].prop_id.includes('size-preset');
+        if (fromPreset) return [preset ? Number(preset) : no_update, no_update];
+        const match = %s.includes(typed) ? String(typed) : null;
+        return [no_update, match];
+    }""" % json.dumps(sorted(SIZE_PRESET_VALUES)),
+    Output({"type": "prop-ctrl", "prop": MATCH, "kind": "size"}, "value", allow_duplicate=True),
+    Output({"type": "size-preset", "prop": MATCH}, "value"),
+    Input({"type": "size-preset", "prop": MATCH}, "value"),
+    Input({"type": "prop-ctrl", "prop": MATCH, "kind": "size"}, "value"),
     prevent_initial_call=True,
 )
 

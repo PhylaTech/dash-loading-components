@@ -24,9 +24,20 @@ Notable upstream projects (non-exhaustive; see inventory for pins and status):
   - flicker-dot (laurieesc/flicker-dot) — MIT. The dlc.flicker presets are
     original PhylaTech designs under this package's MIT license; none of the
     flicker.laurie.fyi gallery patterns are included.
-  - gridora (0x65dgerunner/gridora) — MIT. 133 motion variants and bitmap-font
+  - gridora (0x65dgerunner/gridora) -- MIT. 133 motion variants and bitmap-font
     text, wrapped as dlc.gridora.GridLoader and dlc.gridora.Text. The studio
     site (gridora.gabrielayer.com) patterns are not redistributed.
+  - loadersz (lumberjacque/loadersz-core) -- MIT. 160 canvas-based loading
+    animations as a native Web Component, wrapped as dlc.loadersz.Loader.
+    Includes chart-shaped loaders (heatmap, sankey, treemap, candlestick,
+    bar chart) suited for data dashboards.
+    Note: the first nine semantic state names (working, searching, connecting,
+    weaving, shaping, listening, breathing, composing, solving) overlap with
+    thinking-orbs (Jakub Antalik, MIT). The two libraries are independently
+    implemented: loadersz is a framework-agnostic Web Component using its own
+    canvas renderer with Dot/OrbLine/OrbRect/OrbArc primitives, while
+    thinking-orbs is a React-only 3D dotted-sphere renderer. The shared names
+    describe common AI/agent activity verbs. No code or assets are copied.
 
 Hard skips (not wrapped): css-spinners (GPL-3.0), react18-loaders (MPL-2.0).
 

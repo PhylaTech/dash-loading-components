@@ -25,8 +25,50 @@
     if (!list) return;
     list.hidden = true;
     list.replaceChildren();
+    if (previews) previews.disconnect();
     input().setAttribute('aria-expanded', 'false');
     active = -1;
+  };
+
+  // A small live preview beside each result. Almost every loader is already in
+  // the page, hidden, as a brand-mark slot: clone that. loadersz is not (its
+  // canvases never stop animating), so it is made on the spot. What has
+  // neither (m3 draws from React, a few loaders overflow the slot) gets its
+  // family icon, which is also what library and page rows show.
+  const iconFor = (href) => {
+    const family = href.match(/^\/(?:c\/([^/]+)\/.*|#family-(.+))$/);
+    return (family && (family[1] || family[2])) || (href === '/credits' ? 'credits' : 'overview');
+  };
+  const preview = (slot, href) => {
+    const detail = href.match(/^\/c\/([^/]+)\/(.+)$/);
+    if (detail && detail[1] === 'loadersz') {
+      const el = document.createElement('loadersz-loader');
+      el.setAttribute('state', decodeURIComponent(detail[2]));
+      el.setAttribute('size', '22');
+      return slot.append(el);
+    }
+    const mark = detail && document.querySelector(
+      `.dlc-brand-mark .dlc-mark[data-family="${CSS.escape(detail[1])}"][data-name="${CSS.escape(decodeURIComponent(detail[2]))}"]`);
+    if (mark) {
+      const copy = mark.cloneNode(true);
+      copy.hidden = false;
+      copy.classList.remove('is-entering', 'is-leaving');
+      return slot.append(copy);
+    }
+    const icon = document.createElement('span');
+    icon.className = `dlc-icon dlc-icon-${iconFor(href)}`;
+    slot.append(icon);
+  };
+  // Only rows scrolled into view get one, so a long result list stays cheap.
+  let previews = null;
+  const showPreviews = (slots) => {
+    previews && previews.disconnect();
+    previews = new IntersectionObserver((seen) => seen.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      previews.unobserve(entry.target);
+      preview(entry.target, entry.target.parentElement.getAttribute('href'));
+    }), {root: results()});
+    slots.forEach((slot) => previews.observe(slot));
   };
 
   const render = (query) => {
@@ -41,12 +83,13 @@
       a.className = 'dlc-search-option';
       a.setAttribute('role', 'option');
       a.dataset.index = i;
-      a.innerHTML = `<span class="dlc-search-title"></span><span class="dlc-search-group"></span>`;
-      a.firstChild.textContent = e.title;
+      a.innerHTML = `<span class="dlc-search-preview" aria-hidden="true"></span><span class="dlc-search-title"></span><span class="dlc-search-group"></span>`;
+      a.children[1].textContent = e.title;
       a.lastChild.textContent = e.group;
       a.addEventListener('mousedown', (ev) => { ev.preventDefault(); go(e.href); });
       return a;
     }));
+    showPreviews(list.querySelectorAll('.dlc-search-preview'));
     if (!hits.length) {
       const empty = document.createElement('div');
       empty.className = 'dlc-search-empty';
@@ -121,7 +164,7 @@
     target.scrollIntoView({block: 'start'});
   }).observe(document.documentElement, {childList: true, subtree: true});
 
-  // Keep the current component's nav link in view. Arriving on /c/epic/...
+  // Keep the current component's nav link in view, its family and category open. Arriving on /c/epic/...
   // from a search or a shared link otherwise leaves it 100 rows below the fold.
   let lastPath = null;
   new MutationObserver(() => {
@@ -129,6 +172,8 @@
     const active = document.querySelector('#dlc-navbar a[data-active]');
     if (!active || !active.getAttribute('href').endsWith(location.pathname)) return;
     lastPath = location.pathname;
+    // Families and categories start closed; open the ones holding this link.
+    for (let d = active.closest('details'); d; d = d.parentElement.closest('details')) d.open = true;
     active.scrollIntoView({block: 'nearest'});
   }).observe(document.documentElement, {subtree: true, attributes: true, attributeFilter: ['data-active']});
 

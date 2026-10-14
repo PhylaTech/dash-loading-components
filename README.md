@@ -1,7 +1,7 @@
 # dash-loading-components (`dlc`)
 
-Loading indicators for [Plotly Dash](https://dash.plotly.com), wrapping eleven
-React spinner libraries as one install. 301 components under stable namespaces,
+Loading indicators for [Plotly Dash](https://dash.plotly.com), wrapping twelve
+React spinner libraries as one install. 461 components under stable namespaces,
 with a common factory over the top so you can switch families without
 relearning each one's props.
 
@@ -44,9 +44,9 @@ dcc.Loading(children, custom_spinner=dlc.ldrs.Ring(size=48))
 Discover what is available at runtime:
 
 ```python
-dlc.list_libraries()          # ['loading_dev', 'ldrs', 'spinners', ..., 'gridora']
+dlc.list_libraries()          # ['loading_dev', 'ldrs', 'spinners', ..., 'gridora', 'loadersz']
 dlc.list_spinners("ldrs")     # ['Ring', 'Helix', 'DotPulse', ...]
-dlc.list_spinners("gridora")  # ['GridLoader', 'Text']
+dlc.list_spinners("loadersz") # ['working', 'searching', 'connecting', ...]
 ```
 
 ## Requirements
@@ -74,6 +74,7 @@ resolve it; it will accept the final 4.5 release once published.
 | `m3` | [@alerix/m3-loading-indicator](https://www.npmjs.com/package/@alerix/m3-loading-indicator) | 1 |
 | `flicker` | [flicker-dot](https://www.npmjs.com/package/flicker-dot) | 61 |
 | `gridora` | [gridora](https://www.npmjs.com/package/gridora) | 133 |
+| `loadersz` | [loadersz](https://www.npmjs.com/package/loadersz) | 160 |
 
 ## Flip-dot presets
 
@@ -127,6 +128,23 @@ common `size`, `dlc.gridora` derives the cell size from the grid geometry. Pass
 cycle duration in seconds (higher = slower), not a multiplier; `rate` translates:
 `speed = 1 / rate`.
 
+## Canvas loaders
+
+loadersz ships 160 canvas loaders as a Web Component, from product states
+(`working`, `searching`) to chart-shaped ones (`heatmapping`, `sankeying`,
+`treemapping`). `dlc.loadersz.Loader` renders any of them; the state is a prop,
+so there is no `dlc.loadersz.working`.
+
+```python
+dlc.loadersz.Loader(state="heatmapping", size=96, color="#f97316")
+dlc.loadersz.Loader(state="working", hue=200, density=1.5)
+```
+
+`color` paints every particle itself and wins over `hue` and `theme`. Leave it
+off to get loadersz's own palette (grey, or a loader's own tones), tinted by
+`hue` (0 to 360) and drawn for a light or dark page by `theme` (`"auto"`
+follows the operating system, not the page).
+
 Every component is also exported prefixed at the top level
 (`dlc.LoadingDevArc`, `dlc.LdrsRing`) for Dash callbacks that want a flat name.
 
@@ -139,9 +157,9 @@ Version pins, SPDX licenses, upstream URLs and React peers:
 `rate` is a rate, not a duration. `1.0` reproduces the tempo the upstream
 component runs at on its own, and the value is translated per family in the
 wrappers: a duration in milliseconds for loading-dev, epic and premium,
-seconds per loop for ldrs, a multiplier for react-spinners, m3 and flicker, a
-percentage for spinners-react, an offset for react-loading-indicators, and
-seconds per cycle (inverted) for gridora.
+seconds per loop for ldrs, a multiplier for react-spinners, m3, flicker and
+loadersz, a percentage for spinners-react, an offset for
+react-loading-indicators, and seconds per cycle (inverted) for gridora.
 
 That baseline is per spinner, not per family. `loading_dev.Compass` is normally
 500ms and `loading_dev.Slide` is 2400ms, so `rate=1.0` gives each of them its

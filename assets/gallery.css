@@ -40,6 +40,7 @@ p { text-wrap: pretty; }
 .dlc-icon-epic { --dlc-icon: url(icons/epic.svg); }
 .dlc-icon-flicker { --dlc-icon: url(icons/flicker.svg); }
 .dlc-icon-gridora { --dlc-icon: url(icons/gridora.svg); }
+.dlc-icon-loadersz { --dlc-icon: url(icons/loadersz.svg); }
 .dlc-icon-overview { --dlc-icon: url(icons/overview.svg); }
 .dlc-icon-credits { --dlc-icon: url(icons/credits.svg); }
 .dlc-icon-request { --dlc-icon: url(icons/request.svg); }
@@ -112,10 +113,19 @@ html[data-mac] .dlc-mod-other, html:not([data-mac]) .dlc-mod-mac { display: none
   border-radius: var(--mantine-radius-md); box-shadow: var(--mantine-shadow-md);
 }
 .dlc-search-option {
-  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
-  padding: 8px 10px; border-radius: var(--mantine-radius-sm);
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 10px; border-radius: var(--mantine-radius-sm);
   color: var(--mantine-color-text); font-size: 14px; text-decoration: none;
 }
+/* Same slot as the brand mark, so a cloned mark sits in it unchanged. */
+.dlc-search-preview {
+  position: relative; display: inline-flex; flex-shrink: 0; width: 24px; height: 24px;
+  align-items: center; justify-content: center; overflow: hidden; color: var(--dlc-accent);
+}
+.dlc-search-preview .dlc-icon { width: 16px; height: 16px; color: var(--mantine-color-dimmed); }
+/* The element sets inline-block itself; its canvas would sit on a text baseline. */
+.dlc-search-preview loadersz-loader { display: flex !important; }
+.dlc-search-title { flex: 1; min-width: 0; }
 .dlc-search-option[data-active] { background: var(--mantine-color-default-hover); }
 .dlc-search-group { font-size: 12px; color: var(--mantine-color-dimmed); font-family: var(--mantine-font-family-monospace); }
 .dlc-search-empty { padding: 10px; font-size: 14px; color: var(--mantine-color-dimmed); }
@@ -123,9 +133,38 @@ html[data-mac] .dlc-mod-other, html:not([data-mac]) .dlc-mod-mac { display: none
 
 /* ---------- Navbar ---------- */
 .dlc-nav-scroll { height: 100%; padding: 12px 10px 24px; }
-.dlc-nav-section { padding: 18px 12px 6px; color: var(--mantine-color-dimmed); }
+/* Families are <details>, closed until the page is inside one (assets/gallery.js),
+   so 461 loaders read as a dozen families instead of one wall. */
+.dlc-nav-family > summary, .dlc-nav-cat > summary { list-style: none; cursor: pointer; }
+.dlc-nav-family > summary::-webkit-details-marker, .dlc-nav-cat > summary::-webkit-details-marker { display: none; }
+.dlc-nav-section {
+  display: flex; align-items: center; gap: 8px; margin-top: 6px; padding: 10px 12px;
+  border-radius: var(--mantine-radius-sm); color: var(--mantine-color-dimmed);
+  transition-property: background-color; transition-duration: 150ms; transition-timing-function: ease-out;
+}
+.dlc-nav-section:hover { background: var(--mantine-color-default-hover); }
+.dlc-nav-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dlc-nav-section > * { flex-shrink: 0; }
+.dlc-nav-section > .dlc-nav-label { flex-shrink: 1; }
+.dlc-nav-chevron {
+  width: 0.8em; height: 0.8em; opacity: 0.7;
+  transition-property: rotate; transition-duration: 150ms; transition-timing-function: ease-out;
+}
+.dlc-nav-family[open] > summary .dlc-nav-chevron, .dlc-nav-cat[open] > summary .dlc-nav-chevron { rotate: 90deg; }
 .dlc-nav-link { padding-left: 36px; min-height: 32px; }
 .dlc-nav-link .mantine-NavLink-label { font-size: 13px; }
+.dlc-nav-cat-title {
+  display: flex; align-items: center; gap: 6px; min-height: 30px;
+  margin: 2px 0; padding: 0 12px 0 28px; border-radius: var(--mantine-radius-sm);
+  font-size: 12px; font-weight: 600; color: var(--mantine-color-dimmed);
+  transition-property: background-color; transition-duration: 150ms; transition-timing-function: ease-out;
+}
+.dlc-nav-cat-title:hover { background: var(--mantine-color-default-hover); }
+.dlc-nav-cat[open] > .dlc-nav-cat-title { color: var(--mantine-color-text); }
+.dlc-nav-cat .dlc-nav-link { padding-left: 48px; }
+.dlc-nav-family > summary:focus-visible, .dlc-nav-cat > summary:focus-visible {
+  outline: 2px solid var(--dlc-accent); outline-offset: -2px;
+}
 
 /* ---------- Page frame ---------- */
 .dlc-page {
@@ -295,6 +334,29 @@ html[data-mac] .dlc-mod-other, html:not([data-mac]) .dlc-mod-mac { display: none
   --Dash-Fill-Inverse-Strong: var(--mantine-color-default);
   font-size: 14px;
 }
+/* Size control: presets above, an exact px field right of the label. */
+.dlc-size-input {
+  position: relative; display: flex; align-items: center; gap: 4px; height: 28px; padding: 0 8px;
+  border: 1px solid var(--dlc-border); border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-default); cursor: text;
+}
+.dlc-size-input:focus-within { border-color: var(--dlc-accent); }
+/* dcc.Input wraps the real <input> in a div that carries the class. */
+.dlc-size-field, .dlc-size-field:focus-within {
+  width: 44px; height: 100%; margin: 0; border: none; outline: none; box-shadow: none; background: none;
+}
+.dlc-size-field .dash-input-element {
+  width: 100%; height: 100%; margin: 0; padding: 0; border: none; outline: none; box-shadow: none;
+  background: none; color: var(--mantine-color-text); text-align: right; font-size: 13px;
+  font-family: var(--mantine-font-family-monospace); font-variant-numeric: tabular-nums;
+  appearance: textfield; -moz-appearance: textfield;
+}
+.dlc-size-field .dash-input-element::-webkit-inner-spin-button,
+.dlc-size-field .dash-input-element::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.dlc-sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+.dlc-size-unit { font-size: 12px; color: var(--mantine-color-dimmed); }
 /* Color control: swatch (native picker behind it) + free-text field. */
 .dlc-color-input {
   display: flex; align-items: center; height: 36px;
@@ -311,7 +373,7 @@ html[data-mac] .dlc-mod-other, html:not([data-mac]) .dlc-mod-mac { display: none
 .dlc-color-picker, .dlc-color-picker .dash-input-element {
   position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer;
 }
-.dlc-color-text { flex: 1; min-width: 0; height: 100%; margin: 0; border: none; box-shadow: none; }
+.dlc-color-text { flex: 1; min-width: 0; height: 100%; margin: 0; border: none; box-shadow: none; background: none; }
 .dlc-color-text .dash-input-element {
   width: 100%; height: 100%; margin: 0; padding: 0; border: none; background: none; outline: none;
   box-shadow: none; color: var(--mantine-color-text); font-size: 14px;
