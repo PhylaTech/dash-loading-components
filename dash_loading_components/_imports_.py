@@ -7,7 +7,6 @@ from .EpicSemipolarSpinner import EpicSemipolarSpinner
 from .EpicSpringSpinner import EpicSpringSpinner
 from .EpicTrinityRingsSpinner import EpicTrinityRingsSpinner
 from .FlickerSpinner import FlickerSpinner
-from .FlickerWellPlate import FlickerWellPlate
 from .GridoraGridLoader import GridoraGridLoader
 from .GridoraText import GridoraText
 from .IndicatorsAtom import IndicatorsAtom
@@ -21,6 +20,8 @@ from .IndicatorsRiple import IndicatorsRiple
 from .IndicatorsSlab import IndicatorsSlab
 from .IndicatorsThreeDot import IndicatorsThreeDot
 from .IndicatorsTrophySpin import IndicatorsTrophySpin
+from .LabHplcTrace import LabHplcTrace
+from .LabWellPlate import LabWellPlate
 from .LdrsDotPulse import LdrsDotPulse
 from .LdrsDotWave import LdrsDotWave
 from .LdrsHelix import LdrsHelix
@@ -122,7 +123,6 @@ __all__ = [
     "EpicSpringSpinner",
     "EpicTrinityRingsSpinner",
     "FlickerSpinner",
-    "FlickerWellPlate",
     "GridoraGridLoader",
     "GridoraText",
     "IndicatorsAtom",
@@ -136,6 +136,8 @@ __all__ = [
     "IndicatorsSlab",
     "IndicatorsThreeDot",
     "IndicatorsTrophySpin",
+    "LabHplcTrace",
+    "LabWellPlate",
     "LdrsDotPulse",
     "LdrsDotWave",
     "LdrsHelix",

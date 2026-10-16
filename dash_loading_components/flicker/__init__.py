@@ -5,7 +5,6 @@ preset, the player with its frames filled in; see ``presets.py``.
 """
 
 from ..FlickerSpinner import FlickerSpinner as Spinner
-from ..FlickerWellPlate import FlickerWellPlate as WellPlate
 from .presets import CATEGORIES, PRESETS, Preset
 
 
@@ -44,6 +43,7 @@ Mitosis = _preset("Mitosis")
 Seedling = _preset("Seedling")
 Chromatogram = _preset("Chromatogram")
 HplcTrace = _preset("HplcTrace")
+WellPlate = _preset("WellPlate")
 Scatter = _preset("Scatter")
 Histogram = _preset("Histogram")
 PieChart = _preset("PieChart")
@@ -86,20 +86,4 @@ Octahedron = _preset("Octahedron")
 Dodecahedron = _preset("Dodecahedron")
 Icosahedron = _preset("Icosahedron")
 
-# Spinners that draw themselves as SVG instead of playing frames on the 7x7
-# grid, which has no room for them: name -> (category, blurb). They take their
-# own props, not the player's.
-DRAWN = {
-    "WellPlate": ("field", "A pipette filling a 96-well microplate well by well, row after row, then emptying it in the same order."),
-}
-
-
-def category_of(name: str) -> str:
-    return PRESETS[name].category if name in PRESETS else DRAWN[name][0]
-
-
-def blurb_of(name: str) -> str:
-    return PRESETS[name].blurb if name in PRESETS else DRAWN[name][1]
-
-
-__all__ = ['Spinner', 'WellPlate', 'PRESETS', 'DRAWN', 'CATEGORIES', 'Preset', *PRESETS]
+__all__ = ['Spinner', 'PRESETS', 'CATEGORIES', 'Preset', *PRESETS]

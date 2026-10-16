@@ -75,12 +75,12 @@ const PIPETTE = 'M-2.4 -16H2.4V-9.5H1.3V-2.6L0.5 0H-0.5L-1.3 -2.6V-9.5H-2.4Z';
 const WELL_CELLS = Array.from({length: WELLS}, (_, i) => at(i));
 
 /**
- * FlickerWellPlate — a 96-well microplate (8 rows by 12 columns, A1 corner
+ * LabWellPlate — a 96-well microplate (8 rows by 12 columns, A1 corner
  * cut off) that a pipette fills well by well, row after row, until it is full.
  * It then empties in the same order and the next plate starts. Drawn as SVG
- * and CSS, not on flicker-dot's 7x7 grid, which has no room for a plate.
+ * and CSS; dlc.flicker.WellPlate is the 7x7 dot-matrix take on it.
  */
-const FlickerWellPlate = (props) => {
+const LabWellPlate = (props) => {
     const {id, className, style, size, color, on_opacity, off_color, off_opacity, rate, playing, aria_label} = props;
     const speed = rate > 0 ? rate : 1;
     const period = PERIOD / speed;
@@ -109,9 +109,9 @@ const FlickerWellPlate = (props) => {
     );
 };
 
-FlickerWellPlate.defaultProps = {};
+LabWellPlate.defaultProps = {};
 
-FlickerWellPlate.propTypes = {
+LabWellPlate.propTypes = {
     /**
      * The ID used to identify this component in Dash callbacks.
      */
@@ -159,4 +159,4 @@ FlickerWellPlate.propTypes = {
     playing: PropTypes.bool,
 };
 
-export default FlickerWellPlate;
+export default LabWellPlate;

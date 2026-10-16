@@ -13,6 +13,7 @@ from . import (
     flicker,
     gridora,
     indicators,
+    lab,
     ldrs,
     loader_spinner,
     loading_dev,
@@ -188,7 +189,7 @@ FAMILIES: list[tuple[str, str, list[tuple[str, Callable]]]] = [
         "flicker",
         "flicker-dot",
         # The presets, not the player: dlc.flicker.Spinner needs grids.
-        [(name, getattr(flicker, name)) for name in (*flicker.PRESETS, *flicker.DRAWN)],
+        [(name, getattr(flicker, name)) for name in flicker.PRESETS],
     ),
     (
         "gridora",
@@ -207,6 +208,11 @@ FAMILIES: list[tuple[str, str, list[tuple[str, Callable]]]] = [
         "thinking-orbs",
         [(s, lambda state=s, **kw: thinking_orbs.Orb(state=state, **kw))
          for s in thinking_orbs.ORB_STATES],
+    ),
+    (
+        "lab",
+        "Phyla Tech",
+        [(name, getattr(lab, name)) for name in lab.SPINNERS],
     ),
 ]
 

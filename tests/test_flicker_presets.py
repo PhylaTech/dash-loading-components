@@ -8,7 +8,7 @@ only on the outer ring is a still picture at variant="5x5".
 import pytest
 
 import dash_loading_components as dlc
-from dash_loading_components.flicker import CATEGORIES, DRAWN, PRESETS
+from dash_loading_components.flicker import CATEGORIES, PRESETS
 
 CASES = sorted(PRESETS.items())
 
@@ -60,14 +60,4 @@ def test_each_preset_is_the_player_with_its_frames(name):
     node = getattr(dlc.flicker, name)(size=48).to_plotly_json()
     assert node["type"] == "FlickerSpinner"
     assert node["props"]["grids"] == [list(f) for f in PRESETS[name].frames]
-    assert dlc.list_spinners("flicker") == [*PRESETS, *DRAWN]
-
-
-def test_the_well_plate_is_drawn_not_played():
-    # The 7x7 player has no room for 8 rows by 12 columns, so WellPlate is its
-    # own component; it must not need frames and must sit in a real category.
-    assert "WellPlate" in DRAWN and "WellPlate" not in PRESETS
-    assert DRAWN["WellPlate"][0] in CATEGORIES
-    node = dlc.flicker.WellPlate(size=96, rate=2.0).to_plotly_json()
-    assert node["type"] == "FlickerWellPlate"
-    assert node["props"] == {"size": 96, "rate": 2.0}
+    assert dlc.list_spinners("flicker") == list(PRESETS)

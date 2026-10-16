@@ -20,12 +20,13 @@ ComponentType = typing.Union[
 ]
 
 
-class FlickerWellPlate(Component):
-    """A FlickerWellPlate component.
-FlickerWellPlate — a 96-well microplate (8 rows by 12 columns, A1 corner
-cut off) that a pipette fills well by well, row after row, until it is full.
-It then empties in the same order and the next plate starts. Drawn as SVG
-and CSS, not on flicker-dot's 7x7 grid, which has no room for a plate.
+class LabHplcTrace(Component):
+    """A LabHplcTrace component.
+LabHplcTrace — the detector trace of an HPLC or UPLC run, the kind that
+feeds a mass spectrometer: a pen draws the baseline across the retention
+time axis, compounds elute as peaks of their own height, and each apex is
+marked as it passes. Drawn as SVG and CSS; dlc.flicker.HplcTrace is the
+7x7 dot-matrix take on it.
 
 Keyword arguments:
 
@@ -40,31 +41,31 @@ Keyword arguments:
     CSS class applied to the outer wrapper.
 
 - color (string; optional):
-    Color of the liquid, the pipette and the plate outline (default
-    currentColor).
+    Color of the trace, the pen and the axes (default currentColor).
 
 - off_color (string; optional):
-    Color of an empty well, drawn at `off_opacity` (default `color`).
+    Color of the dashed baseline guide, drawn at `off_opacity`
+    (default `color`).
 
 - off_opacity (number; optional):
-    Opacity of the empty wells, 0 to 1 (default 0.16).
+    Opacity of the baseline guide, 0 to 1 (default 0.16).
 
 - on_opacity (number; optional):
-    Opacity of the liquid, 0 to 1 (default 1).
+    Opacity of the trace, 0 to 1 (default 1).
 
 - playing (boolean; optional):
     Set to False to pause the animation.
 
 - rate (number; optional):
-    Relative tempo: 1.0 is this spinner's own tempo (a plate in about
-    11 seconds), 2.0 twice as fast, 0.5 half.
+    Relative tempo: 1.0 is this spinner's own tempo (a run in 7
+    seconds), 2.0 twice as fast, 0.5 half.
 
 - size (number; optional):
-    CSS pixel width (default 64); the height follows the plate."""
+    CSS pixel width (default 64); the height follows the chart."""
     _children_props: typing.List[str] = []
     _base_nodes = ['children']
     _namespace = 'dash_loading_components'
-    _type = 'FlickerWellPlate'
+    _type = 'LabHplcTrace'
 
 
     def __init__(
@@ -91,6 +92,6 @@ Keyword arguments:
         _locals.update(kwargs)  # For wildcard attrs and excess named props
         args = {k: _locals[k] for k in _explicit_args}
 
-        super(FlickerWellPlate, self).__init__(**args)
+        super(LabHplcTrace, self).__init__(**args)
 
-setattr(FlickerWellPlate, "__init__", _explicitize_args(FlickerWellPlate.__init__))
+setattr(LabHplcTrace, "__init__", _explicitize_args(LabHplcTrace.__init__))
