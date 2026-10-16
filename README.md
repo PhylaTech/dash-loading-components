@@ -206,8 +206,8 @@ dlc.lab.HplcTrace(size=96, color="#f97316")
 dlc.lab.WellPlate(size=96, rate=1.5)
 ```
 
-Both take `size` (the width in pixels), `color`, `on_opacity`, `off_color`,
-`off_opacity`, `rate` and `playing`.
+Both take `size` (the width in pixels), `color`, `on_opacity`, `rate` and
+`playing`; `WellPlate` also takes `off_color` and `off_opacity` for its empty wells.
 
 ## Relative tempo
 

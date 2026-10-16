@@ -12,7 +12,8 @@ const TOP = 10;
 const SAMPLES = 320;
 const TICKS = 7;
 const DEFAULT_SIZE = 64;
-const OFF_OPACITY = 0.16;
+// The dashed baseline guide under the trace.
+const GUIDE_OPACITY = 0.16;
 const AXIS_OPACITY = 0.5;
 
 // What elutes, by retention time (0 to 1 along the run), height (0 to 1 of the
@@ -103,7 +104,7 @@ const TICK_MARKS = Array.from({length: TICKS}, (_, i) => {
  * 7x7 dot-matrix take on it.
  */
 const LabHplcTrace = (props) => {
-    const {id, className, style, size, color, on_opacity, off_color, off_opacity, rate, playing, aria_label} = props;
+    const {id, className, style, size, color, on_opacity, rate, playing, aria_label} = props;
     const speed = rate > 0 ? rate : 1;
     const run = `${PERIOD / speed}s linear infinite`;
     const base = color || 'currentColor';
@@ -115,8 +116,8 @@ const LabHplcTrace = (props) => {
                 aria-label={aria_label || 'Loading'} style={{display: 'block'}}>
                 <path d={FRAME + TICK_MARKS} fill="none" stroke={base} strokeOpacity={AXIS_OPACITY} strokeWidth={1.2}
                     strokeLinecap="round" strokeLinejoin="round" />
-                <path d={`M${LEFT} ${BASELINE}H${RIGHT}`} fill="none" stroke={off_color || base}
-                    strokeOpacity={off_opacity ?? OFF_OPACITY} strokeWidth={1.2} strokeDasharray="2 3" />
+                <path d={`M${LEFT} ${BASELINE}H${RIGHT}`} fill="none" stroke={base}
+                    strokeOpacity={GUIDE_OPACITY} strokeWidth={1.2} strokeDasharray="2 3" />
                 <path className="dlc-hplc-trace" d={TRACE} pathLength={1} fill="none" stroke={base} strokeOpacity={on}
                     strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{animation: `dlc-hplc-draw ${run}`}} />
                 {PEAKS.map(({rt}, k) => (
@@ -150,21 +151,13 @@ LabHplcTrace.propTypes = {
      */
     size: PropTypes.number,
     /**
-     * Color of the trace, the pen and the axes (default currentColor).
+     * Color of the trace, the pen, the axes and the baseline guide (default currentColor).
      */
     color: PropTypes.string,
     /**
      * Opacity of the trace, 0 to 1 (default 1).
      */
     on_opacity: PropTypes.number,
-    /**
-     * Color of the dashed baseline guide, drawn at `off_opacity` (default `color`).
-     */
-    off_color: PropTypes.string,
-    /**
-     * Opacity of the baseline guide, 0 to 1 (default 0.16).
-     */
-    off_opacity: PropTypes.number,
     /**
      * Accessible name, announced to assistive technology (default "Loading").
      */

@@ -41,14 +41,8 @@ Keyword arguments:
     CSS class applied to the outer wrapper.
 
 - color (string; optional):
-    Color of the trace, the pen and the axes (default currentColor).
-
-- off_color (string; optional):
-    Color of the dashed baseline guide, drawn at `off_opacity`
-    (default `color`).
-
-- off_opacity (number; optional):
-    Opacity of the baseline guide, 0 to 1 (default 0.16).
+    Color of the trace, the pen, the axes and the baseline guide
+    (default currentColor).
 
 - on_opacity (number; optional):
     Opacity of the trace, 0 to 1 (default 1).
@@ -76,16 +70,14 @@ Keyword arguments:
         size: typing.Optional[NumberType] = None,
         color: typing.Optional[str] = None,
         on_opacity: typing.Optional[NumberType] = None,
-        off_color: typing.Optional[str] = None,
-        off_opacity: typing.Optional[NumberType] = None,
         aria_label: typing.Optional[str] = None,
         rate: typing.Optional[NumberType] = None,
         playing: typing.Optional[bool] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'aria_label', 'className', 'color', 'off_color', 'off_opacity', 'on_opacity', 'playing', 'rate', 'size', 'style']
+        self._prop_names = ['id', 'aria_label', 'className', 'color', 'on_opacity', 'playing', 'rate', 'size', 'style']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'aria_label', 'className', 'color', 'off_color', 'off_opacity', 'on_opacity', 'playing', 'rate', 'size', 'style']
+        self.available_properties = ['id', 'aria_label', 'className', 'color', 'on_opacity', 'playing', 'rate', 'size', 'style']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()
