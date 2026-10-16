@@ -543,6 +543,8 @@ UPSTREAM_DEFAULTS: dict[tuple[str, str], dict[str, Any]] = {
     ("premium", "ShimmerBox"): {"color": "#e5e7eb", "secondary_color": "#f3f4f6"},
     # The size upstream draws at with none given: its chat-avatar design.
     **{("thinking_orbs", name): {"size": 64} for name in dlc.thinking_orbs.ORB_STATES},
+    # Wide drawings: the component's own width, where a 48px square would be a smudge.
+    **{("lab", name): {"size": 64} for name in dlc.lab.SPINNERS},
 }
 
 # Props the gallery always passes, even at their default: the spinner's size
@@ -569,6 +571,7 @@ FAMILY_PROP_ORDER = {
     "m3": ["size", "color", "rate", "playing", "contained", "container_color", "size_ratio", "className"],
     "epic": ["size", "color", "rate", "playing", "className"],
     "flicker": ["size", "color", "on_opacity", "off_color", "off_opacity", "rate", "playing", "variant", "rotate", "mirror", "reverse", "aria_label", "className"],
+    "lab": ["size", "color", "on_opacity", "off_color", "off_opacity", "rate", "playing", "aria_label", "className"],
     "gridora": ["size", "color", "rate", "playing", "grid_size", "gap", "effect", "shape", "glow", "min_opacity", "easing", "direction", "className"],
     "loadersz": [
         "size", "color", "rate", "playing", "density", "particle_radius",
@@ -684,6 +687,16 @@ UPSTREAM_CREDITS = [
         "status": "mvp",
     },
     {
+        "family": "lab", "npm": "dash-loading-components", "version": "0.1.2", "spdx": "MIT",
+        "homepage": "https://github.com/PhylaTech/dash-loading-components",
+        "repo": "https://github.com/PhylaTech/dash-loading-components",
+        "blurb": (
+            "PhylaTech's own SVG spinners for science waits, wrapping no upstream package: "
+            "an HPLC detector trace and a 96-well plate. dlc.lab.HplcTrace and dlc.lab.WellPlate."
+        ),
+        "status": "mvp",
+    },
+    {
         "family": "svg_spinners", "npm": "react-svg-spinners", "version": "0.3.1", "spdx": "MIT",
         "homepage": "https://www.npmjs.com/package/react-svg-spinners",
         "repo": "https://github.com/theme-park/react-svg-spinners",
@@ -722,6 +735,8 @@ def description_for(family: str, name: str, upstream: str) -> str:
         return LOADING_DEV_BLURBS[name]
     if family == "flicker":
         return dlc.flicker.PRESETS[name].blurb
+    if family == "lab":
+        return dlc.lab.SPINNERS[name]
     if family == "gridora":
         return f"The {name} grid-dot animation pattern from gridora."
     if family == "loadersz":

@@ -1,7 +1,7 @@
 # dash-loading-components (`dlc`)
 
 Loading indicators for [Plotly Dash](https://dash.plotly.com), wrapping thirteen
-React spinner libraries as one install. 470 components under stable namespaces,
+React spinner libraries, plus a family of our own, as one install. 474 components under stable namespaces,
 with a common factory over the top so you can switch families without
 relearning each one's props.
 
@@ -44,7 +44,7 @@ dcc.Loading(children, custom_spinner=dlc.ldrs.Ring(size=48))
 Discover what is available at runtime:
 
 ```python
-dlc.list_libraries()          # ['loading_dev', 'ldrs', 'spinners', ..., 'gridora', 'loadersz', 'thinking_orbs']
+dlc.list_libraries()          # ['loading_dev', 'ldrs', 'spinners', ..., 'gridora', 'loadersz', 'thinking_orbs', 'lab']
 dlc.list_spinners("ldrs")     # ['Ring', 'Helix', 'DotPulse', ...]
 dlc.list_spinners("loadersz") # ['working', 'searching', 'connecting', ...]
 ```
@@ -72,17 +72,18 @@ resolve it; it will accept the final 4.5 release once published.
 | `spinners_react` | [spinners-react](https://www.npmjs.com/package/spinners-react) | 9 |
 | `epic` | [react-epic-spinners](https://www.npmjs.com/package/react-epic-spinners) | 8 |
 | `m3` | [@alerix/m3-loading-indicator](https://www.npmjs.com/package/@alerix/m3-loading-indicator) | 1 |
-| `flicker` | [flicker-dot](https://www.npmjs.com/package/flicker-dot) | 61 |
+| `flicker` | [flicker-dot](https://www.npmjs.com/package/flicker-dot) | 63 |
 | `gridora` | [gridora](https://www.npmjs.com/package/gridora) | 133 |
 | `loadersz` | [loadersz](https://www.npmjs.com/package/loadersz) | 160 |
 | `thinking_orbs` | [thinking-orbs](https://www.npmjs.com/package/thinking-orbs) | 9 |
+| `lab` | PhylaTech originals (SVG, no upstream package) | 2 |
 
 ## Flip-dot presets
 
 flicker-dot is a player: it animates whatever 7x7 frames it is given. `dlc.flicker`
-ships 61 original presets for it, drawn by PhylaTech and MIT licensed with this
+ships 63 original presets for it, drawn by PhylaTech and MIT licensed with this
 package, in six sets: Field (the naturalist set: `Mycelium`, `Diatom`,
-`Cladogram`, `Chromatogram`, `MassSpec`, `TestTube`, `Jellyfish`, ...), Data
+`Cladogram`, `Chromatogram`, `HplcTrace`, `WellPlate`, `MassSpec`, `TestTube`, `Jellyfish`, ...), Data
 (`Scatter`, `Histogram`, `LineChart`, `PieChart`, `Heatmap`, `Database`),
 Everyday (`Cart`, `Upload`, `Download`, `Mail`, `Wifi`, `Heart`, `Lock`, ...),
 Board (flip-dot panel classics), Geometry, and Solids (the five Platonic
@@ -188,6 +189,25 @@ Every component is also exported prefixed at the top level
 Version pins, SPDX licenses, upstream URLs and React peers:
 [docs/UPSTREAM-INVENTORY.md](docs/UPSTREAM-INVENTORY.md). Attribution:
 [NOTICE](NOTICE).
+
+## Lab spinners
+
+`dlc.lab` is PhylaTech's own: SVG drawings animated with plain CSS, wrapping no
+upstream package. `dlc.lab.HplcTrace` is the detector trace of an HPLC or UPLC
+run, as the instrument feeding a mass spectrometer draws it: a pen sweeps the
+baseline across retention time, compounds elute as peaks of their own height,
+and each apex is marked as it passes. `dlc.lab.WellPlate` is a 96-well
+microplate (8 rows by 12 columns, A1 corner cut off) that a pipette fills well
+by well, then empties in the same order. (`dlc.flicker.HplcTrace` and
+`dlc.flicker.WellPlate` are the 7x7 dot-matrix takes on the same two.)
+
+```python
+dlc.lab.HplcTrace(size=96, color="#f97316")
+dlc.lab.WellPlate(size=96, rate=1.5)
+```
+
+Both take `size` (the width in pixels), `color`, `on_opacity`, `rate` and
+`playing`; `WellPlate` also takes `off_color` and `off_opacity` for its empty wells.
 
 ## Relative tempo
 

@@ -20,6 +20,8 @@ from .IndicatorsRiple import IndicatorsRiple
 from .IndicatorsSlab import IndicatorsSlab
 from .IndicatorsThreeDot import IndicatorsThreeDot
 from .IndicatorsTrophySpin import IndicatorsTrophySpin
+from .LabHplcTrace import LabHplcTrace
+from .LabWellPlate import LabWellPlate
 from .LdrsDotPulse import LdrsDotPulse
 from .LdrsDotWave import LdrsDotWave
 from .LdrsHelix import LdrsHelix
@@ -134,6 +136,8 @@ __all__ = [
     "IndicatorsSlab",
     "IndicatorsThreeDot",
     "IndicatorsTrophySpin",
+    "LabHplcTrace",
+    "LabWellPlate",
     "LdrsDotPulse",
     "LdrsDotWave",
     "LdrsHelix",

@@ -42,6 +42,8 @@ Notable upstream projects (non-exhaustive; see inventory for pins and status):
     orbs for AI and agent status, wrapped as dlc.thinking_orbs.Orb. Not to be
     confused with the unrelated @yogesharc/thinking-orbs package, which is not
     wrapped.
+  - dlc.lab is PhylaTech's own work (MIT, this repo): two SVG spinners, HplcTrace
+    and WellPlate. No third-party code or assets.
 
 Hard skips (not wrapped): css-spinners (GPL-3.0), react18-loaders (MPL-2.0).
 
