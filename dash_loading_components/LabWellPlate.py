@@ -24,7 +24,8 @@ class LabWellPlate(Component):
     """A LabWellPlate component.
 LabWellPlate — a 96-well microplate (8 rows by 12 columns, A1 corner
 cut off) that a pipette fills well by well, row after row, until it is full.
-It then empties in the same order and the next plate starts. Drawn as SVG
+It then empties in the same order, and the pipette only comes back once every
+well is empty. Drawn as SVG
 and CSS; dlc.flicker.WellPlate is the 7x7 dot-matrix take on it.
 
 Keyword arguments:
@@ -57,7 +58,7 @@ Keyword arguments:
 
 - rate (number; optional):
     Relative tempo: 1.0 is this spinner's own tempo (a plate in about
-    11 seconds), 2.0 twice as fast, 0.5 half.
+    13 seconds), 2.0 twice as fast, 0.5 half.
 
 - size (number; optional):
     CSS pixel width (default 64); the height follows the plate."""
