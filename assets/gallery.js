@@ -306,7 +306,7 @@
         target.toggleAttribute('data-off', !isIntersecting);
         target.querySelectorAll('loadersz-loader').forEach((el) => el.toggleAttribute('paused', !isIntersecting));
       }
-    }, {root: wall, rootMargin: '300px 0px'});
+    }, {root: wall, rootMargin: '120px 0px'});
     wall.querySelectorAll('.dlc-wall-tile').forEach((tile) => io.observe(tile));
   };
 

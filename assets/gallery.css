@@ -335,10 +335,12 @@ html[data-mac] .dlc-mod-other, html:not([data-mac]) .dlc-mod-mac { display: none
   box-shadow: 0 0 0 3px light-dark(rgb(253 126 20 / 0.12), rgb(253 126 20 / 0.18));
   outline: none;
 }
+/* No overflow clip: a clip per tile roughly doubled the frame time while
+   scrolling (profiled), and WALL_SCALE keeps every spinner inside its tile. */
 .dlc-wall-tile .preview {
   flex: 1; min-width: 0;
   display: flex; align-items: center; justify-content: center;
-  overflow: hidden; position: relative;
+  position: relative;
 }
 /* Only tiles near the viewport render (assets/gallery.js): 474 live spinners
    are thousands of animated layers, over a gigabyte in the tab. The tile keeps
