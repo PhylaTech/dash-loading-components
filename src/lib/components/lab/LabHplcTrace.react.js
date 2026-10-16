@@ -43,15 +43,26 @@ const signal = (t) => PEAKS.reduce((sum, {rt, height, width}) => {
 const xAt = (t) => LEFT + t * (RIGHT - LEFT);
 const yAt = (v) => BASELINE - v * (BASELINE - TOP);
 
-const TRACE = Array.from({length: SAMPLES + 1}, (_, i) => {
+const POINTS = Array.from({length: SAMPLES + 1}, (_, i) => {
     const t = i / SAMPLES;
-    return `${i ? 'L' : 'M'}${xAt(t).toFixed(2)} ${yAt(signal(t)).toFixed(2)}`;
-}).join('');
+    return [xAt(t), yAt(signal(t))];
+});
+
+const TRACE = POINTS.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(2)} ${y.toFixed(2)}`).join('');
+
+// The pen and the draw-on both travel the path by length, not by x: a tall peak
+// adds length, so the pen reaches a late apex later than its place on the time
+// axis suggests. Marks are timed by how far along the path each apex is.
+const LENGTH_TO = POINTS.reduce((sums, [x, y], i) => {
+    sums.push(i ? sums[i - 1] + Math.hypot(x - POINTS[i - 1][0], y - POINTS[i - 1][1]) : 0);
+    return sums;
+}, []);
+const progressAt = (t) => LENGTH_TO[Math.round(t * SAMPLES)] / LENGTH_TO[SAMPLES];
 
 const pct = (fraction) => Number((fraction * 100).toFixed(3));
 
 const marks = PEAKS.map(({rt}, k) => {
-    const seen = rt * DRAW;
+    const seen = progressAt(rt) * DRAW;
     return `@keyframes dlc-hplc-mark-${k}{
 0%,${pct(seen)}%{opacity:0;transform:scale(0)}
 ${pct(seen + MARK_POP)}%{opacity:1;transform:scale(1.7)}
