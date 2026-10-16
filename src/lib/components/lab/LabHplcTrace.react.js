@@ -11,6 +11,9 @@ const AXIS = 86;
 const TOP = 10;
 const SAMPLES = 320;
 const TICKS = 7;
+// Ticks on the signal axis: the baseline, then quarters of the chart's height.
+const SIGNAL_TICKS = 4;
+const TICK_LENGTH = 3;
 const DEFAULT_SIZE = 64;
 const AXIS_OPACITY = 0.5;
 
@@ -88,11 +91,17 @@ if (typeof document !== 'undefined' && !document.getElementById('dlc-hplctrace-s
 
 // The axes run a little past the data.
 const PAD = 4;
-const FRAME = `M${LEFT - PAD / 2} ${TOP - PAD}V${AXIS}H${RIGHT + PAD}`;
-const TICK_MARKS = Array.from({length: TICKS}, (_, i) => {
+const AXIS_X = LEFT - PAD / 2;
+const FRAME = `M${AXIS_X} ${TOP - PAD}V${AXIS}H${RIGHT + PAD}`;
+const TIME_TICKS = Array.from({length: TICKS}, (_, i) => {
     const x = xAt((i + 0.5) / TICKS);
-    return `M${x.toFixed(2)} ${AXIS}v3`;
+    return `M${x.toFixed(2)} ${AXIS}v${TICK_LENGTH}`;
 }).join('');
+const SIGNAL_TICK_MARKS = Array.from({length: SIGNAL_TICKS + 1}, (_, i) => {
+    const y = yAt(i / SIGNAL_TICKS);
+    return `M${AXIS_X} ${y.toFixed(2)}h-${TICK_LENGTH}`;
+}).join('');
+const TICK_MARKS = TIME_TICKS + SIGNAL_TICK_MARKS;
 
 /**
  * LabHplcTrace — the detector trace of an HPLC or UPLC run, the kind that
