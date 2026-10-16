@@ -12,8 +12,6 @@ const TOP = 10;
 const SAMPLES = 320;
 const TICKS = 7;
 const DEFAULT_SIZE = 64;
-// The dashed baseline guide under the trace.
-const GUIDE_OPACITY = 0.16;
 const AXIS_OPACITY = 0.5;
 
 // What elutes, by retention time (0 to 1 along the run), height (0 to 1 of the
@@ -116,8 +114,6 @@ const LabHplcTrace = (props) => {
                 aria-label={aria_label || 'Loading'} style={{display: 'block'}}>
                 <path d={FRAME + TICK_MARKS} fill="none" stroke={base} strokeOpacity={AXIS_OPACITY} strokeWidth={1.2}
                     strokeLinecap="round" strokeLinejoin="round" />
-                <path d={`M${LEFT} ${BASELINE}H${RIGHT}`} fill="none" stroke={base}
-                    strokeOpacity={GUIDE_OPACITY} strokeWidth={1.2} strokeDasharray="2 3" />
                 <path className="dlc-hplc-trace" d={TRACE} pathLength={1} fill="none" stroke={base} strokeOpacity={on}
                     strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{animation: `dlc-hplc-draw ${run}`}} />
                 {PEAKS.map(({rt}, k) => (
@@ -151,7 +147,7 @@ LabHplcTrace.propTypes = {
      */
     size: PropTypes.number,
     /**
-     * Color of the trace, the pen, the axes and the baseline guide (default currentColor).
+     * Color of the trace, the pen and the axes (default currentColor).
      */
     color: PropTypes.string,
     /**

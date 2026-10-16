@@ -41,8 +41,7 @@ Keyword arguments:
     CSS class applied to the outer wrapper.
 
 - color (string; optional):
-    Color of the trace, the pen, the axes and the baseline guide
-    (default currentColor).
+    Color of the trace, the pen and the axes (default currentColor).
 
 - on_opacity (number; optional):
     Opacity of the trace, 0 to 1 (default 1).
