@@ -7,6 +7,7 @@ from .EpicSemipolarSpinner import EpicSemipolarSpinner
 from .EpicSpringSpinner import EpicSpringSpinner
 from .EpicTrinityRingsSpinner import EpicTrinityRingsSpinner
 from .FlickerSpinner import FlickerSpinner
+from .FlickerWellPlate import FlickerWellPlate
 from .GridoraGridLoader import GridoraGridLoader
 from .GridoraText import GridoraText
 from .IndicatorsAtom import IndicatorsAtom
@@ -121,6 +122,7 @@ __all__ = [
     "EpicSpringSpinner",
     "EpicTrinityRingsSpinner",
     "FlickerSpinner",
+    "FlickerWellPlate",
     "GridoraGridLoader",
     "GridoraText",
     "IndicatorsAtom",

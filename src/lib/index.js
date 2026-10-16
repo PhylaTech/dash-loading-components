@@ -107,6 +107,7 @@ import EpicSemipolarSpinner from './components/epic/EpicSemipolarSpinner.react';
 import EpicSpringSpinner from './components/epic/EpicSpringSpinner.react';
 import EpicTrinityRingsSpinner from './components/epic/EpicTrinityRingsSpinner.react';
 import FlickerSpinner from './components/flicker/FlickerSpinner.react';
+import FlickerWellPlate from './components/flicker/FlickerWellPlate.react';
 import GridoraGridLoader from './components/gridora/GridoraGridLoader.react';
 import GridoraText from './components/gridora/GridoraText.react';
 import LoaderszLoader from './components/loadersz/LoaderszLoader.react';
@@ -221,6 +222,7 @@ export {
     EpicSpringSpinner,
     EpicTrinityRingsSpinner,
     FlickerSpinner,
+    FlickerWellPlate,
     GridoraGridLoader,
     GridoraText,
     LoaderszLoader,

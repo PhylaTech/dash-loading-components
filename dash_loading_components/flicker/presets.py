@@ -382,20 +382,6 @@ def hplc_trace():
     return frames
 
 
-def well_plate():
-    # A liquid handler working a microplate: its pipette head rides above the
-    # plate and fills each well in turn, row after row, until the plate is full.
-    # Then the rows empty top to bottom and the head parks for the next plate.
-    wells = [(r, c) for r in range(2, 6) for c in range(N)]
-    frames = []
-    for i, (r, c) in enumerate(wells):
-        frames.append(set(wells[: i + 1]) | {(0, c), (1, c)})
-    full = set(wells)
-    frames += [full] * 3
-    frames += [{w for w in wells if w[0] >= r} for r in range(3, 6)]
-    return frames + [{(0, 0), (1, 0)}]
-
-
 # ---------------------------------------------------------------------------
 # Data: charts drawing themselves, for dashboards waiting on a query
 # ---------------------------------------------------------------------------
@@ -835,7 +821,6 @@ _DESIGNS = [
     ("Seedling", "field", seedling, "A seed in the soil sending up a shoot that opens its first leaves."),
     ("Chromatogram", "field", chromatogram, "Thin-layer chromatography: spots climbing three lanes at their own retention factors."),
     ("HplcTrace", "field", hplc_trace, "A liquid chromatography detector trace scrolling by, compounds eluting as peaks of their own height."),
-    ("WellPlate", "field", well_plate, "A pipette filling a microplate well by well, row after row, until the plate is full."),
     ("Scatter", "data", scatter, "Points landing one by one along a rising trend."),
     ("Histogram", "data", histogram, "Bins filling left to right into a bell curve, then emptying."),
     ("PieChart", "data", pie_chart, "A pie filling slice by slice from twelve o'clock, then emptying the same way round."),

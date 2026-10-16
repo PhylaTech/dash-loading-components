@@ -647,7 +647,7 @@ UPSTREAM_CREDITS = [
         "family": "flicker", "npm": "flicker-dot", "version": "0.1.4", "spdx": "MIT",
         "homepage": "https://flicker.laurie.fyi", "repo": "https://github.com/laurieesc/flicker-dot",
         "blurb": (
-            f"Laura Escobar's flip-dot player, on {len(dlc.flicker.PRESETS)} original presets drawn by PhylaTech. "
+            f"Laura Escobar's flip-dot player, on {len(dlc.flicker.PRESETS)} original presets drawn by PhylaTech, plus a 96-well plate drawn as SVG. "
             "dlc.flicker.Spinner(grids=...) plays frames of your own."
         ),
         "status": "mvp",
@@ -721,7 +721,7 @@ def description_for(family: str, name: str, upstream: str) -> str:
     if family == "loading_dev" and name in LOADING_DEV_BLURBS:
         return LOADING_DEV_BLURBS[name]
     if family == "flicker":
-        return dlc.flicker.PRESETS[name].blurb
+        return dlc.flicker.blurb_of(name)
     if family == "gridora":
         return f"The {name} grid-dot animation pattern from gridora."
     if family == "loadersz":
@@ -1278,7 +1278,7 @@ def family_categories(key: str, items: list[tuple[str, Callable]]) -> list[tuple
     loaders (flicker, gridora, loadersz); empty for the rest."""
     names = [n for n, _c in items]
     if key == "flicker":
-        categories, category_of = dlc.flicker.CATEGORIES, lambda n: dlc.flicker.PRESETS[n].category
+        categories, category_of = dlc.flicker.CATEGORIES, dlc.flicker.category_of
     elif key == "gridora":
         categories, category_of = dlc.gridora.CATEGORIES, dlc.gridora.VARIANT_CATEGORY.get
     elif key == "loadersz":

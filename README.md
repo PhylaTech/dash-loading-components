@@ -80,13 +80,17 @@ resolve it; it will accept the final 4.5 release once published.
 ## Flip-dot presets
 
 flicker-dot is a player: it animates whatever 7x7 frames it is given. `dlc.flicker`
-ships 63 original presets for it, drawn by PhylaTech and MIT licensed with this
+ships 62 original presets for it, drawn by PhylaTech and MIT licensed with this
 package, in six sets: Field (the naturalist set: `Mycelium`, `Diatom`,
-`Cladogram`, `Chromatogram`, `HplcTrace`, `WellPlate`, `MassSpec`, `TestTube`, `Jellyfish`, ...), Data
+`Cladogram`, `Chromatogram`, `HplcTrace`, `MassSpec`, `TestTube`, `Jellyfish`, ...), Data
 (`Scatter`, `Histogram`, `LineChart`, `PieChart`, `Heatmap`, `Database`),
 Everyday (`Cart`, `Upload`, `Download`, `Mail`, `Wifi`, `Heart`, `Lock`, ...),
 Board (flip-dot panel classics), Geometry, and Solids (the five Platonic
-solids). Each is the player with its frames filled in:
+solids). Each of those is the player with its frames filled in. The 63rd
+spinner, `dlc.flicker.WellPlate`, is a full 96-well microplate (8 by 12, A1 corner cut off)
+that a pipette fills well by well: it is drawn as SVG, because the 7x7 grid has
+no room for it, and takes `size`, `color`, `on_opacity`, `off_color`, `off_opacity`,
+`rate` and `playing`.
 
 ```python
 dlc.flicker.Mycelium(size=48, color="#f97316")
