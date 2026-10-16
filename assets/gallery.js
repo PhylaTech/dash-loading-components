@@ -269,7 +269,7 @@
   const tileOf = (event) => event.target.closest && event.target.closest('.dlc-wall-tile');
   // Hover waits a beat, so scrolling or sweeping across the wall stays quiet;
   // only a pointer that settles on a tile gets its tooltip. Keyboard focus is
-  // deliberate, so it shows at once. Any scroll hides it again.
+  // deliberate, so it shows at once. Scrolling hides a hover tooltip again.
   const WALL_TIP_DELAY = 500;
   let tipTimer, tipTile = null;
   const hideTip = () => { clearTimeout(tipTimer); tipTile = null; wallTip(null); };
@@ -283,7 +283,11 @@
   });
   document.addEventListener('focusin', (event) => { const tile = tileOf(event); if (tile) { hideTip(); wallTip(tile); } });
   document.addEventListener('focusout', (event) => { if (tileOf(event)) hideTip(); });
-  document.addEventListener('scroll', (event) => { if (event.target.classList?.contains('dlc-wall')) hideTip(); }, true);
+  // Focus can scroll its tile into view; that must not hide its own tooltip, so
+  // only a hover one (tipTile set) goes on scroll.
+  document.addEventListener('scroll', (event) => {
+    if (tipTile && event.target.classList?.contains('dlc-wall')) hideTip();
+  }, true);
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape' || !document.querySelector('.dlc-wall')) return;
     history.pushState({}, '', '/');
