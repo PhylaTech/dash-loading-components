@@ -2,6 +2,7 @@
 
   /                      overview: every family, one card per spinner
   /c/<family>/<Name>     component page: live demo, controls, snippets, props
+  /wall                  full-screen matrix of every spinner, tiles link to their page
   /credits               upstream packages and their licenses
 
 Run locally with `pixi run gallery`. Deployed behind gunicorn as
@@ -751,10 +752,12 @@ def detail_path(family: str, name: str) -> str:
 
 
 def parse_pathname(pathname: Optional[str]) -> tuple[str, Optional[str], Optional[str]]:
-    """Return (mode, family, name). mode is 'overview' | 'detail' | 'credits' | 'unknown'."""
+    """Return (mode, family, name). mode is 'overview' | 'wall' | 'detail' | 'credits' | 'unknown'."""
     if not pathname or pathname == "/":
         return "overview", None, None
     pathname = unquote(pathname.rstrip("/") or "/")
+    if pathname == "/wall":
+        return "wall", None, None
     if pathname in ("/credits", "/licenses"):
         return "credits", None, None
     m = re.match(r"^/c/([a-z0-9_]+)/([A-Za-z0-9_-]+)$", pathname)
@@ -1119,6 +1122,7 @@ def search_index() -> list[dict[str, str]]:
     ]
     entries += [
         {"title": "Overview", "group": "Page", "href": "/"},
+        {"title": "Full-screen wall", "group": "Page", "href": "/wall"},
         {"title": "Credits & Licenses", "group": "Page", "href": "/credits"},
     ]
     return entries
@@ -1174,6 +1178,11 @@ def build_header() -> dmc.AppShellHeader:
                             ],
                             className="dlc-search",
                         ),
+                        dmc.Anchor(
+                            dmc.ActionIcon(icon("wall", "dlc-action-icon"), variant="default", size="lg",
+                                           **{"aria-label": "Full-screen wall of every spinner"}),
+                            href="/wall",
+                        ),
                         external_link(
                             # Iconify's line-md set: the octocat draws itself in, the
                             # theme icon morphs sun <-> moon on every switch.
@@ -1206,6 +1215,7 @@ def build_navbar() -> dmc.AppShellNavbar:
     """Static navbar; NavLink `active="exact"` follows the URL on its own."""
     sections = [
         dmc.NavLink(label="Overview", href="/", leftSection=icon("overview"), active="exact"),
+        dmc.NavLink(label="Full-screen wall", href="/wall", leftSection=icon("wall"), active="exact"),
         # Straight to the GitHub issue form: the template asks for the package,
         # license and React peer range, which is what deciding a wrap needs.
         dmc.NavLink(label="Request a library", href=ISSUE_REQUEST_URL, target="_blank",
@@ -1367,6 +1377,55 @@ def build_overview() -> html.Div:
             build_footer(),
         ],
         className="dlc-page",
+    )
+
+
+# Wall tiles are 64px, so a few loaders whose motion spills past their box need
+# a further shrink on top of OVERVIEW_SCALE (and the wall's own CSS scale).
+# react-spinners' dot rows wrap into a column when three dots at the card size
+# do not fit the tile, and a transform cannot undo a wrap. Give them a size that
+# fits one row and cancel the wall's CSS scale.
+WALL_SIZE_FIT = ("BeatLoader", "PulseLoader", "SyncLoader")
+WALL_SCALE: dict[tuple[str, str], float] = {
+    ("epic", "HollowDotsSpinner"): 0.78,
+    ("indicators", "BlinkBlur"): 0.64,
+    ("indicators", "LifeLine"): 0.7,
+    **{("spinners", n): 1.5 for n in WALL_SIZE_FIT},
+    ("spinners", "GridLoader"): 0.88,
+    ("spinners", "PropagateLoader"): 0.65,
+}
+
+
+def make_wall_tile(family: str, name: str) -> dmc.Anchor:
+    """A bare spinner linking to its page; the tooltip in assets/gallery.js reads the data-*."""
+    values = overview_values(family, name)
+    if family == "spinners" and name in WALL_SIZE_FIT:
+        values["size"] = 16
+    node = instantiate(family, name, values)
+    scale = OVERVIEW_SCALE.get((family, name), 1) * WALL_SCALE.get((family, name), 1)
+    if scale != 1:
+        node = html.Div(node, style={"transform": f"scale({scale})"})
+    label = FAMILY_LOOKUP[family][0]
+    return dmc.Anchor(
+        html.Div(node, className="preview"),
+        href=detail_path(family, name),
+        underline="never",
+        className="dlc-wall-tile",
+        **{"data-name": name, "data-family": family, "data-label": label,
+           "data-desc": description_for(family, name, label), "aria-label": f"{name}, {label}"},
+    )
+
+
+def build_wall() -> html.Div:
+    """Every spinner as a compact tile on a page-less, full-viewport scroller."""
+    return html.Div(
+        [
+            dmc.Anchor(icon("close"), href="/", className="dlc-wall-close",
+                       **{"aria-label": "Close the wall"}),
+            html.Div([make_wall_tile(f, n) for f, n in CATALOG], className="dlc-wall-grid"),
+            html.Div(className="dlc-wall-tip", id="wall-tip", role="tooltip", hidden=True),
+        ],
+        className="dlc-wall",
     )
 
 
@@ -1821,6 +1880,8 @@ def render_page(pathname):
     mode, family, name = parse_pathname(pathname)
     if mode == "overview":
         return build_overview()
+    if mode == "wall":
+        return build_wall()
     if mode == "detail":
         return build_detail(family, name)
     if mode == "credits":

@@ -44,6 +44,9 @@ p { text-wrap: pretty; }
 .dlc-icon-thinking_orbs { --dlc-icon: url(icons/thinking_orbs.svg); }
 .dlc-icon-lab { --dlc-icon: url(icons/lab.svg); }
 .dlc-icon-overview { --dlc-icon: url(icons/overview.svg); }
+.dlc-icon-wall { --dlc-icon: url(icons/wall.svg); }
+.dlc-icon-close { --dlc-icon: url(icons/close.svg); }
+.dlc-action-icon { width: 18px; height: 18px; vertical-align: 0; }
 .dlc-icon-credits { --dlc-icon: url(icons/credits.svg); }
 .dlc-icon-request { --dlc-icon: url(icons/request.svg); }
 .dlc-nav-ext { width: 0.85em; height: 0.85em; opacity: 0.6; }
@@ -286,6 +289,71 @@ html[data-mac] .dlc-mod-other, html:not([data-mac]) .dlc-mod-mac { display: none
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .dlc-card:hover .name { color: var(--mantine-color-text); }
+
+/* ---------- Wall: every spinner, full viewport ---------- */
+/* Fixed over the app shell, header and navbar included, so nothing but
+   spinners is on screen. The tiles are the overview's own previews, minus
+   the labels; assets/gallery.js adds the hover tooltip and Esc to close. */
+.dlc-wall {
+  position: fixed; inset: 0; z-index: 300;
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: 20px;
+  background:
+    radial-gradient(circle, light-dark(rgb(0 0 0 / 0.07), rgb(255 255 255 / 0.06)) 1px, transparent 1px)
+    0 0 / 16px 16px,
+    var(--dlc-surface-sunken);
+}
+.dlc-wall-grid {
+  display: grid; gap: 4px;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+}
+/* An action icon: bare until hovered. */
+.dlc-wall-tile {
+  display: flex; aspect-ratio: 1; min-width: 0;
+  border: 1px solid transparent;
+  border-radius: var(--mantine-radius-md);
+  color: var(--mantine-color-text);
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: 150ms; transition-timing-function: ease-out;
+}
+.dlc-wall-tile:hover, .dlc-wall-tile:focus-visible {
+  background: var(--dlc-surface);
+  border-color: var(--dlc-accent);
+  box-shadow: 0 0 0 3px light-dark(rgb(253 126 20 / 0.12), rgb(253 126 20 / 0.18));
+  outline: none;
+}
+.dlc-wall-tile .preview {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; position: relative;
+}
+/* The overview's previews are sized for 150px cards; fit them to the icon. */
+.dlc-wall-tile .preview > * { scale: 0.65; }
+.dlc-wall-close {
+  position: fixed; top: 16px; right: 16px; z-index: 2;
+  display: grid; place-items: center; width: 40px; height: 40px;
+  border: 1px solid var(--dlc-border); border-radius: 50%;
+  background: var(--dlc-surface); color: var(--mantine-color-text);
+  font-size: 18px;
+  transition: color 150ms ease-out, border-color 150ms ease-out;
+}
+.dlc-wall-close:hover, .dlc-wall-close:focus-visible { color: var(--dlc-accent); border-color: var(--dlc-accent); outline: none; }
+.dlc-wall-tip {
+  position: fixed; z-index: 3; max-width: 260px; padding: 10px 12px;
+  pointer-events: none;
+  background: var(--dlc-surface); border: 1px solid var(--dlc-border);
+  border-radius: var(--mantine-radius-md);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+  font-size: 12.5px; line-height: 1.4; color: var(--mantine-color-dimmed);
+}
+.dlc-wall-tip[hidden] { display: none; }
+.dlc-wall-tip b { display: block; font-size: 14px; font-weight: 650; color: var(--mantine-color-text); }
+.dlc-wall-tip code { font-family: var(--mantine-font-family-monospace); font-size: 11.5px; color: var(--dlc-accent); }
+.dlc-wall-tip span { display: block; margin-top: 4px; }
+@media (max-width: 48em) {
+  .dlc-wall { padding: 12px; }
+  .dlc-wall-grid { grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); }
+}
 
 /* ---------- Component page ---------- */
 .dlc-detail-page {

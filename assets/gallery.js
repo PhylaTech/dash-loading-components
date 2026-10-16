@@ -250,6 +250,32 @@
     root.addEventListener('mouseleave', start);
   };
 
+  // Wall: one floating tooltip for every tile (a per-tile one would be clipped
+  // by the scroller at the edges), and Esc closes back to the overview.
+  const wallTip = (tile) => {
+    const tip = document.getElementById('wall-tip');
+    if (!tip) return;
+    if (!tile) { tip.hidden = true; return; }
+    const d = tile.dataset;
+    const row = (tag, text) => { const el = document.createElement(tag); el.textContent = text; return el; };
+    tip.replaceChildren(row('b', d.name), row('code', `dlc.${d.family}`), row('span', d.desc));
+    tip.hidden = false;
+    const r = tile.getBoundingClientRect(), t = tip.getBoundingClientRect();
+    const left = Math.min(Math.max(8, r.left + r.width / 2 - t.width / 2), innerWidth - t.width - 8);
+    const below = r.bottom + 8 + t.height <= innerHeight;
+    tip.style.left = `${left}px`;
+    tip.style.top = `${below ? r.bottom + 8 : r.top - 8 - t.height}px`;
+  };
+  const tileOf = (event) => event.target.closest && event.target.closest('.dlc-wall-tile');
+  document.addEventListener('mouseover', (event) => wallTip(tileOf(event)));
+  document.addEventListener('focusin', (event) => wallTip(tileOf(event)));
+  document.addEventListener('focusout', (event) => { if (tileOf(event)) wallTip(null); });
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !document.querySelector('.dlc-wall')) return;
+    history.pushState({}, '', '/');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  });
+
   let markStarted = false;
   new MutationObserver(() => {
     if (!markStarted && document.querySelector('.dlc-brand-mark .dlc-mark')) { markStarted = true; cycleMark(); }
