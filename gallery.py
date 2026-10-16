@@ -1412,7 +1412,8 @@ def make_wall_tile(family: str, name: str) -> dmc.Anchor:
         href=detail_path(family, name),
         underline="never",
         className="dlc-wall-tile",
-        **{"data-name": name, "data-family": family, "data-label": label,
+        # data-off: parked until assets/gallery.js sees the tile near the viewport.
+        **{"data-name": name, "data-family": family, "data-label": label, "data-off": "",
            "data-desc": description_for(family, name, label), "aria-label": f"{name}, {label}"},
     )
 

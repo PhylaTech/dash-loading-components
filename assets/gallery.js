@@ -294,9 +294,26 @@
     window.dispatchEvent(new PopStateEvent('popstate'));
   });
 
+  // Wall: render only the tiles near the viewport. Parked ones lose their
+  // preview (display: none drops its animations and layers), and loadersz
+  // canvases, which run their own rAF loop, are paused.
+  const wallPark = () => {
+    const wall = document.querySelector('.dlc-wall');
+    if (!wall || wall.dataset.ready) return;
+    wall.dataset.ready = '1';
+    const io = new IntersectionObserver((entries) => {
+      for (const {target, isIntersecting} of entries) {
+        target.toggleAttribute('data-off', !isIntersecting);
+        target.querySelectorAll('loadersz-loader').forEach((el) => el.toggleAttribute('paused', !isIntersecting));
+      }
+    }, {root: wall, rootMargin: '300px 0px'});
+    wall.querySelectorAll('.dlc-wall-tile').forEach((tile) => io.observe(tile));
+  };
+
   let markStarted = false;
   new MutationObserver(() => {
     if (!markStarted && document.querySelector('.dlc-brand-mark .dlc-mark')) { markStarted = true; cycleMark(); }
     carousel();
+    wallPark();
   }).observe(document.documentElement, {childList: true, subtree: true});
 })();
