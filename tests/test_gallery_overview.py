@@ -141,10 +141,21 @@ def test_wall_has_every_spinner_and_none_clips(dash_duo):
     }
     assert not clipped, f'wall tiles clip their spinner: {clipped}. Give them a gallery.WALL_SCALE entry.'
 
-    # Hover details come from one floating tooltip; a click opens the page.
+    # Hover details come from one floating tooltip, and only once the pointer
+    # settles: not on arrival, and not while the wall scrolls.
     tile = tiles[0]
+    tip = dash_duo.driver.find_element('css selector', '#wall-tip')
+    hover = "arguments[0].dispatchEvent(new MouseEvent('mouseover', {bubbles: true}))"
+    dash_duo.driver.execute_script(hover, tile)
+    assert not tip.is_displayed()
+    time.sleep(0.2)
+    assert not tip.is_displayed()
+    dash_duo.wait_for_element('#wall-tip:not([hidden])', timeout=3)
+    dash_duo.driver.execute_script("document.querySelector('.dlc-wall').scrollTop = 40")
+    dash_duo.wait_for_element('#wall-tip[hidden]', timeout=3)
+
+    # Keyboard focus is deliberate, so it shows at once.
     dash_duo.driver.execute_script("arguments[0].focus()", tile)
-    tip = dash_duo.find_element('#wall-tip')
     assert gallery.CATALOG[0][1] in tip.text and 'dlc.' + gallery.CATALOG[0][0] in tip.text
     tile.click()
     dash_duo.wait_for_text_to_equal('h1', gallery.CATALOG[0][1])
