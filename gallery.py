@@ -1122,7 +1122,7 @@ def search_index() -> list[dict[str, str]]:
     ]
     entries += [
         {"title": "Overview", "group": "Page", "href": "/"},
-        {"title": "Full-screen wall", "group": "Page", "href": "/wall"},
+        {"title": "View Gallery", "group": "Page", "href": "/wall"},
         {"title": "Credits & Licenses", "group": "Page", "href": "/credits"},
     ]
     return entries
@@ -1178,10 +1178,12 @@ def build_header() -> dmc.AppShellHeader:
                             ],
                             className="dlc-search",
                         ),
+                        # CSS tooltip (data-tip): Mantine's Tooltip positions through the
+                        # ref React 19 does not hand it, like the popovers above.
                         dmc.Anchor(
                             dmc.ActionIcon(icon("wall", "dlc-action-icon"), variant="default", size="lg",
-                                           **{"aria-label": "Full-screen wall of every spinner"}),
-                            href="/wall",
+                                           **{"aria-label": "View Gallery"}),
+                            href="/wall", className="dlc-tip-host", **{"data-tip": "View Gallery"},
                         ),
                         external_link(
                             # Iconify's line-md set: the octocat draws itself in, the
@@ -1215,7 +1217,6 @@ def build_navbar() -> dmc.AppShellNavbar:
     """Static navbar; NavLink `active="exact"` follows the URL on its own."""
     sections = [
         dmc.NavLink(label="Overview", href="/", leftSection=icon("overview"), active="exact"),
-        dmc.NavLink(label="Full-screen wall", href="/wall", leftSection=icon("wall"), active="exact"),
         # Straight to the GitHub issue form: the template asks for the package,
         # license and React peer range, which is what deciding a wrap needs.
         dmc.NavLink(label="Request a library", href=ISSUE_REQUEST_URL, target="_blank",

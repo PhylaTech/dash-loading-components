@@ -47,6 +47,19 @@ p { text-wrap: pretty; }
 .dlc-icon-wall { --dlc-icon: url(icons/wall.svg); }
 .dlc-icon-close { --dlc-icon: url(icons/close.svg); }
 .dlc-action-icon { width: 18px; height: 18px; vertical-align: 0; }
+/* Small tooltip for header icons, after a beat so passing over stays quiet. */
+.dlc-tip-host { position: relative; display: inline-flex; }
+.dlc-tip-host::after {
+  content: attr(data-tip);
+  position: absolute; top: calc(100% + 8px); left: 50%; translate: -50% 0;
+  padding: 4px 8px; white-space: nowrap; pointer-events: none;
+  background: var(--dlc-surface); border: 1px solid var(--dlc-border);
+  border-radius: var(--mantine-radius-sm);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.12);
+  font-size: 12px; color: var(--mantine-color-text);
+  opacity: 0; transition: opacity 120ms ease-out;
+}
+.dlc-tip-host:hover::after, .dlc-tip-host:focus-visible::after { opacity: 1; transition-delay: 400ms; }
 .dlc-icon-credits { --dlc-icon: url(icons/credits.svg); }
 .dlc-icon-request { --dlc-icon: url(icons/request.svg); }
 .dlc-nav-ext { width: 0.85em; height: 0.85em; opacity: 0.6; }
