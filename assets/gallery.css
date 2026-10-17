@@ -44,6 +44,22 @@ p { text-wrap: pretty; }
 .dlc-icon-thinking_orbs { --dlc-icon: url(icons/thinking_orbs.svg); }
 .dlc-icon-lab { --dlc-icon: url(icons/lab.svg); }
 .dlc-icon-overview { --dlc-icon: url(icons/overview.svg); }
+.dlc-icon-wall { --dlc-icon: url(icons/wall.svg); }
+.dlc-icon-close { --dlc-icon: url(icons/close.svg); }
+.dlc-action-icon { width: 18px; height: 18px; vertical-align: 0; }
+/* Small tooltip for header icons, after a beat so passing over stays quiet. */
+.dlc-tip-host { position: relative; display: inline-flex; }
+.dlc-tip-host::after {
+  content: attr(data-tip);
+  position: absolute; top: calc(100% + 8px); left: 50%; translate: -50% 0;
+  padding: 4px 8px; white-space: nowrap; pointer-events: none;
+  background: var(--dlc-surface); border: 1px solid var(--dlc-border);
+  border-radius: var(--mantine-radius-sm);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.12);
+  font-size: 12px; color: var(--mantine-color-text);
+  opacity: 0; transition: opacity 120ms ease-out;
+}
+.dlc-tip-host:hover::after, .dlc-tip-host:focus-visible::after { opacity: 1; transition-delay: 400ms; }
 .dlc-icon-credits { --dlc-icon: url(icons/credits.svg); }
 .dlc-icon-request { --dlc-icon: url(icons/request.svg); }
 .dlc-nav-ext { width: 0.85em; height: 0.85em; opacity: 0.6; }
@@ -190,37 +206,66 @@ html[data-mac] .dlc-mod-other, html:not([data-mac]) .dlc-mod-mac { display: none
 .dlc-install, .dlc-hero-code {
   border: 1px solid var(--dlc-border); border-radius: var(--mantine-radius-md);
 }
-/* Hero carousel: snippet beside the loader it builds, one featured loader
-   at a time; slides are stacked and swapped by assets/gallery.js. */
-.dlc-hero-carousel { max-width: 920px; }
-.dlc-carousel { position: relative; overflow: hidden; }
-.dlc-slide {
-  display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 12px; align-items: stretch;
-  min-height: 176px;
+/* Library carousel: one card per library, stacked in one grid cell so the
+   cards fade in place. Inactive cards keep their size (rows have a fixed
+   height) but their tiles are parked, so they cost DOM only. Tiles are swapped by assets/gallery.js. */
+.dlc-libs { max-width: 1116px; }
+/* assets/gallery.js sets the track's height to the active card's own, so a
+   one-row library is not as tall as a three-row one. */
+.dlc-libs-track { display: grid; overflow: clip; transition: height 260ms cubic-bezier(0.2, 0, 0, 1); }
+.dlc-lib {
+  grid-area: 1 / 1; min-width: 0; align-self: start;
+  padding: 20px 22px 22px;
+  background: var(--dlc-surface);
+  border: 1px solid var(--dlc-border); border-radius: var(--mantine-radius-lg);
+  opacity: 0; visibility: hidden;
+  transition: opacity 260ms ease-out, visibility 0s 260ms;
 }
-.dlc-slide[hidden] { display: none; }
-.dlc-slide.is-entering { animation: dlc-slide-in-x 420ms cubic-bezier(0.2, 0, 0, 1); }
-/* Exits softer than enters: shorter travel, shorter time. */
-.dlc-slide.is-leaving { position: absolute; inset: 0; animation: dlc-slide-out-x 300ms cubic-bezier(0.2, 0, 0, 1) forwards; }
-@keyframes dlc-slide-in-x { from { translate: 40px 0; opacity: 0; } to { translate: 0 0; opacity: 1; } }
-@keyframes dlc-slide-out-x { to { translate: -24px 0; opacity: 0; } }
-.dlc-slide .dlc-hero-code { min-width: 0; }
-/* Centre the one-line call in the row: the snippet is shorter than the stage. */
-.dlc-slide .mantine-CodeHighlight-codeHighlight { position: relative; display: grid; align-content: center; height: 100%; }
-.dlc-hero-stage {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
-  padding: 20px; color: var(--mantine-color-text); text-decoration: none;
-  border: 1px solid var(--dlc-border); border-radius: var(--mantine-radius-md);
-  background:
-    radial-gradient(circle, light-dark(rgb(0 0 0 / 0.07), rgb(255 255 255 / 0.06)) 1px, transparent 1px)
-    0 0 / 16px 16px,
-    var(--dlc-surface-sunken);
-  transition-property: border-color; transition-duration: 150ms;
+.dlc-lib.is-active { opacity: 1; visibility: visible; transition-delay: 0s; }
+.dlc-lib-more { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+.dlc-lib-more .dlc-icon { width: 0.9em; height: 0.9em; vertical-align: 0; }
+.dlc-lib-rows { display: grid; gap: 14px; }
+/* A library with sections: they sit side by side, each row turning on its own. */
+.dlc-lib-rows.is-sections { grid-template-columns: repeat(var(--sec-cols), minmax(0, 1fr)); gap: 18px 22px; }
+.dlc-lib-section { min-width: 0; }
+.dlc-lib-section-title { margin-bottom: 6px; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dlc-lib-row.is-compact { --tile-h: 104px; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: 4px; }
+.dlc-lib-row {
+  --tile-h: 112px; --rows: 1;
+  display: grid; gap: 8px; align-content: start;
+  grid-template-columns: repeat(8, minmax(0, 1fr)); grid-auto-rows: var(--tile-h);
+  min-height: calc(var(--rows) * var(--tile-h) + (var(--rows) - 1) * 8px);
 }
-.dlc-hero-stage:hover { border-color: var(--dlc-accent); }
-.dlc-hero-loader { display: flex; align-items: center; justify-content: center; height: 96px; }
-.dlc-hero-name { font-family: var(--mantine-font-family-monospace); font-size: 13px; }
-.dlc-hero-ns { color: var(--mantine-color-dimmed); }
+.dlc-lib-tile {
+  display: flex; flex-direction: column; min-width: 0;
+  border: 1px solid transparent; border-radius: var(--mantine-radius-md);
+  color: var(--mantine-color-text);
+  transition-property: background-color, border-color; transition-duration: 150ms;
+}
+.dlc-lib-tile[data-off] { display: none; }
+.dlc-lib-tile:hover, .dlc-lib-tile:focus-visible {
+  background: var(--dlc-surface-sunken); border-color: var(--dlc-accent); outline: none;
+}
+.dlc-lib-row.is-turning .dlc-lib-tile { animation: dlc-lib-in 360ms cubic-bezier(0.2, 0, 0, 1) both; }
+@keyframes dlc-lib-in { from { opacity: 0; translate: 0 6px; } }
+.dlc-lib-tile .preview {
+  flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; position: relative;
+}
+.dlc-lib-tile .preview > * { scale: 0.8; }
+.dlc-lib-tile .name {
+  padding: 0 6px 8px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 12px; color: var(--mantine-color-dimmed);
+}
+.dlc-lib-tile:hover .name { color: var(--mantine-color-text); }
+@media (max-width: 64em) {
+  .dlc-lib-row:not(.is-compact) { grid-template-columns: repeat(4, minmax(0, 1fr)); --rows: 2; }
+  .dlc-lib-rows.is-sections { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 40em) {
+  .dlc-lib-row:not(.is-compact) { grid-template-columns: repeat(3, minmax(0, 1fr)); --rows: 3; }
+  .dlc-lib-rows.is-sections { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { .dlc-lib, .dlc-lib-row.is-turning .dlc-lib-tile { transition: none; animation: none; } }
 .dlc-carousel-nav { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; }
 .dlc-carousel-btn {
   display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px;
@@ -237,9 +282,6 @@ html[data-mac] .dlc-mod-other, html:not([data-mac]) .dlc-mod-mac { display: none
   transition-property: background-color, width; transition-duration: 200ms;
 }
 .dlc-carousel-dots i.is-active { background: var(--dlc-accent); width: 16px; border-radius: 3px; }
-@media (max-width: 48em) {
-  .dlc-slide { grid-template-columns: 1fr; }
-}
 
 .dlc-family { padding: 36px 0 8px; scroll-margin-top: 80px; }
 .dlc-family-title {
@@ -280,12 +322,85 @@ html[data-mac] .dlc-mod-other, html:not([data-mac]) .dlc-mod-mac { display: none
   padding: 12px 8px;
   overflow: hidden; position: relative;
 }
+/* Parked until near the viewport (assets/gallery.js); the card keeps its size. */
+.dlc-card[data-off] .preview { display: none; }
 .dlc-card .name {
   padding: 0 10px 14px; text-align: center;
   font-size: 12.5px; font-weight: 500; color: var(--mantine-color-dimmed);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .dlc-card:hover .name { color: var(--mantine-color-text); }
+
+/* ---------- Wall: every spinner, full viewport ---------- */
+/* Fixed over the app shell, header and navbar included, so nothing but
+   spinners is on screen. The tiles are the overview's own previews, minus
+   the labels; assets/gallery.js adds the hover tooltip and Esc to close. */
+.dlc-wall {
+  position: fixed; inset: 0; z-index: 300;
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: 20px;
+  background:
+    radial-gradient(circle, light-dark(rgb(0 0 0 / 0.07), rgb(255 255 255 / 0.06)) 1px, transparent 1px)
+    0 0 / 16px 16px,
+    var(--dlc-surface-sunken);
+}
+.dlc-wall-grid {
+  display: grid; gap: 4px;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+}
+/* An action icon: bare until hovered. */
+.dlc-wall-tile {
+  display: flex; aspect-ratio: 1; min-width: 0;
+  border: 1px solid transparent;
+  border-radius: var(--mantine-radius-md);
+  color: var(--mantine-color-text);
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: 150ms; transition-timing-function: ease-out;
+}
+.dlc-wall-tile:hover, .dlc-wall-tile:focus-visible {
+  background: var(--dlc-surface);
+  border-color: var(--dlc-accent);
+  box-shadow: 0 0 0 3px light-dark(rgb(253 126 20 / 0.12), rgb(253 126 20 / 0.18));
+  outline: none;
+}
+/* No overflow clip: a clip per tile roughly doubled the frame time while
+   scrolling (profiled), and WALL_SCALE keeps every spinner inside its tile. */
+.dlc-wall-tile .preview {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+/* Only tiles near the viewport render (assets/gallery.js): 474 live spinners
+   are thousands of animated layers, over a gigabyte in the tab. The tile keeps
+   its size, so the grid does not move. */
+.dlc-wall-tile[data-off] .preview { display: none; }
+/* The overview's previews are sized for 150px cards; fit them to the icon. */
+.dlc-wall-tile .preview > * { scale: 0.65; }
+.dlc-wall-close {
+  position: fixed; top: 16px; right: 16px; z-index: 2;
+  display: grid; place-items: center; width: 40px; height: 40px;
+  border: 1px solid var(--dlc-border); border-radius: 50%;
+  background: var(--dlc-surface); color: var(--mantine-color-text);
+  font-size: 18px;
+  transition: color 150ms ease-out, border-color 150ms ease-out;
+}
+.dlc-wall-close:hover, .dlc-wall-close:focus-visible { color: var(--dlc-accent); border-color: var(--dlc-accent); outline: none; }
+.dlc-wall-tip {
+  position: fixed; z-index: 3; max-width: 260px; padding: 10px 12px;
+  pointer-events: none;
+  background: var(--dlc-surface); border: 1px solid var(--dlc-border);
+  border-radius: var(--mantine-radius-md);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+  font-size: 12.5px; line-height: 1.4; color: var(--mantine-color-dimmed);
+}
+.dlc-wall-tip[hidden] { display: none; }
+.dlc-wall-tip b { display: block; font-size: 14px; font-weight: 650; color: var(--mantine-color-text); }
+.dlc-wall-tip code { font-family: var(--mantine-font-family-monospace); font-size: 11.5px; color: var(--dlc-accent); }
+.dlc-wall-tip span { display: block; margin-top: 4px; }
+@media (max-width: 48em) {
+  .dlc-wall { padding: 12px; }
+  .dlc-wall-grid { grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); }
+}
 
 /* ---------- Component page ---------- */
 .dlc-detail-page {

@@ -83,12 +83,13 @@ return out;
 TOLERANCE_PX = 2.0
 
 
-def _worst_overflow(dash_duo, seconds: float) -> dict[str, list[float]]:
+def _worst_overflow(dash_duo, seconds: float, selector: str = '.dlc-card') -> dict[str, list[float]]:
     """Sample CLIP_SCAN for `seconds` and keep each card's widest overflow."""
+    scan = CLIP_SCAN.replace("'.dlc-card'", repr(selector))
     worst: dict[str, list[float]] = {}
     deadline = time.time() + seconds
     while time.time() < deadline:
-        for key, over in dash_duo.driver.execute_script(CLIP_SCAN).items():
+        for key, over in dash_duo.driver.execute_script(scan).items():
             prev = worst.setdefault(key, [0.0, 0.0, 0.0, 0.0])
             prev[0] = min(prev[0], over[0])
             prev[1] = min(prev[1], over[1])
@@ -104,6 +105,10 @@ def test_no_overview_card_clips_its_spinner(dash_duo):
     dash_duo.start_server(app)
     dash_duo.driver.set_window_size(1440, 1200)
     dash_duo.wait_for_element('.dlc-card')
+    # Cards far from the viewport are parked (no preview); once the observer
+    # has settled, wake them all so every one is measured.
+    time.sleep(1)
+    dash_duo.driver.execute_script("document.querySelectorAll('.dlc-card').forEach((c) => c.removeAttribute('data-off'))")
 
     worst = _worst_overflow(dash_duo, seconds=3.0)
     clipped = {
@@ -115,6 +120,77 @@ def test_no_overview_card_clips_its_spinner(dash_duo):
         "overview cards clip their spinner (px past top/left/bottom/right): "
         f"{clipped}. Give them an OVERVIEW_SCALE entry or a smaller preview size."
     )
+
+
+def test_wall_has_every_spinner_and_none_clips(dash_duo):
+    """/wall is one bare tile per spinner, each linking to its page, and (as on
+    the overview) none may clip its spinner at the tile's size."""
+    import gallery
+
+    app = import_app('gallery')
+    dash_duo.start_server(app)
+    dash_duo.driver.set_window_size(1440, 1200)
+    dash_duo.driver.get(dash_duo.server_url + '/wall')
+    dash_duo.wait_for_element('.dlc-wall-tile')
+
+    tiles = dash_duo.driver.find_elements('css selector', '.dlc-wall-tile')
+    assert len(tiles) == len(gallery.CATALOG)
+    assert not dash_duo.driver.find_elements('css selector', '.dlc-wall h1, .dlc-wall .dlc-card')
+
+    worst = _worst_overflow(dash_duo, seconds=3.0, selector='.dlc-wall-tile')
+    clipped = {
+        key: [round(v, 1) for v in over]
+        for key, over in worst.items()
+        if min(over[0], over[1]) < -TOLERANCE_PX or max(over[2], over[3]) > TOLERANCE_PX
+    }
+    assert not clipped, f'wall tiles clip their spinner: {clipped}. Give them a gallery.WALL_SCALE entry.'
+
+    # Hover details come from one floating tooltip, and only once the pointer
+    # settles: not on arrival, and not while the wall scrolls.
+    tile = tiles[0]
+    tip = dash_duo.driver.find_element('css selector', '#wall-tip')
+    hover = "arguments[0].dispatchEvent(new MouseEvent('mouseover', {bubbles: true}))"
+    dash_duo.driver.execute_script(hover, tile)
+    assert not tip.is_displayed()
+    time.sleep(0.2)
+    assert not tip.is_displayed()
+    dash_duo.wait_for_element('#wall-tip:not([hidden])', timeout=3)
+    dash_duo.driver.execute_script("document.querySelector('.dlc-wall').scrollTop = 40")
+    dash_duo.wait_for_element('#wall-tip[hidden]', timeout=3)
+
+    # Keyboard focus is deliberate, so it shows at once.
+    dash_duo.driver.execute_script("arguments[0].focus()", tile)
+    assert gallery.CATALOG[0][1] in tip.text and 'dlc.' + gallery.CATALOG[0][0] in tip.text
+    tile.click()
+    dash_duo.wait_for_text_to_equal('h1', gallery.CATALOG[0][1])
+    assert dash_duo.driver.current_url.endswith(gallery.detail_path(*gallery.CATALOG[0]))
+
+
+def test_library_carousel_shows_a_few_of_one_library_at_a_time(dash_duo):
+    """The landing page carries one card per library. Only the active card has
+    live tiles, never more than a page of them per row, and the arrows move
+    between libraries."""
+    import gallery
+
+    app = import_app('gallery')
+    dash_duo.start_server(app)
+    dash_duo.driver.set_window_size(1440, 1200)
+    dash_duo.wait_for_element('.dlc-lib.is-active .dlc-lib-tile:not([data-off])')
+
+    cards = dash_duo.driver.find_elements('css selector', '.dlc-lib')
+    assert len(cards) == len(gallery.FAMILIES)
+
+    live = "return document.querySelectorAll('.dlc-lib:not(.is-active) .dlc-lib-tile:not([data-off])').length"
+    assert dash_duo.driver.execute_script(live) == 0
+    first = dash_duo.find_element('.dlc-lib.is-active').get_attribute('aria-label')
+    dash_duo.find_element('.dlc-carousel-btn[data-step="1"]').click()
+    dash_duo.wait_for_element('.dlc-lib.is-active .dlc-lib-tile:not([data-off])')
+    assert dash_duo.find_element('.dlc-lib.is-active').get_attribute('aria-label') != first
+    assert dash_duo.driver.execute_script(live) == 0
+
+    # A library of nine is two even pages, not eight and one.
+    assert [len(p) for p in gallery.lib_pages(list('abcdefghi'))] == [5, 4]
+    assert [len(p) for p in gallery.lib_pages(list('abcdefgh'))] == [8]
 
 
 def test_brand_marks_do_not_clip(dash_duo):

@@ -2,6 +2,7 @@
 
   /                      overview: every family, one card per spinner
   /c/<family>/<Name>     component page: live demo, controls, snippets, props
+  /wall                  full-screen matrix of every spinner, tiles link to their page
   /credits               upstream packages and their licenses
 
 Run locally with `pixi run gallery`. Deployed behind gunicorn as
@@ -751,10 +752,12 @@ def detail_path(family: str, name: str) -> str:
 
 
 def parse_pathname(pathname: Optional[str]) -> tuple[str, Optional[str], Optional[str]]:
-    """Return (mode, family, name). mode is 'overview' | 'detail' | 'credits' | 'unknown'."""
+    """Return (mode, family, name). mode is 'overview' | 'wall' | 'detail' | 'credits' | 'unknown'."""
     if not pathname or pathname == "/":
         return "overview", None, None
     pathname = unquote(pathname.rstrip("/") or "/")
+    if pathname == "/wall":
+        return "wall", None, None
     if pathname in ("/credits", "/licenses"):
         return "credits", None, None
     m = re.match(r"^/c/([a-z0-9_]+)/([A-Za-z0-9_-]+)$", pathname)
@@ -1006,68 +1009,6 @@ def build_brand_mark() -> html.Span:
     return html.Span(marks, className="dlc-brand-mark", **{"aria-hidden": "true"})
 
 
-# Hero carousel: one slide per featured loader, snippet beside the loader.
-# A curated handful, not the catalog: every highlighted snippet is DOM.
-FEATURED: list[tuple[str, str, dict[str, Any]]] = [
-    ("loading_dev", "Dual", {"rate": 1.5}),
-    ("ldrs", "Helix", {}),
-    ("premium", "OrbitRings", {"ring_count": 4}),
-    ("loading_dev", "Cascade", {"cap": "flat"}),
-    ("spinners", "HashLoader", {}),
-    ("indicators", "Mosaic", {}),
-    ("m3", "LoadingIndicator", {}),
-    ("loading_dev", "Blocks", {"sweep": "columns"}),
-    ("spinners_react", "SpinnerDiamond", {"thickness": 140}),
-    ("epic", "TrinityRingsSpinner", {}),
-    ("loader_spinner", "DNA", {}),
-    ("ldrs", "Mirage", {}),
-    ("flicker", "Mycelium", {}),
-    ("gridora", "orbit", {}),
-]
-
-
-def build_hero_carousel() -> html.Div:
-    slides = []
-    for family, name, extras in FEATURED:
-        values = {"size": 48, "color": DEFAULT_COLOR, **extras}
-        slides.append(html.Div(
-            [
-                # Wide enough that every featured call stays on one line, so
-                # the slides are all the same height and nothing below jumps.
-                dmc.CodeHighlight(code=build_snippet(family, name, values, 88).rstrip(),
-                                  language="python", className="dlc-hero-code"),
-                dcc.Link(
-                    [
-                        html.Div(instantiate(family, name, {**values, "size": 64}), className="dlc-hero-loader"),
-                        html.Div([html.Span(f"dlc.{family}.", className="dlc-hero-ns"),
-                                  html.Strong(call_signature(family, name)[0].rsplit(".", 1)[1])],
-                                 className="dlc-hero-name"),
-                    ],
-                    href=detail_path(family, name),
-                    className="dlc-hero-stage",
-                ),
-            ],
-            className="dlc-slide",
-            hidden=True,
-        ))
-    return html.Div(
-        [
-            html.Div(slides, className="dlc-carousel", id="hero-carousel"),
-            html.Div(
-                [
-                    html.Button(icon("chevron", "dlc-flip"), className="dlc-carousel-btn", type="button",
-                                **{"data-step": "-1", "aria-label": "Previous loader"}),
-                    html.Span(className="dlc-carousel-dots", **{"aria-hidden": "true"}),  # indicator only
-                    html.Button(icon("chevron"), className="dlc-carousel-btn", type="button",
-                                **{"data-step": "1", "aria-label": "Next loader"}),
-                ],
-                className="dlc-carousel-nav",
-            ),
-        ],
-        className="dlc-hero-carousel",
-    )
-
-
 def overview_values(family: str, name: str) -> dict[str, Any]:
     """Exactly what the component page starts with, sized for the card."""
     props = configurable_props(family, name, COMPONENT_LOOKUP[(family, name)])
@@ -1119,6 +1060,7 @@ def search_index() -> list[dict[str, str]]:
     ]
     entries += [
         {"title": "Overview", "group": "Page", "href": "/"},
+        {"title": "View Gallery", "group": "Page", "href": "/wall"},
         {"title": "Credits & Licenses", "group": "Page", "href": "/credits"},
     ]
     return entries
@@ -1173,6 +1115,13 @@ def build_header() -> dmc.AppShellHeader:
                                          **{"data-index": json.dumps(search_index())}),
                             ],
                             className="dlc-search",
+                        ),
+                        # CSS tooltip (data-tip): Mantine's Tooltip positions through the
+                        # ref React 19 does not hand it, like the popovers above.
+                        dmc.Anchor(
+                            dmc.ActionIcon(icon("wall", "dlc-action-icon"), variant="default", size="lg",
+                                           **{"aria-label": "View Gallery"}),
+                            href="/wall", className="dlc-tip-host", **{"data-tip": "View Gallery"},
                         ),
                         external_link(
                             # Iconify's line-md set: the octocat draws itself in, the
@@ -1284,7 +1233,8 @@ def make_overview_card(family: str, name: str) -> dmc.Anchor:
         href=detail_path(family, name),
         underline="never",
         className="dlc-card",
-        **{"data-family": family, "data-name": name},
+        # data-off: parked until assets/gallery.js sees the card near the viewport.
+        **{"data-family": family, "data-name": name, "data-off": ""},
     )
 
 
@@ -1318,6 +1268,111 @@ def family_grids(key: str, items: list[tuple[str, Callable]]) -> list:
             html.Div([make_overview_card(key, n) for n in names], className="dlc-grid"),
         ]
     return grids
+
+
+# Library carousel: one card per library, a few of its spinners at a time.
+# Few spinners show whole; more revolve in even pages. A library with
+# sections (flicker, gridora, loadersz) gets a row per section, each turning
+# on its own. Only the active card's visible page renders; assets/gallery.js
+# wakes and parks the tiles, so the cost is the DOM, not the animations.
+LIB_PAGE_MAX = 8
+# Sections sit side by side, so their rows are narrower: three columns of four,
+# or four columns of three once a library has more sections than fit two rows.
+LIB_SECTION_COLUMNS = {False: (3, 4), True: (4, 3)}  # many sections -> (columns, tiles per page)
+LIB_MANY_SECTIONS = 6
+
+
+def lib_pages(names: list[str], most: int = LIB_PAGE_MAX) -> list[list[str]]:
+    """Even pages of at most `most` (9 becomes 5 + 4, not 8 + 1)."""
+    count = -(-len(names) // most)
+    size = -(-len(names) // count)
+    return [names[i:i + size] for i in range(0, len(names), size)]
+
+
+def make_lib_tile(family: str, name: str, page: int, off: bool) -> dmc.Anchor:
+    extra = {"data-off": ""} if off else {}
+    return dmc.Anchor(
+        [tile_preview(family, name), html.Div(name, className="name")],
+        href=detail_path(family, name),
+        underline="never",
+        className="dlc-lib-tile",
+        **{"data-page": str(page), **extra},
+    )
+
+
+def build_lib_row(family: str, names: list[str], active: bool, per_page: int = LIB_PAGE_MAX,
+                  compact: bool = False) -> html.Div:
+    pages = lib_pages(names, per_page)
+    return html.Div(
+        [make_lib_tile(family, n, p, off=not (active and p == 0))
+         for p, page in enumerate(pages) for n in page],
+        className="dlc-lib-row is-compact" if compact else "dlc-lib-row",
+        style={"--cols": per_page} if compact else None,
+        **{"data-pages": str(len(pages))},
+    )
+
+
+def build_lib_card(key: str, label: str, items: list[tuple[str, Callable]], active: bool) -> html.Section:
+    credit = CREDITS_BY_FAMILY[key]
+    categories = family_categories(key, items)
+    if categories:
+        columns, per_page = LIB_SECTION_COLUMNS[len(categories) > LIB_MANY_SECTIONS]
+        rows = [
+            html.Div(
+                # The note is the section's tooltip: there is no room beside a narrow row.
+                [html.Div(title, className="dlc-lib-section-title", title=note),
+                 build_lib_row(key, names, active, per_page, compact=True)],
+                className="dlc-lib-section",
+            )
+            for title, note, names in categories
+        ]
+    else:
+        rows = [build_lib_row(key, [n for n, _c in items], active)]
+    return html.Section(
+        [
+            dmc.Group(
+                [
+                    dmc.Group(
+                        [dmc.Title([icon(key), label], order=3, className="dlc-family-title"),
+                         dmc.Code(f"dlc.{key}"),
+                         dmc.Badge(str(len(items)), variant="light", color="gray", radius="sm",
+                                   className="dlc-tabular")],
+                        gap="sm", wrap="wrap",
+                    ),
+                    dmc.Anchor(["Browse all ", icon("chevron")], href=f"/#family-{key}", size="sm",
+                               className="dlc-lib-more"),
+                ],
+                justify="space-between", align="center", wrap="wrap",
+            ),
+            dmc.Text(credit["blurb"], c="dimmed", size="sm", mt=4, mb="md"),
+            html.Div(rows, className="dlc-lib-rows is-sections" if categories else "dlc-lib-rows",
+                     style={"--sec-cols": columns} if categories else None),
+        ],
+        className="dlc-lib is-active" if active else "dlc-lib",
+        **{"aria-roledescription": "slide", "aria-label": label},
+    )
+
+
+def build_library_carousel() -> html.Div:
+    return html.Div(
+        [
+            html.Div([build_lib_card(key, label, items, active=i == 0)
+                      for i, (key, label, items) in enumerate(FAMILIES)],
+                     className="dlc-libs-track"),
+            html.Div(
+                [
+                    html.Button(icon("chevron", "dlc-flip"), className="dlc-carousel-btn", type="button",
+                                **{"data-step": "-1", "aria-label": "Previous library"}),
+                    html.Span(className="dlc-carousel-dots", **{"aria-hidden": "true"}),  # indicator only
+                    html.Button(icon("chevron"), className="dlc-carousel-btn", type="button",
+                                **{"data-step": "1", "aria-label": "Next library"}),
+                ],
+                className="dlc-carousel-nav",
+            ),
+        ],
+        className="dlc-libs",
+        **{"aria-roledescription": "carousel", "aria-label": "Libraries"},
+    )
 
 
 def build_overview() -> html.Div:
@@ -1359,7 +1414,7 @@ def build_overview() -> html.Div:
                     ),
                     dmc.CodeHighlight(code="pip install dash-loading-components", language="bash",
                                       className="dlc-install", maw=560, mb="sm"),
-                    build_hero_carousel(),
+                    build_library_carousel(),
                 ],
                 className="dlc-hero",
             ),
@@ -1367,6 +1422,61 @@ def build_overview() -> html.Div:
             build_footer(),
         ],
         className="dlc-page",
+    )
+
+
+# Wall tiles are 64px, so a few loaders whose motion spills past their box need
+# a further shrink on top of OVERVIEW_SCALE (and the wall's own CSS scale).
+# react-spinners' dot rows wrap into a column when three dots at the card size
+# do not fit the tile, and a transform cannot undo a wrap. Give them a size that
+# fits one row and cancel the wall's CSS scale.
+WALL_SIZE_FIT = ("BeatLoader", "PulseLoader", "SyncLoader")
+WALL_SCALE: dict[tuple[str, str], float] = {
+    ("epic", "HollowDotsSpinner"): 0.78,
+    ("indicators", "BlinkBlur"): 0.64,
+    ("indicators", "LifeLine"): 0.7,
+    **{("spinners", n): 1.5 for n in WALL_SIZE_FIT},
+    ("spinners", "GridLoader"): 0.88,
+    ("spinners", "PropagateLoader"): 0.65,
+}
+
+
+def tile_preview(family: str, name: str) -> html.Div:
+    """The overview's preview, fitted to a compact tile (the wall and the library carousel)."""
+    values = overview_values(family, name)
+    if family == "spinners" and name in WALL_SIZE_FIT:
+        values["size"] = 16
+    node = instantiate(family, name, values)
+    scale = OVERVIEW_SCALE.get((family, name), 1) * WALL_SCALE.get((family, name), 1)
+    if scale != 1:
+        node = html.Div(node, style={"transform": f"scale({scale})"})
+    return html.Div(node, className="preview")
+
+
+def make_wall_tile(family: str, name: str) -> dmc.Anchor:
+    """A bare spinner linking to its page; the tooltip in assets/gallery.js reads the data-*."""
+    label = FAMILY_LOOKUP[family][0]
+    return dmc.Anchor(
+        tile_preview(family, name),
+        href=detail_path(family, name),
+        underline="never",
+        className="dlc-wall-tile",
+        # data-off: parked until assets/gallery.js sees the tile near the viewport.
+        **{"data-name": name, "data-family": family, "data-label": label, "data-off": "",
+           "data-desc": description_for(family, name, label), "aria-label": f"{name}, {label}"},
+    )
+
+
+def build_wall() -> html.Div:
+    """Every spinner as a compact tile on a page-less, full-viewport scroller."""
+    return html.Div(
+        [
+            dmc.Anchor(icon("close"), href="/", className="dlc-wall-close",
+                       **{"aria-label": "Close the wall"}),
+            html.Div([make_wall_tile(f, n) for f, n in CATALOG], className="dlc-wall-grid"),
+            html.Div(className="dlc-wall-tip", id="wall-tip", role="tooltip", hidden=True),
+        ],
+        className="dlc-wall",
     )
 
 
@@ -1821,6 +1931,8 @@ def render_page(pathname):
     mode, family, name = parse_pathname(pathname)
     if mode == "overview":
         return build_overview()
+    if mode == "wall":
+        return build_wall()
     if mode == "detail":
         return build_detail(family, name)
     if mode == "credits":
