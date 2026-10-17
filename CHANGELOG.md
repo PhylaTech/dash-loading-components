@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/PhylaTech/dash-loading-components/compare/0.1.3...0.1.4) (2026-10-16)
+
+
+### Features
+
+* add HplcTrace and WellPlate spinners ([#39](https://github.com/PhylaTech/dash-loading-components/issues/39)) ([0ab1a5f](https://github.com/PhylaTech/dash-loading-components/commit/0ab1a5fb9bd24409f01691379f5d1cf6a3b09df4))
+
 ## [0.1.3](https://github.com/PhylaTech/dash-loading-components/compare/0.1.2...0.1.3) (2026-10-14)
 
 
