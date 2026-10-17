@@ -226,33 +226,139 @@
     }, 4000);
   };
 
-  const carousel = () => {
-    const root = document.querySelector('.dlc-hero-carousel');
+  // Library carousel: one card at a time. A row with more than one page turns
+  // by itself while its card is showing; tiles off the current page are parked
+  // (data-off), and a card that is not showing parks all of them. Hover or
+  // focus holds everything still; reduced motion turns nothing on its own.
+  const libraries = () => {
+    const root = document.querySelector('.dlc-libs');
     if (!root || root.dataset.ready) return;
     root.dataset.ready = '1';
-    const slides = root.querySelectorAll('.dlc-slide');
+    const cards = [...root.querySelectorAll('.dlc-lib')];
     const dots = root.querySelector('.dlc-carousel-dots');
-    dots.replaceChildren(...[...slides].map(() => document.createElement('i')));
-    let current = 0, timer;
-    const show = (i) => {
-      const next = (i + slides.length) % slides.length;
-      swap(slides, current, next);
-      current = next;
-      dots.querySelectorAll('i').forEach((d, k) => d.classList.toggle('is-active', k === current));
+    dots.replaceChildren(...cards.map(() => document.createElement('i')));
+    const track = root.querySelector('.dlc-libs-track');
+    let current = 0, held = false, timers = [];
+    const fit = () => { track.style.height = `${cards[current].offsetHeight}px`; };
+    new ResizeObserver(fit).observe(cards[0]);  // width changes re-wrap the rows
+    window.addEventListener('resize', fit);
+    const showPage = (row, page) => {
+      row.dataset.page = page;
+      row.querySelectorAll('.dlc-lib-tile').forEach((t) => t.toggleAttribute('data-off', +t.dataset.page !== page));
+      row.classList.remove('is-turning');
+      void row.offsetWidth;  // restart the entrance
+      row.classList.add('is-turning');
     };
-    // Under reduced motion the arrows still work; the page just stops moving on its own.
-    const start = () => { clearInterval(timer); if (!reduced) timer = setInterval(() => show(current + 1), 5000); };
-    slides[0].hidden = false;
+    const park = (card) => card.querySelectorAll('.dlc-lib-tile').forEach((t) => t.setAttribute('data-off', ''));
+    const run = () => {
+      timers.forEach(clearInterval);
+      timers = [];
+      cards[current].querySelectorAll('.dlc-lib-row').forEach((row, i) => {
+        const pages = +row.dataset.pages;
+        if (reduced || pages < 2) return;
+        // Staggered, so sections of one card do not all turn at once.
+        timers.push(setInterval(() => { if (!held) showPage(row, ((+row.dataset.page || 0) + 1) % pages); }, 3200 + i * 700));
+      });
+      if (!reduced) timers.push(setInterval(() => { if (!held) show(current + 1); }, 14000));
+    };
+    const show = (i) => {
+      const next = (i + cards.length) % cards.length;
+      if (next !== current) {
+        cards[current].classList.remove('is-active');
+        park(cards[current]);
+        current = next;
+        cards[current].classList.add('is-active');
+      }
+      cards[current].querySelectorAll('.dlc-lib-row').forEach((row) => showPage(row, 0));
+      dots.querySelectorAll('i').forEach((d, k) => d.classList.toggle('is-active', k === current));
+      fit();
+      run();
+    };
     show(0);
-    start();
-    root.querySelectorAll('.dlc-carousel-btn').forEach((b) => b.addEventListener('click', () => { show(current + +b.dataset.step); start(); }));
-    root.addEventListener('mouseenter', () => clearInterval(timer));
-    root.addEventListener('mouseleave', start);
+    root.querySelectorAll('.dlc-carousel-btn').forEach((b) => b.addEventListener('click', () => show(current + +b.dataset.step)));
+    dots.querySelectorAll('i').forEach((d, k) => d.addEventListener('click', () => show(k)));
+    // A mouse click leaves focus on its button; only keyboard focus holds.
+    root.addEventListener('mouseenter', () => { held = true; });
+    root.addEventListener('mouseleave', () => { held = false; });
+    root.addEventListener('focusin', (e) => { held = e.target.matches(':focus-visible'); });
+    root.addEventListener('focusout', () => { held = false; });
+  };
+
+  // Wall: one floating tooltip for every tile (a per-tile one would be clipped
+  // by the scroller at the edges), and Esc closes back to the overview.
+  const wallTip = (tile) => {
+    const tip = document.getElementById('wall-tip');
+    if (!tip) return;
+    if (!tile) { tip.hidden = true; return; }
+    const d = tile.dataset;
+    const row = (tag, text) => { const el = document.createElement(tag); el.textContent = text; return el; };
+    tip.replaceChildren(row('b', d.name), row('code', `dlc.${d.family}`), row('span', d.desc));
+    tip.hidden = false;
+    const r = tile.getBoundingClientRect(), t = tip.getBoundingClientRect();
+    const left = Math.min(Math.max(8, r.left + r.width / 2 - t.width / 2), innerWidth - t.width - 8);
+    const below = r.bottom + 8 + t.height <= innerHeight;
+    tip.style.left = `${left}px`;
+    tip.style.top = `${below ? r.bottom + 8 : r.top - 8 - t.height}px`;
+  };
+  const tileOf = (event) => event.target.closest && event.target.closest('.dlc-wall-tile');
+  // Hover waits a beat, so scrolling or sweeping across the wall stays quiet;
+  // only a pointer that settles on a tile gets its tooltip. Keyboard focus is
+  // deliberate, so it shows at once. Scrolling hides a hover tooltip again.
+  const WALL_TIP_DELAY = 500;
+  let tipTimer, tipTile = null;
+  const hideTip = () => { clearTimeout(tipTimer); tipTile = null; wallTip(null); };
+  document.addEventListener('mouseover', (event) => {
+    const tile = tileOf(event);
+    if (tile === tipTile) return;
+    hideTip();
+    if (!tile) return;
+    tipTile = tile;
+    tipTimer = setTimeout(() => wallTip(tile), WALL_TIP_DELAY);
+  });
+  document.addEventListener('focusin', (event) => { const tile = tileOf(event); if (tile) { hideTip(); wallTip(tile); } });
+  document.addEventListener('focusout', (event) => { if (tileOf(event)) hideTip(); });
+  // Focus can scroll its tile into view; that must not hide its own tooltip, so
+  // only a hover one (tipTile set) goes on scroll.
+  document.addEventListener('scroll', (event) => {
+    if (tipTile && event.target.classList?.contains('dlc-wall')) hideTip();
+  }, true);
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !document.querySelector('.dlc-wall')) return;
+    history.pushState({}, '', '/');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  });
+
+  // Render only what is near the viewport, on the wall and on the overview:
+  // 474 live spinners are thousands of animated layers, over a gigabyte in the
+  // tab. A parked tile loses its preview (display: none drops its animations
+  // and layers) and its loadersz canvases, which run their own rAF loop, are
+  // paused. Tiles are observed once, and the observer lives as long as they do.
+  const parker = (root, margin) => new IntersectionObserver((entries) => {
+    for (const {target, isIntersecting} of entries) {
+      target.toggleAttribute('data-off', !isIntersecting);
+      target.querySelectorAll('loadersz-loader').forEach((el) => el.toggleAttribute('paused', !isIntersecting));
+    }
+  }, {root, rootMargin: margin});
+  const park = () => {
+    const wall = document.querySelector('.dlc-wall');
+    if (wall && !wall.dataset.ready) {
+      wall.dataset.ready = '1';
+      const io = parker(wall, '120px 0px');
+      wall.querySelectorAll('.dlc-wall-tile').forEach((tile) => io.observe(tile));
+    }
+    if (document.querySelector('.dlc-page .dlc-card:not([data-seen])')) {
+      const io = parker(null, '200px 0px');
+      document.querySelectorAll('.dlc-page .dlc-card:not([data-seen])').forEach((card) => {
+        card.dataset.seen = '1';
+        io.observe(card);
+      });
+    }
   };
 
   let markStarted = false;
   new MutationObserver(() => {
     if (!markStarted && document.querySelector('.dlc-brand-mark .dlc-mark')) { markStarted = true; cycleMark(); }
-    carousel();
+    libraries();
+    park();
   }).observe(document.documentElement, {childList: true, subtree: true});
 })();
