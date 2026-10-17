@@ -105,6 +105,10 @@ def test_no_overview_card_clips_its_spinner(dash_duo):
     dash_duo.start_server(app)
     dash_duo.driver.set_window_size(1440, 1200)
     dash_duo.wait_for_element('.dlc-card')
+    # Cards far from the viewport are parked (no preview); once the observer
+    # has settled, wake them all so every one is measured.
+    time.sleep(1)
+    dash_duo.driver.execute_script("document.querySelectorAll('.dlc-card').forEach((c) => c.removeAttribute('data-off'))")
 
     worst = _worst_overflow(dash_duo, seconds=3.0)
     clipped = {
@@ -160,6 +164,33 @@ def test_wall_has_every_spinner_and_none_clips(dash_duo):
     tile.click()
     dash_duo.wait_for_text_to_equal('h1', gallery.CATALOG[0][1])
     assert dash_duo.driver.current_url.endswith(gallery.detail_path(*gallery.CATALOG[0]))
+
+
+def test_library_carousel_shows_a_few_of_one_library_at_a_time(dash_duo):
+    """The landing page carries one card per library. Only the active card has
+    live tiles, never more than a page of them per row, and the arrows move
+    between libraries."""
+    import gallery
+
+    app = import_app('gallery')
+    dash_duo.start_server(app)
+    dash_duo.driver.set_window_size(1440, 1200)
+    dash_duo.wait_for_element('.dlc-lib.is-active .dlc-lib-tile:not([data-off])')
+
+    cards = dash_duo.driver.find_elements('css selector', '.dlc-lib')
+    assert len(cards) == len(gallery.FAMILIES)
+
+    live = "return document.querySelectorAll('.dlc-lib:not(.is-active) .dlc-lib-tile:not([data-off])').length"
+    assert dash_duo.driver.execute_script(live) == 0
+    first = dash_duo.find_element('.dlc-lib.is-active').get_attribute('aria-label')
+    dash_duo.find_element('.dlc-carousel-btn[data-step="1"]').click()
+    dash_duo.wait_for_element('.dlc-lib.is-active .dlc-lib-tile:not([data-off])')
+    assert dash_duo.find_element('.dlc-lib.is-active').get_attribute('aria-label') != first
+    assert dash_duo.driver.execute_script(live) == 0
+
+    # A library of nine is two even pages, not eight and one.
+    assert [len(p) for p in gallery.lib_pages(list('abcdefghi'))] == [5, 4]
+    assert [len(p) for p in gallery.lib_pages(list('abcdefgh'))] == [8]
 
 
 def test_brand_marks_do_not_clip(dash_duo):
